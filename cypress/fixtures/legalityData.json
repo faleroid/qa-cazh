@@ -1,0 +1,34 @@
+{
+  "urls": {
+    "legalityPage": "/setting/invoice/legality",
+    "invoiceProofPage": "/invoice/proof"
+  },
+  "placeholders": {
+    "pengesahanKeywords": ["mengetahui", "menyetujui", "disetujui"],
+    "jabatanKeywords": ["bendahara", "kepala sekolah"],
+    "namaTerangKeywords": ["vero"]
+  },
+  "infoMessages": {
+    "signatureInfo": "Pastikan tanda tangan memiliki background transparan/putih"
+  },
+  "validForm": {
+    "pengesahan": "Mengetahui",
+    "jabatan": "Bendahara Yayasan",
+    "namaTerang": "Vero Prasetyo"
+  },
+  "validationMessages": {
+    "pengesahanRequired": "Pengesahan wajib diisi",
+    "jabatanRequired": "Jabatan wajib diisi",
+    "namaTerangRequired": "Nama Terang wajib diisi",
+    "genericRequired": "wajib diisi",
+    "maxFileSize": "Ukuran file maksimal 2MB",
+    "invalidFileType": "Tipe file harus png, jpg, atau jpeg"
+  },
+  "files": {
+    "validPng": "cypress/fixtures/signature.png",
+    "validJpg": "cypress/fixtures/signature.jpg",
+    "validJpeg": "cypress/fixtures/signature.jpeg",
+    "largePng": "cypress/fixtures/large_signature.png",
+    "invalidPdf": "cypress/fixtures/document.pdf"
+  }
+}
