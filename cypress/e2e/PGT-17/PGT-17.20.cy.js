@@ -7,7 +7,7 @@ describe('PGT-17.20 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.20: Klik dropdown Pagination Page Size -> Muncul list opsi 10, 50, 100, 500, 1000', () => {
+  it('PGT-17.20 Klik dropdown Pagination Page Size Selector', () => {
     InventoryCategoryPage.elements.pageSizeDropdown().click({ force: true });
     InventoryCategoryPage.elements.selectOptions().should('have.length', 5);
   });

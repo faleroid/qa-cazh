@@ -8,6 +8,7 @@ describe('PGT-16.20 - Legalitas Bukti Bayar', () => {
   });
 
   it('PGT-16.20: Upload TTD format .PDF -> Sistem tolak dengan error tipe file', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
     LegalityPage.uploadSignature(testData.files.invalidPdf);
     LegalityPage.verifyValidationError(testData.validationMessages.invalidFileType);

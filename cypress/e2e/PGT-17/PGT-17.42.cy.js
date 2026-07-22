@@ -7,8 +7,13 @@ describe('PGT-17.42 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.42: Search sampai hasil 1 row -> Hapus row -> Empty state', () => {
-    InventoryCategoryPage.search(testData.validData.kategoriUpdate);
+  it('PGT-17.42 Search sampai hasil tinggal 1 row -> hapus row tersebut', () => {
+    InventoryCategoryPage.clickAddButton();
+    InventoryCategoryPage.fillModalForm({ instansiIndex: 0, namaKategori: 'Data Khusus Hapus 42' });
+    InventoryCategoryPage.saveForm();
+    InventoryCategoryPage.elements.formModal().should('not.exist');
+    cy.wait(1000);
+    InventoryCategoryPage.search('Data Khusus Hapus 42');
     InventoryCategoryPage.elements.tableRows().should('have.length', 1);
     InventoryCategoryPage.clickDeleteFirstRow();
     InventoryCategoryPage.confirmDelete();

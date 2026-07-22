@@ -7,7 +7,7 @@ describe('PGT-17.7 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.7: Pilih Instansi kosongkan Nama Kategori -> Peringatan muncul', () => {
+  it('PGT-17.7 Pilih Instansi tapi kosongkan Nama Kategori -> klik Simpan', () => {
     InventoryCategoryPage.clickAddButton();
     InventoryCategoryPage.fillModalForm({ instansiIndex: 0, namaKategori: '' });
     InventoryCategoryPage.saveForm();

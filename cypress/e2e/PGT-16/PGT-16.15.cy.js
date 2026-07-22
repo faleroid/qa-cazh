@@ -8,6 +8,7 @@ describe('PGT-16.15 - Legalitas Bukti Bayar', () => {
   });
 
   it('PGT-16.15: Isi semua required + skip upload TTD (Optional) -> Data disimpan', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
     LegalityPage.fillForm(testData.validForm);
     LegalityPage.clickSave();

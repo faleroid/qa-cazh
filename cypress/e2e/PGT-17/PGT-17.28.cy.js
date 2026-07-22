@@ -7,10 +7,11 @@ describe('PGT-17.28 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.28: Klik btn Bersihkan filter -> Filter cleared', () => {
-    InventoryCategoryPage.clickFilterButton();
-    InventoryCategoryPage.applyFilter(0);
-    InventoryCategoryPage.elements.filterClearBtnInList().click({ force: true });
+  it('PGT-17.28 Klik btn 'Bersihkan' di samping filter aktif', () => {
+    InventoryCategoryPage.elements.filterInstansiSelect().click({ force: true });
+    InventoryCategoryPage.elements.selectOptions().last().click({ force: true });
+    cy.wait(1000);
+    InventoryCategoryPage.elements.filterClearBtnInList().should('be.visible').click({ force: true });
     InventoryCategoryPage.elements.filterClearBtnInList().should('not.exist');
   });
 });

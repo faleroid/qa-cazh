@@ -7,7 +7,8 @@ describe('PGT-17.14 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.14: Tambah kategori -> reload halaman -> Default sort tampil paling atas', () => {
+  it('PGT-17.14 Tambah beberapa kategori -> reload halaman', () => {
+    InventoryCategoryPage.ensureDataExists();
     cy.reload();
     InventoryCategoryPage.elements.tableRows().should('be.visible');
   });

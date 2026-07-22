@@ -7,7 +7,7 @@ describe('PGT-17.9 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.9: Buka dropdown Instansi -> Menampilkan list instansi', () => {
+  it('PGT-17.9 Buka dropdown Instansi', () => {
     InventoryCategoryPage.clickAddButton();
     InventoryCategoryPage.elements.modalInstansiDropdown().click({ force: true });
     InventoryCategoryPage.elements.selectOptions().should('have.length.at.least', 1);

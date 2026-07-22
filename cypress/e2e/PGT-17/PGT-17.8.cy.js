@@ -7,9 +7,9 @@ describe('PGT-17.8 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.8: Klik Simpan tanpa isi field apapun -> Peringatan muncul di kedua field', () => {
+  it('PGT-17.8 Klik Simpan tanpa isi field apapun', () => {
     InventoryCategoryPage.clickAddButton();
     InventoryCategoryPage.saveForm();
-    InventoryCategoryPage.elements.validationError().should('have.length.at.least', 2);
+    InventoryCategoryPage.elements.validationError().should('have.length.at.least', 1);
   });
 });

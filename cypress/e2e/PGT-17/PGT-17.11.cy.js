@@ -7,7 +7,8 @@ describe('PGT-17.11 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.11: Cek Aksi di setiap row -> Memiliki icon Edit & Hapus', () => {
+  it('PGT-17.11 Cek Aksi di setiap row', () => {
+    InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.elements.rowEditBtn().should('exist');
     InventoryCategoryPage.elements.rowDeleteBtn().should('exist');
   });

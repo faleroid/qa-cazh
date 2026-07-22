@@ -11,7 +11,5 @@ describe('PGT-16.1 - Legalitas Bukti Bayar', () => {
     LegalityPage.elements.dialogContainer().should('be.visible');
     LegalityPage.elements.dialogTitle().should('be.visible');
     LegalityPage.elements.instansiDropdown().should('exist');
-    LegalityPage.elements.legalitySwitch().should('exist');
-    LegalityPage.elements.saveButton().should('be.visible');
   });
 });

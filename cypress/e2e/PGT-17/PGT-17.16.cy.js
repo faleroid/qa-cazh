@@ -7,7 +7,8 @@ describe('PGT-17.16 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.16: Klik sort arrow icon 2x -> Icon descending sort, data terurut descending', () => {
+  it('PGT-17.16 Klik sort arrow icon di kolom yang sudah ascending -> 2x lagi (total 2 klik)', () => {
+    InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.elements.sortArrowBtn('Nama Kategori').click({ force: true }).click({ force: true });
   });
 });

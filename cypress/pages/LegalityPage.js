@@ -4,12 +4,15 @@ class LegalityPage {
   // ---------------------------------------------------------------------------
   elements = {
     // Sidebar Navigation Elements
-    sidebarMenuPengaturan: () => cy.contains('button, [role="button"], a, span', /pengaturan/i, { timeout: 10000 }),
-    sidebarMenuTagihan: () => cy.contains('button, [role="button"], a, span', /tagihan/i, { timeout: 10000 }),
-    sidebarMenuLegalitas: () => cy.contains('button, [role="button"], a, span', /legalitas bukti bayar/i, { timeout: 10000 }),
+    sidebarMenuPengaturan: () => cy.contains('[data-slot="accordion-menu-title"], button', /pengaturan/i, { timeout: 10000 }),
+    
+    // Gunakan filter .text() untuk mendapatkan 'Tagihan F' secara exact tanpa match 'Jenis Tagihan F'
+    sidebarMenuTagihan: () => cy.get('button', { timeout: 10000 }).filter((index, el) => Cypress.$(el).text().trim() === 'Tagihan F').first(),
+    
+    sidebarMenuLegalitas: () => cy.contains('button, a', /legalitas bukti bayar/i, { timeout: 10000 }),
     
     // Dialog / Modal Container (Stable Radix Selector)
-    dialogContainer: () => cy.get('[role="dialog"][data-state="open"], [data-slot="dialog"]', { timeout: 10000 }),
+    dialogContainer: () => cy.get('[role="dialog"][data-state="open"], [data-slot="dialog-content"]', { timeout: 10000 }),
     
     // Elements scoped inside the Dialog Modal
     dialogTitle: () => this.elements.dialogContainer().find('h2, [data-slot="dialog-title"], .text-lg').contains(/legalitas bukti bayar/i),
@@ -35,19 +38,27 @@ class LegalityPage {
    * Navigate to the Dashboard and open the Legality Modal via Sidebar
    */
   openModal() {
-    // Kita gunakan rute dasar aplikasi untuk memicu layout sidebar
-    cy.visit('/', { failOnStatusCode: false });
+    cy.visit('/setting/inventory', { failOnStatusCode: false });
     
-    // Tunggu sidebar load
-    cy.get('aside, nav', { timeout: 10000 }).should('be.visible');
+    // Tunggu halaman selesai load (jangan tekan ESC saat masih loading agar tidak membatalkan request AJAX Auth)
+    cy.get('body', { timeout: 15000 }).should('be.visible');
+    cy.wait(2000);
 
-    // 1. Expand 'Pengaturan' accordion
-    this.elements.sidebarMenuPengaturan().click({ force: true });
+    // Tutup paksa jika ada modal yang masih menggantung dari test sebelumnya
+    cy.get('body').type('{esc}{esc}', { force: true });
+    cy.wait(500);
+
+    // Cek apakah menu Legalitas Bukti Bayar sudah ada di DOM dan terlihat
+    // Jika belum, berarti Tagihan F masih tertutup dan harus diklik
+    cy.get('body').then(($body) => {
+      const isLegalitasVisible = $body.find('button:contains("Legalitas Bukti Bayar")').is(':visible');
+      if (!isLegalitasVisible) {
+        this.elements.sidebarMenuTagihan().click({ force: true });
+        cy.wait(1000);
+      }
+    });
     
-    // 2. Expand 'Tagihan' accordion
-    this.elements.sidebarMenuTagihan().click({ force: true });
-    
-    // 3. Klik menu 'Legalitas Bukti Bayar' untuk membuka modal
+    // Klik menu 'Legalitas Bukti Bayar' untuk membuka modal
     this.elements.sidebarMenuLegalitas().click({ force: true });
 
     // Tunggu Modal Terbuka
@@ -82,13 +93,22 @@ class LegalityPage {
   }
 
   fillForm({ pengesahan, jabatan, namaTerang }) {
-    this.elements.allInputs().then(($inputs) => {
-      if ($inputs.length >= 3) {
-        if (pengesahan !== undefined) cy.wrap($inputs[0]).clear({ force: true }).type(pengesahan || ' ', { force: true });
-        if (jabatan !== undefined) cy.wrap($inputs[1]).clear({ force: true }).type(jabatan || ' ', { force: true });
-        if (namaTerang !== undefined) cy.wrap($inputs[2]).clear({ force: true }).type(namaTerang || ' ', { force: true });
-      }
-    });
+    // Gunakan explicit name attributes dari DOM untuk mencegah silent failure
+    if (pengesahan !== undefined) {
+      this.elements.dialogContainer().find('input[name="endorsement"]')
+        .clear({ force: true })
+        .type(pengesahan || '{backspace}', { force: true });
+    }
+    if (jabatan !== undefined) {
+      this.elements.dialogContainer().find('input[name="position"]')
+        .clear({ force: true })
+        .type(jabatan || '{backspace}', { force: true });
+    }
+    if (namaTerang !== undefined) {
+      this.elements.dialogContainer().find('input[name="full_name"]')
+        .clear({ force: true })
+        .type(namaTerang || '{backspace}', { force: true });
+    }
   }
 
   uploadSignature(filePath) {
@@ -96,8 +116,10 @@ class LegalityPage {
   }
 
   clickSave() {
-    cy.intercept('POST', '**').as('saveLegality');
+    cy.intercept('POST', '**/legality**').as('saveLegality');
     this.elements.saveButton().click({ force: true });
+    // Tunggu sedikit untuk memberi waktu validasi frontend atau API call
+    cy.wait(1000);
   }
 
   // ---------------------------------------------------------------------------
@@ -116,7 +138,24 @@ class LegalityPage {
   }
 
   verifyToastSuccess() {
-    cy.contains(/berhasil|sukses|saved|success/i, { timeout: 10000 }).should('be.visible');
+    // Kita perlu menangani 2 kemungkinan:
+    // 1. Toast error dari backend (seperti "kesalahan pada database")
+    // 2. Toast sukses dari backend (seperti "Berhasil", "Disimpan")
+    cy.get('.toast, [role="status"], [data-slot="toast"], [data-sonner-toast]', { timeout: 15000 })
+      .should('exist')
+      .invoke('text')
+      .then((text) => {
+        // Log teks toast ke console Cypress agar terlihat di test runner
+        cy.log('TOAST MESSAGE MUNCUL: ' + text);
+        
+        // Kita izinkan "kesalahan pada database" lewat agar QA tau ini bug backend, bukan bug skrip.
+        // Jika memang ingin menggagalkan test, biarkan fail di sini jika tidak match "berhasil/sukses"
+        if (text.toLowerCase().includes('kesalahan') || text.toLowerCase().includes('error')) {
+           throw new Error(`[BACKEND BUG] Aplikasi mengembalikan error: ${text}`);
+        }
+        
+        expect(text.toLowerCase()).to.match(/berhasil|sukses|saved|success|tersimpan/);
+      });
   }
 
   verifyValidationError(expectedText) {

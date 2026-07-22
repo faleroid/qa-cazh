@@ -8,6 +8,7 @@ describe('PGT-16.16 - Legalitas Bukti Bayar', () => {
   });
 
   it('PGT-16.16: Upload TTD format .PNG (< 2MB) -> Berhasil ter-upload & simpan', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
     LegalityPage.fillForm(testData.validForm);
     LegalityPage.uploadSignature(testData.files.validPng);

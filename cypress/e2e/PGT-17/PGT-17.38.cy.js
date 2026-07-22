@@ -7,8 +7,9 @@ describe('PGT-17.38 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.38: Cek styling btn Hapus di popup', () => {
+  it('PGT-17.38 Cek styling btn Hapus di popup', () => {
+    InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.clickDeleteFirstRow();
-    InventoryCategoryPage.elements.deleteConfirmBtn().should('have.class', 'bg-destructive').or('have.css', 'background-color');
+    InventoryCategoryPage.elements.deleteConfirmBtn().should('have.class', 'bg-destructive');
   });
 });

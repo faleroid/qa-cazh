@@ -7,8 +7,9 @@ describe('PGT-17.24 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.24: Ketik keyword match -> List menampilkan data yang match', () => {
-    InventoryCategoryPage.search(testData.search.validKeyword);
+  it('PGT-17.24 Ketik keyword yang match dengan Nama Kategori existing', () => {
+    InventoryCategoryPage.ensureDataExists();
+    InventoryCategoryPage.search('Dummy');
     InventoryCategoryPage.elements.tableRows().should('have.length.at.least', 1);
   });
 });

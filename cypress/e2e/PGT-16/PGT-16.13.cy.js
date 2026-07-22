@@ -8,6 +8,7 @@ describe('PGT-16.13 - Legalitas Bukti Bayar', () => {
   });
 
   it('PGT-16.13: Aktifkan toggle + kosongkan Nama Terang -> Error "Nama Terang wajib diisi"', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
     LegalityPage.fillForm({ pengesahan: testData.validForm.pengesahan, jabatan: testData.validForm.jabatan, namaTerang: '' });
     LegalityPage.clickSave();

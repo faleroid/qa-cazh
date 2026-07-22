@@ -7,7 +7,7 @@ describe('PGT-17.5 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.5: Isi form -> klik btn Batal/Cancel -> Popup tertutup, tidak tersimpan', () => {
+  it('PGT-17.5 Isi form -> klik btn Batal/Cancel', () => {
     InventoryCategoryPage.clickAddButton();
     InventoryCategoryPage.fillModalForm({ instansiIndex: 0, namaKategori: 'Test Batal' });
     InventoryCategoryPage.cancelForm();

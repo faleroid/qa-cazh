@@ -8,6 +8,7 @@ describe('PGT-16.5 - Legalitas Bukti Bayar', () => {
   });
 
   it('PGT-16.5: Aktifkan toggle -> 4 sub-field muncul', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
     LegalityPage.verifySubFieldsVisible();
   });

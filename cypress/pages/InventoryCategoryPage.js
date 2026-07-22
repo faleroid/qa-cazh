@@ -11,38 +11,36 @@ class InventoryCategoryPage {
     // Top Bar & Actions
     addButton: () => cy.contains('button, a', /tambah kategori/i, { timeout: 10000 }),
     searchInput: () => cy.get('input[placeholder*="Cari"], input[placeholder*="Search"]', { timeout: 10000 }),
-    filterButton: () => cy.contains('button', /filter/i, { timeout: 10000 }),
-    
-    // Filter Dropdown Portal
-    filterDropdown: () => cy.get('[data-slot="popover-content"], [role="dialog"]').filter(':contains("Terapkan"), :contains("Bersihkan")'),
-    filterInstansiSelect: () => this.elements.filterDropdown().find('[role="combobox"], [data-slot="select-trigger"]'),
-    filterApplyButton: () => this.elements.filterDropdown().contains('button', /terapkan/i),
-    filterClearBtnInList: () => cy.contains('button', /bersihkan/i),
+    // Filter
+    filterInstansiSelect: () => cy.get('[data-slot="card-header"] [role="combobox"], [data-slot="card-header"] [data-slot="select-trigger"]').first(),
+    filterClearBtnInList: () => cy.get('[data-slot="card-header"] [data-slot="badge"] button:has(svg.lucide-x)'),
     
     // Dialog Modal (Tambah / Edit)
-    formModal: () => cy.get('[role="dialog"][data-state="open"], [data-slot="dialog"]', { timeout: 10000 }).filter(':contains("Simpan")'),
+    formModal: () => cy.get('[role="dialog"], [data-slot="dialog"]', { timeout: 10000 }),
     modalInstansiDropdown: () => this.elements.formModal().find('[role="combobox"], [data-slot="select-trigger"]'),
     modalInstansiValue: () => this.elements.modalInstansiDropdown().find('span, [data-slot="select-value"]'),
     modalNamaInput: () => this.elements.formModal().find('input[data-slot="input"], input:not([type="hidden"]), input[placeholder*="Contoh"], input[placeholder*="Example"]').last(),
     modalSaveBtn: () => this.elements.formModal().contains('button', /simpan/i),
     modalCancelBtn: () => this.elements.formModal().contains('button', /batal|cancel/i),
     
-    // Dialog Delete
-    deleteModal: () => cy.get('[role="dialog"][data-state="open"], [data-slot="dialog"]').filter(':contains("Hapus"), :contains("Delete")'),
+    // Delete Modal
+    deleteModal: () => cy.get('[role="dialog"]:contains("Apakah anda yakin menghapus"), [data-slot="dialog-content"]:contains("Apakah anda yakin menghapus")', { timeout: 10000 }),
     deleteConfirmBtn: () => this.elements.deleteModal().contains('button', /hapus|delete/i),
-    deleteCancelBtn: () => this.elements.deleteModal().find('button[aria-label="Close"], [data-slot="dialog-close"]'),
+    deleteCancelBtn: () => this.elements.deleteModal().contains('button, a', /batal|cancel/i),
+    deleteCloseXBtn: () => this.elements.deleteModal().find('button[data-slot="dialog-close"], button:has(svg.lucide-x)').last(),
     
     // Shared / Global components
     selectOptions: () => cy.get('[role="option"], [data-slot="select-item"]', { timeout: 10000 }),
     loadingAnimation: () => cy.contains(/tunggu sesaat|loading/i, { timeout: 10000 }),
-    validationError: () => cy.get('[data-slot="error"], p.text-destructive, p.text-red-500, [role="alert"]'),
+    validationError: () => cy.get('[data-slot="error"], p.text-destructive, p.text-red-500, [role="alert"], [data-slot="form-message"]', { timeout: 15000 }),
+    toastMessage: () => cy.get('.toast, [role="status"], [class*="toast"], [data-slot="toast"], [data-sonner-toast]', { timeout: 15000 }),
     
     // Data Table
     tableRows: () => cy.get('tbody tr', { timeout: 10000 }),
     tableHeaderNodes: () => cy.get('thead th'),
-    emptyState: () => cy.contains(/tidak ada data yang ditemukan/i, { timeout: 10000 }),
-    rowEditBtn: () => this.elements.tableRows().find('button:has(svg), a').filter('[title*="Edit"], [aria-label*="Edit"]').first(),
-    rowDeleteBtn: () => this.elements.tableRows().find('button:has(svg), a').filter('[title*="Hapus"], [aria-label*="Hapus"], [title*="Delete"]').first(),
+    emptyState: () => cy.contains(/data inventaris tidak ditemukan/i, { timeout: 10000 }),
+    rowEditBtn: () => this.elements.tableRows().find('button:has(svg.lucide-square-pen), a:has(svg.lucide-square-pen)').first(),
+    rowDeleteBtn: () => this.elements.tableRows().find('button:has(svg.lucide-trash), a:has(svg.lucide-trash)').first(),
     
     // Pagination & Sorting
     pageSizeDropdown: () => cy.get('[role="combobox"], [data-slot="select-trigger"]').filter(':contains("10"), :contains("50"), :contains("100"), :contains("500")'),
@@ -56,10 +54,13 @@ class InventoryCategoryPage {
     // Navigate directly to the page. We have set a global viewport and timeout in cypress.config.js to prevent hangs.
     cy.visit('/setting/inventory', { failOnStatusCode: false, timeout: 30000 });
     cy.get('body', { timeout: 10000 }).should('be.visible');
+    // Tambahkan wait sejenak agar React benar-benar siap dan nge-bind semua fungsi onClick
+    cy.wait(1500);
   }
 
   clickAddButton() {
-    this.elements.addButton().click({ force: true });
+    // Hindari force: true agar Cypress menunggu jika tombol masih dilindungi efek loading
+    this.elements.addButton().click();
   }
 
   fillModalForm({ instansiIndex, namaKategori }) {
@@ -93,24 +94,14 @@ class InventoryCategoryPage {
     this.elements.selectOptions().contains(String(size)).click({ force: true });
   }
 
-  clickFilterButton() {
-    this.elements.filterButton().click({ force: true });
-  }
 
-  applyFilter(instansiIndex) {
-    if (instansiIndex !== undefined) {
-      this.elements.filterInstansiSelect().click({ force: true });
-      this.elements.selectOptions().eq(instansiIndex).click({ force: true });
-    }
-    this.elements.filterApplyButton().click({ force: true });
-  }
 
   clickEditFirstRow() {
-    this.elements.rowEditBtn().click({ force: true });
+    this.elements.rowEditBtn().click();
   }
 
   clickDeleteFirstRow() {
-    this.elements.rowDeleteBtn().click({ force: true });
+    this.elements.rowDeleteBtn().click();
   }
 
   confirmDelete() {
@@ -118,7 +109,21 @@ class InventoryCategoryPage {
   }
 
   cancelDeleteByX() {
-    this.elements.deleteCancelBtn().click({ force: true });
+    this.elements.deleteCloseXBtn().click({ force: true });
+  }
+
+  ensureDataExists() {
+    // Cek apakah tabel kosong berdasarkan empty state atau jumlah TR
+    cy.get('body').then(($body) => {
+      if ($body.find('tbody tr').length === 0 || $body.text().match(/data inventaris tidak ditemukan/i)) {
+        cy.log('Table is empty. Auto-creating dummy data for testing...');
+        this.clickAddButton();
+        this.fillModalForm({ instansiIndex: 0, namaKategori: 'Data Dummy Otomatis' });
+        this.saveForm();
+        this.elements.formModal().should('not.exist');
+        cy.wait(2000); // Tunggu data muncul di tabel
+      }
+    });
   }
 }
 

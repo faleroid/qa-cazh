@@ -8,6 +8,7 @@ describe('PGT-16.10 - Legalitas Bukti Bayar', () => {
   });
 
   it('PGT-16.10: Cek info message di section Tanda Tangan Digital', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
     LegalityPage.elements.infoMessage().should('be.visible');
   });

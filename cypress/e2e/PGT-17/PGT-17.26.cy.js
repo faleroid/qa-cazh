@@ -7,9 +7,7 @@ describe('PGT-17.26 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.26: Klik btn Filter -> Dropdown filter muncul dengan input Instansi', () => {
-    InventoryCategoryPage.clickFilterButton();
-    InventoryCategoryPage.elements.filterDropdown().should('be.visible');
-    InventoryCategoryPage.elements.filterInstansiSelect().should('exist');
+  it('PGT-17.26 Klik btn 'Filter' di halaman list', () => {
+    InventoryCategoryPage.elements.filterInstansiSelect().should('be.visible');
   });
 });

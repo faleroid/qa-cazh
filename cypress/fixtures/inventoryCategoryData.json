@@ -3,21 +3,30 @@
     "inventoryCategoryPage": "/setting/inventory"
   },
   "placeholders": {
-    "instansi": ["Pilih Instansi", "Select Institution"],
-    "namaKategori": ["Contoh: Meja atau Kursi", "Example: Table or Chair"],
-    "search": ["Cari", "Search"]
+    "instansi": [
+      "Pilih Instansi",
+      "Select Institution"
+    ],
+    "namaKategori": [
+      "Contoh: Meja atau Kursi",
+      "Example: Table or Chair"
+    ],
+    "search": [
+      "Cari",
+      "Search"
+    ]
   },
   "validData": {
-    "kategoriBaru": "Elektronik Baru",
-    "kategoriUpdate": "Elektronik Update"
+    "kategoriBaru": "Meja Baru",
+    "kategoriUpdate": "Meja Baru Update"
   },
   "validationMessages": {
-    "instansiRequired": "Instansi harus diisi",
-    "kategoriRequired": "Nama Kategori harus diisi"
+    "instansiRequired": "Instansi wajib diisi",
+    "kategoriRequired": "Nama kategori inventaris wajib diisi"
   },
   "search": {
-    "validKeyword": "Elektronik",
-    "invalidKeyword": "xyz123abc"
+    "validKeyword": "Meja",
+    "invalidKeyword": "SatelitLuarAngkasa999"
   },
   "emptyStateText": "Tidak ada data yang ditemukan"
 }

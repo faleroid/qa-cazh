@@ -7,7 +7,8 @@ describe('PGT-17.31 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.31: Klik icon Edit di row -> Popup Edit terbuka pre-filled', () => {
+  it('PGT-17.31 Klik icon Edit di row kategori inventaris', () => {
+    InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.clickEditFirstRow();
     InventoryCategoryPage.elements.formModal().should('be.visible');
     InventoryCategoryPage.elements.modalNamaInput().invoke('val').should('not.be.empty');

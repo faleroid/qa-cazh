@@ -7,7 +7,8 @@ describe('PGT-17.41 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.41: Buka popup Hapus -> tekan Esc di keyboard -> Batal hapus', () => {
+  it('PGT-17.41 Buka popup Hapus -> tekan Esc di keyboard', () => {
+    InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.clickDeleteFirstRow();
     cy.get('body').type('{esc}');
     InventoryCategoryPage.elements.deleteModal().should('not.exist');

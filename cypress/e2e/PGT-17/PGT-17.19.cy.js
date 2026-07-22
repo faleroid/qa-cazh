@@ -7,7 +7,7 @@ describe('PGT-17.19 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.19: Cek default value Pagination Page Size Selector = 10', () => {
+  it('PGT-17.19 Cek default value Pagination Page Size Selector', () => {
     InventoryCategoryPage.elements.pageSizeDropdown().invoke('text').should('contain', '10');
   });
 });

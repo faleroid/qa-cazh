@@ -21,8 +21,8 @@
     "jabatanRequired": "Jabatan wajib diisi",
     "namaTerangRequired": "Nama Terang wajib diisi",
     "genericRequired": "wajib diisi",
-    "maxFileSize": "Ukuran file maksimal 2MB",
-    "invalidFileType": "Tipe file harus png, jpg, atau jpeg"
+    "maxFileSize": "File melebihi ukuran maksimal 2MB",
+    "invalidFileType": "bukan tipe file yang diterima"
   },
   "files": {
     "validPng": "cypress/fixtures/signature.png",

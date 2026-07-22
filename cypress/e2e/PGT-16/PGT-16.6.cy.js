@@ -8,6 +8,7 @@ describe('PGT-16.6 - Legalitas Bukti Bayar', () => {
   });
 
   it('PGT-16.6: Matikan kembali toggle setelah aktif -> 4 sub-field tersembunyi lagi', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
     LegalityPage.setToggleState(false);
     LegalityPage.verifySubFieldsHidden();

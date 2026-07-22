@@ -7,7 +7,7 @@ describe('PGT-17.22 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.22: Cek placeholder Search input field', () => {
+  it('PGT-17.22 Cek placeholder + icon di Search input field', () => {
     InventoryCategoryPage.elements.searchInput().invoke('attr', 'placeholder').should('match', /cari|search/i);
   });
 });

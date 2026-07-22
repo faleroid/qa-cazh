@@ -7,7 +7,8 @@ describe('PGT-17.33 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.33: Ubah Instansi di Edit -> klik Simpan -> Instansi ter-update', () => {
+  it('PGT-17.33 Ubah Instansi di popup Edit (pilih instansi lain) -> klik Simpan', () => {
+    InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.clickEditFirstRow();
     InventoryCategoryPage.fillModalForm({ instansiIndex: 1 });
     InventoryCategoryPage.saveForm();

@@ -1,7 +1,7 @@
 const { defineConfig } = require("cypress");
 
 module.exports = defineConfig({
-  projectId: 'pj42mc',
+  projectId: 'czwj6u',
   allowCypressEnv: false,
   viewportWidth: 1280,
   viewportHeight: 720,
@@ -9,6 +9,7 @@ module.exports = defineConfig({
   defaultCommandTimeout: 15000,
   e2e: {
     baseUrl: "https://v3.cazh.id",
+    supportFile: "cypress/support/e2e.js",
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },

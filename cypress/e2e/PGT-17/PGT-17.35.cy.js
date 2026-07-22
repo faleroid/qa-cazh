@@ -7,7 +7,8 @@ describe('PGT-17.35 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.35: Kosongkan Nama Kategori di Edit -> Peringatan muncul', () => {
+  it('PGT-17.35 Kosongkan Nama Kategori di Edit -> klik Simpan', () => {
+    InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.clickEditFirstRow();
     InventoryCategoryPage.fillModalForm({ namaKategori: '' });
     InventoryCategoryPage.saveForm();

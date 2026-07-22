@@ -8,6 +8,7 @@ describe('PGT-16.14 - Legalitas Bukti Bayar', () => {
   });
 
   it('PGT-16.14: Aktifkan toggle + kosongkan semua field required -> Error di semua 3 field', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
     LegalityPage.fillForm({ pengesahan: '', jabatan: '', namaTerang: '' });
     LegalityPage.clickSave();

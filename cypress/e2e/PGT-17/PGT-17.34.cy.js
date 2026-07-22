@@ -7,7 +7,8 @@ describe('PGT-17.34 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.34: Ubah field di Edit -> klik Batal -> Tidak tersimpan', () => {
+  it('PGT-17.34 Ubah field di popup Edit -> klik btn Batal', () => {
+    InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.clickEditFirstRow();
     InventoryCategoryPage.fillModalForm({ namaKategori: 'Batal Update' });
     InventoryCategoryPage.cancelForm();

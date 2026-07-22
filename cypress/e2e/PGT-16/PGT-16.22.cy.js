@@ -8,6 +8,7 @@ describe('PGT-16.22 - Legalitas Bukti Bayar', () => {
   });
 
   it('PGT-16.22: Matikan toggle -> Simpan -> Buka bukti pembayaran -> Legalitas TIDAK muncul', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(false);
     LegalityPage.clickSave();
 

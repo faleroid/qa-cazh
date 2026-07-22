@@ -7,7 +7,8 @@ describe('PGT-17.40 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.40: Klik icon Close (X) di popup Hapus -> Batal hapus', () => {
+  it('PGT-17.40 Klik icon Close (X) di pojok kanan atas popup Hapus', () => {
+    InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.clickDeleteFirstRow();
     InventoryCategoryPage.cancelDeleteByX();
     InventoryCategoryPage.elements.deleteModal().should('not.exist');

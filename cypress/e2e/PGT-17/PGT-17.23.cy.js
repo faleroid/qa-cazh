@@ -7,7 +7,7 @@ describe('PGT-17.23 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.23: Klik Search input field -> Siap input keyword', () => {
+  it('PGT-17.23 Klik Search input field', () => {
     InventoryCategoryPage.elements.searchInput().click().should('have.focus');
   });
 });

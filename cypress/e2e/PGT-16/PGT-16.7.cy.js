@@ -8,6 +8,7 @@ describe('PGT-16.7 - Legalitas Bukti Bayar', () => {
   });
 
   it('PGT-16.7: Cek placeholder field Pengesahan', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
     LegalityPage.elements.allInputs().eq(0).invoke('attr', 'placeholder').should('exist');
   });

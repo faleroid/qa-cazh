@@ -7,10 +7,10 @@ describe('PGT-17.29 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.29: Buka dropdown filter -> klik area luar -> Dropdown tertutup tanpa apply', () => {
-    InventoryCategoryPage.clickFilterButton();
-    InventoryCategoryPage.elements.filterDropdown().should('be.visible');
-    cy.get('body').click(0, 0);
-    InventoryCategoryPage.elements.filterDropdown().should('not.exist');
+  it('PGT-17.29 Buka dropdown filter -> klik area page di luar dropdown', () => {
+    InventoryCategoryPage.elements.filterInstansiSelect().click({ force: true });
+    cy.get('[role="listbox"], [data-slot="select-content"]').should('be.visible');
+    cy.get('body').type('{esc}');
+    cy.get('[role="listbox"], [data-slot="select-content"]').should('not.exist');
   });
 });

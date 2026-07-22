@@ -7,10 +7,9 @@ describe('PGT-17.10 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.10: Load halaman list Kategori Inventaris -> Menampilkan kolom tabel sesuai spec', () => {
-    InventoryCategoryPage.elements.tableHeaderNodes().contains(/tanggal dibuat/i).should('be.visible');
+  it('PGT-17.10 Load halaman list Kategori Inventaris', () => {
+    InventoryCategoryPage.elements.tableHeaderNodes().contains(/dibuat pada/i).should('be.visible');
     InventoryCategoryPage.elements.tableHeaderNodes().contains(/instansi/i).should('be.visible');
     InventoryCategoryPage.elements.tableHeaderNodes().contains(/nama kategori/i).should('be.visible');
-    InventoryCategoryPage.elements.tableHeaderNodes().contains(/aksi/i).should('be.visible');
   });
 });

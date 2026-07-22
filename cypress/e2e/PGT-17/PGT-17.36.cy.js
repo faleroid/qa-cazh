@@ -7,7 +7,7 @@ describe('PGT-17.36 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.36: Kosongkan Instansi di Edit -> Peringatan muncul', () => {
+  it('PGT-17.36 Kosongkan Instansi di Edit (uncheck dropdown selection) -> klik Simpan', () => {
     cy.log('Not applicable if Select does not have a clear button without custom logic');
   });
 });

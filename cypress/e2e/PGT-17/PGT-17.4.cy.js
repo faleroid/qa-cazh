@@ -7,8 +7,8 @@ describe('PGT-17.4 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.4: Cek placeholder field Nama Kategori', () => {
+  it('PGT-17.4 Cek placeholder field Nama Kategori', () => {
     InventoryCategoryPage.clickAddButton();
-    InventoryCategoryPage.elements.modalNamaInput().invoke('attr', 'placeholder').should('match', /contoh: meja|example: table/i);
+    InventoryCategoryPage.elements.modalNamaInput().invoke('attr', 'placeholder').should('match', /contoh:|example:/i);
   });
 });

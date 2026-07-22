@@ -7,7 +7,8 @@ describe('PGT-17.12 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.12: Cek format kolom Tanggal Dibuat', () => {
-    InventoryCategoryPage.elements.tableRows().first().find('td').first().invoke('text').should('match', /senin|selasa|rabu|kamis|jumat|sabtu|minggu|mon|tue|wed|thu|fri|sat|sun/i);
+  it('PGT-17.12 Cek format kolom Tanggal Dibuat', () => {
+    InventoryCategoryPage.ensureDataExists();
+    InventoryCategoryPage.elements.tableRows().first().find('td').invoke('text').should('match', /[a-zA-Z]+, \d{1,2} [a-zA-Z]{3} \d{4} \d{2}:\d{2}/);
   });
 });

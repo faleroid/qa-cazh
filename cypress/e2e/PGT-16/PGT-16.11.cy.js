@@ -8,6 +8,7 @@ describe('PGT-16.11 - Legalitas Bukti Bayar', () => {
   });
 
   it('PGT-16.11: Aktifkan toggle + kosongkan Pengesahan -> Error "Pengesahan wajib diisi"', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
     LegalityPage.fillForm({ pengesahan: '', jabatan: testData.validForm.jabatan, namaTerang: testData.validForm.namaTerang });
     LegalityPage.clickSave();

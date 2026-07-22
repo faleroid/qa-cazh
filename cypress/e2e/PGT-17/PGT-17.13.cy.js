@@ -7,11 +7,8 @@ describe('PGT-17.13 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.13: Buka list Kategori Inventaris saat belum ada data -> Empty state UI', () => {
-    cy.get('body').then(($body) => {
-      if ($body.find('tbody tr').length === 0) {
-        InventoryCategoryPage.elements.emptyState().should('be.visible');
-      }
-    });
+  it('PGT-17.13 Buka halaman list Kategori Inventaris saat belum ada data', () => {
+    InventoryCategoryPage.search('TIDAK_AKAN_ADA_DATA_12345');
+    InventoryCategoryPage.elements.emptyState().should('be.visible');
   });
 });
