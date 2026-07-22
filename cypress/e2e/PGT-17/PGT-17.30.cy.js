@@ -7,7 +7,15 @@ describe('PGT-17.30 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.30 Buka dropdown filter -> klik btn 'Terapkan' TANPA pilih instansi', () => {
-    cy.log('Terapkan button is not used in this direct-select implementation.');
+  it("PGT-17.30 Buka dropdown filter -> klik 'Semua' (TANPA pilih instansi khusus)", () => {
+    // 1. Buka dropdown Filter
+    InventoryCategoryPage.elements.filterInstansiSelect().click({ force: true });
+
+    // 2. Klik opsi 'Semua' (tanpa memilih instansi spesifik)
+    InventoryCategoryPage.elements.selectOptions().contains('Semua').first().click({ force: true });
+
+    // 3. Verifikasi data tabel ter-load tanpa filter instansi spesifik
+    cy.wait(1000);
+    InventoryCategoryPage.elements.tableRows().should('exist');
   });
 });

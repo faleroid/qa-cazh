@@ -61,9 +61,14 @@ describe('PGT-16 - Legalitas Bukti Bayar (Combined Suite POM)', () => {
     LegalityPage.elements.allInputs().eq(2).invoke('attr', 'placeholder').should('exist');
   });
 
-  it('PGT-16.10: Cek info message di section Tanda Tangan Digital', () => {
+  it('PGT-16.10: Cek label, dropzone, & info message di section Tanda Tangan Digital', () => {
     LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
+
+    LegalityPage.elements.signatureLabel().should('be.visible');
+    LegalityPage.elements.signatureDropzone().should('be.visible');
+    LegalityPage.elements.signatureSelectFileBtn().should('be.visible');
+    LegalityPage.elements.signatureUploadText().should('be.visible');
     LegalityPage.elements.infoMessage().should('be.visible');
   });
 

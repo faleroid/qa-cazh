@@ -7,7 +7,7 @@ describe('PGT-17.2 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.2 Klik btn 'Tambah Kategori Inventaris' di halaman list', () => {
+  it("PGT-17.2 Klik btn 'Tambah Kategori Inventaris' di halaman list", () => {
     InventoryCategoryPage.clickAddButton();
     InventoryCategoryPage.elements.formModal().should('be.visible');
     InventoryCategoryPage.elements.modalInstansiDropdown().should('exist');

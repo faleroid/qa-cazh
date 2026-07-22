@@ -16,7 +16,7 @@ describe('PGT-17 - Kategori Inventaris (Combined Suite POM)', () => {
     cy.contains(testData.validData.kategoriBaru, { timeout: 10000 }).should('be.visible');
   });
 
-  it('PGT-17.2 Klik btn 'Tambah Kategori Inventaris' di halaman list', () => {
+  it("PGT-17.2 Klik btn 'Tambah Kategori Inventaris' di halaman list", () => {
     InventoryCategoryPage.clickAddButton();
     InventoryCategoryPage.elements.formModal().should('be.visible');
     InventoryCategoryPage.elements.modalInstansiDropdown().should('exist');
@@ -81,38 +81,67 @@ describe('PGT-17 - Kategori Inventaris (Combined Suite POM)', () => {
   });
 
   it('PGT-17.12 Cek format kolom Tanggal Dibuat', () => {
-    InventoryCategoryPage.ensureDataExists();
-    InventoryCategoryPage.elements.tableRows().first().find('td').invoke('text').should('match', /[a-zA-Z]+, \d{1,2} [a-zA-Z]{3} \d{4} \d{2}:\d{2}/);
+    // Verifikasi langsung format tanggal (contoh: "Rabu, 22 Jul 2026 14:53") pada cell <td> tabel
+    cy.get('tbody tr td', { timeout: 10000 })
+      .contains(/[a-zA-Z]+,\s*\d{1,2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}/)
+      .should('be.visible');
   });
 
   it('PGT-17.13 Buka halaman list Kategori Inventaris saat belum ada data', () => {
-    InventoryCategoryPage.search('TIDAK_AKAN_ADA_DATA_12345');
+    // 1. Hapus data secara otomatis jika tabel tidak kosong agar menguji kondisi riil 0 data
+    cy.get('body').then(($body) => {
+      const rows = $body.find('tbody tr button:has(svg.lucide-trash)');
+      if (rows.length > 0) {
+        cy.wrap(rows.first()).click({ force: true });
+        InventoryCategoryPage.confirmDelete();
+        cy.wait(1000);
+        cy.reload();
+      }
+    });
+
+    // 2. Verifikasi Tampilan Empty State UI (ilustrasi + teks 'Tidak ada data yang ditemukan')
     InventoryCategoryPage.elements.emptyState().should('be.visible');
   });
 
   it('PGT-17.14 Tambah beberapa kategori -> reload halaman', () => {
-    InventoryCategoryPage.ensureDataExists();
+    const timestamp = Date.now();
+    const cat1 = `Kat Multi 1 ${timestamp}`;
+    const cat2 = `Kat Multi 2 ${timestamp}`;
+
+    // 1. Tambah Kategori Pertama
+    InventoryCategoryPage.clickAddButton();
+    InventoryCategoryPage.fillModalForm({ instansiIndex: 0, namaKategori: cat1 });
+    InventoryCategoryPage.saveForm();
+    InventoryCategoryPage.elements.formModal().should('not.exist');
+    cy.wait(1000);
+
+    // 2. Tambah Kategori Kedua
+    InventoryCategoryPage.clickAddButton();
+    InventoryCategoryPage.fillModalForm({ instansiIndex: 0, namaKategori: cat2 });
+    InventoryCategoryPage.saveForm();
+    InventoryCategoryPage.elements.formModal().should('not.exist');
+    cy.wait(1000);
+
+    // 3. Reload halaman & verifikasi data persisten
     cy.reload();
-    InventoryCategoryPage.elements.tableRows().should('be.visible');
+    cy.get('body', { timeout: 15000 }).should('be.visible');
+    cy.contains(cat1, { timeout: 10000 }).should('be.visible');
+    cy.contains(cat2, { timeout: 10000 }).should('be.visible');
   });
 
   it('PGT-17.15 Klik sort arrow icon di header kolom (misal Nama Kategori) 1x', () => {
-    InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.elements.sortArrowBtn('Nama Kategori').click({ force: true });
   });
 
   it('PGT-17.16 Klik sort arrow icon di kolom yang sudah ascending -> 2x lagi (total 2 klik)', () => {
-    InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.elements.sortArrowBtn('Nama Kategori').click({ force: true }).click({ force: true });
   });
 
   it('PGT-17.17 Klik sort arrow icon 3x di 1 kolom', () => {
-    InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.elements.sortArrowBtn('Nama Kategori').click({ force: true }).click({ force: true }).click({ force: true });
   });
 
   it('PGT-17.18 Aktifkan sort di kolom A (ascending/descending) -> klik sort arrow di kolom B', () => {
-    InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.elements.sortArrowBtn('Instansi').click({ force: true });
     InventoryCategoryPage.elements.sortArrowBtn('Nama Kategori').click({ force: true });
   });
@@ -146,16 +175,20 @@ describe('PGT-17 - Kategori Inventaris (Combined Suite POM)', () => {
     InventoryCategoryPage.elements.tableRows().should('have.length.at.least', 1);
   });
 
-  it('PGT-17.25 Ketik keyword yang tidak match ('xyz123abc')', () => {
+  it("PGT-17.25 Ketik keyword yang tidak match ('xyz123abc')", () => {
     InventoryCategoryPage.search(testData.search.invalidKeyword);
     InventoryCategoryPage.elements.emptyState().should('be.visible');
   });
 
-  it('PGT-17.26 Klik btn 'Filter' di halaman list', () => {
-    InventoryCategoryPage.elements.filterInstansiSelect().should('be.visible');
+  it("PGT-17.26 Klik btn 'Filter' di halaman list", () => {
+    // Klik tombol trigger dropdown Filter di header card
+    InventoryCategoryPage.elements.filterInstansiSelect().should('be.visible').click({ force: true });
+    
+    // Verifikasi dropdown options terbuka dan menampilkan daftar opsi instansi
+    InventoryCategoryPage.elements.selectOptions().should('have.length.at.least', 1);
   });
 
-  it('PGT-17.27 Buka dropdown Instansi di filter -> pilih 1 instansi -> klik btn 'Terapkan'', () => {
+  it("PGT-17.27 Buka dropdown Instansi di filter -> pilih 1 instansi -> klik btn 'Terapkan'", () => {
     InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.elements.filterInstansiSelect().click({ force: true });
     InventoryCategoryPage.elements.selectOptions().last().click({ force: true });
@@ -163,7 +196,7 @@ describe('PGT-17 - Kategori Inventaris (Combined Suite POM)', () => {
     InventoryCategoryPage.elements.tableRows().should('exist');
   });
 
-  it('PGT-17.28 Klik btn 'Bersihkan' di samping filter aktif', () => {
+  it("PGT-17.28 Klik btn 'Bersihkan' di samping filter aktif", () => {
     InventoryCategoryPage.elements.filterInstansiSelect().click({ force: true });
     InventoryCategoryPage.elements.selectOptions().last().click({ force: true });
     cy.wait(1000);
@@ -173,13 +206,16 @@ describe('PGT-17 - Kategori Inventaris (Combined Suite POM)', () => {
 
   it('PGT-17.29 Buka dropdown filter -> klik area page di luar dropdown', () => {
     InventoryCategoryPage.elements.filterInstansiSelect().click({ force: true });
-    cy.get('[role="listbox"], [data-slot="select-content"]').should('be.visible');
-    cy.get('body').type('{esc}');
+    cy.get('[role="listbox"], [data-slot="select-content"], [data-radix-select-viewport]').should('be.visible');
+    cy.get('body').click('topRight', { force: true });
     cy.get('[role="listbox"], [data-slot="select-content"]').should('not.exist');
   });
 
-  it('PGT-17.30 Buka dropdown filter -> klik btn 'Terapkan' TANPA pilih instansi', () => {
-    cy.log('Terapkan button is not used in this direct-select implementation.');
+  it("PGT-17.30 Buka dropdown filter -> klik 'Semua' (TANPA pilih instansi khusus)", () => {
+    InventoryCategoryPage.elements.filterInstansiSelect().click({ force: true });
+    InventoryCategoryPage.elements.selectOptions().contains('Semua').first().click({ force: true });
+    cy.wait(1000);
+    InventoryCategoryPage.elements.tableRows().should('exist');
   });
 
   it('PGT-17.31 Klik icon Edit di row kategori inventaris', () => {
@@ -223,7 +259,34 @@ describe('PGT-17 - Kategori Inventaris (Combined Suite POM)', () => {
   });
 
   it('PGT-17.36 Kosongkan Instansi di Edit (uncheck dropdown selection) -> klik Simpan', () => {
-    cy.log('Not applicable if Select does not have a clear button without custom logic');
+    InventoryCategoryPage.ensureDataExists();
+    InventoryCategoryPage.clickEditFirstRow();
+    
+    // Buka dropdown Instansi di modal edit
+    InventoryCategoryPage.elements.modalInstansiDropdown().click({ force: true });
+    
+    // Uncheck / deselect option terpilih jika memungkinkan
+    cy.get('body').then(($body) => {
+      const selectedOption = $body.find('[role="option"][data-state="checked"], [role="option"][aria-selected="true"]');
+      if (selectedOption.length > 0) {
+        cy.wrap(selectedOption).first().click({ force: true });
+      } else {
+        cy.get('body').type('{esc}');
+      }
+    });
+
+    // Klik Simpan
+    InventoryCategoryPage.saveForm();
+
+    // Verifikasi validasi error atau form modal tetap terbuka (mencegah submit tanpa instansi)
+    cy.get('body').then(($body) => {
+      const hasError = $body.find('[data-slot="error"], p.text-destructive, p.text-red-500, [role="alert"]').length > 0;
+      if (hasError) {
+        InventoryCategoryPage.elements.validationError().should('be.visible');
+      } else {
+        InventoryCategoryPage.elements.formModal().should('be.visible');
+      }
+    });
   });
 
   it('PGT-17.37 Klik icon Hapus di row kategori inventaris', () => {
@@ -239,7 +302,7 @@ describe('PGT-17 - Kategori Inventaris (Combined Suite POM)', () => {
     InventoryCategoryPage.elements.deleteConfirmBtn().should('have.class', 'bg-destructive');
   });
 
-  it('PGT-17.39 Klik btn 'Hapus' di popup', () => {
+  it("PGT-17.39 Klik btn 'Hapus' di popup", () => {
     InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.clickDeleteFirstRow();
     InventoryCategoryPage.confirmDelete();

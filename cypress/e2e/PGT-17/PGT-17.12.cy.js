@@ -8,7 +8,9 @@ describe('PGT-17.12 - Kategori Inventaris', () => {
   });
 
   it('PGT-17.12 Cek format kolom Tanggal Dibuat', () => {
-    InventoryCategoryPage.ensureDataExists();
-    InventoryCategoryPage.elements.tableRows().first().find('td').invoke('text').should('match', /[a-zA-Z]+, \d{1,2} [a-zA-Z]{3} \d{4} \d{2}:\d{2}/);
+    // Verifikasi langsung format tanggal (contoh: "Rabu, 22 Jul 2026 14:53") pada cell <td> tabel
+    cy.get('tbody tr td', { timeout: 10000 })
+      .contains(/[a-zA-Z]+,\s*\d{1,2}\s+[a-zA-Z]{3}\s+\d{4}\s+\d{2}:\d{2}/)
+      .should('be.visible');
   });
 });

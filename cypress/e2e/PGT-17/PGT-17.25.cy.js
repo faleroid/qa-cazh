@@ -7,7 +7,7 @@ describe('PGT-17.25 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.25 Ketik keyword yang tidak match ('xyz123abc')', () => {
+  it("PGT-17.25 Ketik keyword yang tidak match ('xyz123abc')", () => {
     InventoryCategoryPage.search(testData.search.invalidKeyword);
     InventoryCategoryPage.elements.emptyState().should('be.visible');
   });

@@ -7,7 +7,7 @@ describe('PGT-17.28 - Kategori Inventaris', () => {
     InventoryCategoryPage.visit();
   });
 
-  it('PGT-17.28 Klik btn 'Bersihkan' di samping filter aktif', () => {
+  it("PGT-17.28 Klik btn 'Bersihkan' di samping filter aktif", () => {
     InventoryCategoryPage.elements.filterInstansiSelect().click({ force: true });
     InventoryCategoryPage.elements.selectOptions().last().click({ force: true });
     cy.wait(1000);
