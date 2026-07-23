@@ -1,5 +1,5 @@
 // Custom command untuk login dengan cy.session
-Cypress.Commands.add('login', (email = 'androidtesting117@gmail.com', password = '8x8xsizf') => {
+Cypress.Commands.add('login', (email = 'androidtesting117@gmail.com', password = 'f7ki6b2u') => {
   cy.session([email, password], () => {
     // 1. Buka halaman login
     cy.visit('/login');

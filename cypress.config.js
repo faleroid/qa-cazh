@@ -5,6 +5,7 @@ module.exports = defineConfig({
   allowCypressEnv: false,
   viewportWidth: 1280,
   viewportHeight: 720,
+  scrollBehavior: 'center',
   pageLoadTimeout: 30000,
   defaultCommandTimeout: 15000,
   e2e: {

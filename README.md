@@ -24,15 +24,19 @@ qa-cazh/
 │   │   ├── PGT-16/                          # Test case modular PGT-16.1 s/d PGT-16.22
 │   │   ├── PGT-16_legalitas_bukti_bayar_pom.cy.js  # Full Combined Suite PGT-16
 │   │   ├── PGT-17/                          # Test case modular PGT-17.1 s/d PGT-17.42
-│   │   └── PGT-17_kategori_inventaris.cy.js # Full Combined Suite PGT-17
+│   │   ├── PGT-17_kategori_inventaris.cy.js # Full Combined Suite PGT-17
+│   │   ├── PGT-18/                          # Test case modular PGT-18.1 s/d PGT-18.57
+│   │   └── PGT-18_tipe_pelanggaran.cy.js    # Full Combined Suite PGT-18
 │   ├── fixtures/                            # Data uji JSON & File media upload
 │   │   ├── legalityData.json
 │   │   ├── inventoryCategoryData.json
+│   │   ├── violationTypeData.json
 │   │   ├── signature.png / .jpg / .jpeg / large_signature.png
 │   │   └── document.pdf
 │   ├── pages/                               # Page Object Model Classes
 │   │   ├── LegalityPage.js
-│   │   └── InventoryCategoryPage.js
+│   │   ├── InventoryCategoryPage.js
+│   │   └── ViolationTypePage.js
 │   └── support/                             # Custom Commands & Config
 │       ├── commands.js                      # Custom command cy.login()
 │       └── e2e.js
@@ -64,6 +68,15 @@ Modul pengelolaan data kategori inventaris barang instansi.
   * Seleksi jumlah baris per halaman (*Pagination Page Size*).
   * Hapus data (*Delete confirmation modal & close handlers*).
   * Pengujian UI Empty State (*Kondisi 0 Data*).
+
+### 3. PGT-18: Tipe Pelanggaran Kesiswaan (CRUD & Form Validations)
+Modul pengaturan tipe pelanggaran kesiswaan (Pengaturan - Kesiswaan - Tipe Pelanggaran).
+* **Coverage (57 Test Cases)**:
+  * Form Tambah & Edit Tipe Pelanggaran (Instansi, Nama, Min Poin, Max Poin, Status).
+  * Validasi Angka Negatif, Min > Max, Min = Max, Max > 999, Overlap Range Poin, Duplikat Nama, dan Limit 100 Karakter.
+  * Toggling Status Aktif vs Tidak Aktif & integrasi ketersediaan opsi pada Fitur Buat Pelanggaran.
+  * Pencarian (*Search*), Filter Instansi, Filter Status, dan Kombinasi Filter + Search.
+  * Pagination Page Size & Hapus Data dengan Konfirmasi Modal / Escape Key.
 
 ---
 

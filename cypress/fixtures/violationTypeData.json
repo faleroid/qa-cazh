@@ -1,0 +1,27 @@
+{
+  "urls": {
+    "violationTypePage": "/setting/student-affairs/violation-type",
+    "createViolationPage": "/student-affairs/violation/create"
+  },
+  "validData": {
+    "namaBaru": "Pelanggaran Ringan A",
+    "namaUpdate": "Pelanggaran Sedang B",
+    "minPoin": "5",
+    "maxPoin": "15"
+  },
+  "validationMessages": {
+    "instansiRequired": "Instansi wajib diisi",
+    "namaRequired": "Nama Tipe Pelanggaran wajib diisi",
+    "rangeRequired": "Range poin wajib diisi",
+    "statusRequired": "Status wajib diisi",
+    "minGreaterMax": "harus lebih kecil",
+    "maxExceeds999": "tidak boleh lebih dari 999",
+    "overlap": "bertumpuk",
+    "duplicate": "sudah digunakan|sudah ada"
+  },
+  "search": {
+    "validKeyword": "Pelanggaran",
+    "invalidKeyword": "xyz123abc"
+  },
+  "emptyStateText": "Data Tipe Pelanggaran tidak ditemukan"
+}
