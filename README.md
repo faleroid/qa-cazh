@@ -1,0 +1,136 @@
+# CAZH v3 - Cypress UAT Test Automation Framework
+
+Framework Otomatisasi User Acceptance Testing (UAT) untuk aplikasi web **School Management System CAZH v3** (URL: [https://v3.cazh.id](https://v3.cazh.id)) menggunakan **Cypress** dengan arsitektur **Page Object Model (POM)**.
+
+---
+
+## 🚀 Tech Stack & Arsitektur
+
+* **Testing Framework**: Cypress (v15+)
+* **Language & Runtime**: JavaScript / Node.js
+* **Design Pattern**: Page Object Model (POM) Strictly Enforced
+* **UI Component Support**: Radix UI / shadcn UI (Dialog Modals, Combobox Selects, Accordion Menus, Switch Toggles)
+* **Test Data**: Cypress Fixtures (`JSON` files) — *Tidak ada hardcoded data pada file spec*
+* **Authentication**: `cy.session()` custom command untuk efisiensi login
+
+---
+
+## 📁 Struktur Direktori Project
+
+```text
+qa-cazh/
+├── cypress/
+│   ├── e2e/
+│   │   ├── PGT-16/                          # Test case modular PGT-16.1 s/d PGT-16.22
+│   │   ├── PGT-16_legalitas_bukti_bayar_pom.cy.js  # Full Combined Suite PGT-16
+│   │   ├── PGT-17/                          # Test case modular PGT-17.1 s/d PGT-17.42
+│   │   └── PGT-17_kategori_inventaris.cy.js # Full Combined Suite PGT-17
+│   ├── fixtures/                            # Data uji JSON & File media upload
+│   │   ├── legalityData.json
+│   │   ├── inventoryCategoryData.json
+│   │   ├── signature.png / .jpg / .jpeg / large_signature.png
+│   │   └── document.pdf
+│   ├── pages/                               # Page Object Model Classes
+│   │   ├── LegalityPage.js
+│   │   └── InventoryCategoryPage.js
+│   └── support/                             # Custom Commands & Config
+│       ├── commands.js                      # Custom command cy.login()
+│       └── e2e.js
+├── cypress.config.js                        # Konfigurasi Cypress (baseUrl, timeouts, viewport)
+├── package.json
+└── README.md
+```
+
+---
+
+## 🧪 Modul Pengujian (Test Suites)
+
+### 1. PGT-16: Legalitas Bukti Bayar (Modal Dialog UI)
+Modul pengaturan legalitas dan tanda tangan digital pada bukti pembayaran/invoice instansi.
+* **Coverage (22 Test Cases)**:
+  * Pembukaan modal dialog legalitas via sidebar navigation Radix UI.
+  * Seleksi dropdown Instansi & pemuatan data konfigurasi.
+  * Toggling switch aktif/non-aktif & conditional rendering sub-field (Pengesahan, Jabatan, Nama Terang).
+  * Validasi error pada field wajib diisi (*required fields validation*).
+  * Upload file tanda tangan digital (PNG, JPG, JPEG < 2MB) & validasi batas ukuran file (> 2MB) serta tipe file tak terdukung (PDF).
+  * Verifikasi End-to-End tampilnya data legalitas pada halaman Bukti Pembayaran Invoice.
+
+### 2. PGT-17: Kategori Inventaris (CRUD & Data Table)
+Modul pengelolaan data kategori inventaris barang instansi.
+* **Coverage (42 Test Cases)**:
+  * Form Tambah & Edit Kategori Inventaris.
+  * Pencarian data (*Search*), Filter per-Instansi, dan Reset Filter.
+  * Pengurutan kolom (*Sorting Ascending/Descending*) pada tabel.
+  * Seleksi jumlah baris per halaman (*Pagination Page Size*).
+  * Hapus data (*Delete confirmation modal & close handlers*).
+  * Pengujian UI Empty State (*Kondisi 0 Data*).
+
+---
+
+## 🛠️ Persyaratan & Instalasi
+
+### Prasyarat
+* **Node.js**: v16.x atau versi lebih baru
+* **npm**: v8.x atau versi lebih baru
+
+### Langkah Instalasi
+1. Clone atau buka direktori proyek ini:
+   ```bash
+   cd qa-cazh
+   ```
+2. Install semua dependencies:
+   ```bash
+   npm install
+   ```
+
+---
+
+## 🏃 Menjalankan Pengujian
+
+### 1. Menjalankan via Cypress Interactive Runner (GUI)
+Buka Cypress Test Runner berbasis antarmuka grafis:
+```bash
+npx cypress open
+```
+Pilih **E2E Testing** -> Pilih Browser (Chrome/Electron/Edge) -> Klik file test spec yang ingin dijalankan.
+
+---
+
+### 2. Menjalankan via Command Line (CLI / Headless Mode)
+
+* **Menjalankan Seluruh Spec File**:
+  ```bash
+  npx cypress run
+  ```
+
+* **Menjalankan Single Test Suite Gabungan (Full Regression)**:
+  ```bash
+  # Run Full Suite PGT-16
+  npx cypress run --spec "cypress/e2e/PGT-16_legalitas_bukti_bayar_pom.cy.js"
+
+  # Run Full Suite PGT-17
+  npx cypress run --spec "cypress/e2e/PGT-17_kategori_inventaris.cy.js"
+  ```
+
+* **Menjalankan Single Test Case Spesifik (Modular Debugging)**:
+  ```bash
+  # Contoh: Run hanya PGT-16.1
+  npx cypress run --spec "cypress/e2e/PGT-16/PGT-16.1.cy.js"
+
+  # Contoh: Run hanya PGT-17.14
+  npx cypress run --spec "cypress/e2e/PGT-17/PGT-17.14.cy.js"
+  ```
+
+---
+
+## 💡 Best Practices & Standard Penulisan Script
+
+1. **Page Object Model (POM)**:
+   * **Element Selectors**: Semua query DOM (`cy.get()`, `cy.contains()`) ditempatkan dalam objek `elements` pada Class Page (`cypress/pages/`).
+   * **Business Logic & Actions**: Fungsi navigasi, pengisian form, dan verifikasi dibuat dalam metode Class Page.
+2. **Penanganan Radix UI / shadcn UI**:
+   * Menggunakan `{ force: true }` pada tombol action jika terlindungi animasi/state collapsed Radix UI.
+   * Seleksi dropdown portal (`[role="option"]`, `[data-slot="select-item"]`) yang di-render di luar container dialog.
+   * Pencocokan teks exact menggunakan regex `cy.contains(...)` untuk menghindari benturan nama menu serupa (misal: `"Tagihan F"` vs `"Jenis Tagihan F"`).
+3. **Pembersihan Data Test & Isosiasi Test**:
+   * Setiap skenario uji mandiri membuat atau membersihkan datanya sendiri secara otomatis untuk mencegah ketergantungan antar test case.
