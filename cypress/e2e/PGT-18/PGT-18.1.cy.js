@@ -8,6 +8,7 @@ describe('PGT-18.1 - Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.1 Isi form Tambah Tipe Pelanggaran dengan semua field valid (Instansi + Nama + Min Poin + Max Poin) -> klik Simpan', () => {
+    ViolationTypePage.deleteAllDataIfExists();
     const namaBaru = testData.validData.namaBaru;
     ViolationTypePage.clickAddButton();
     ViolationTypePage.fillModalForm({

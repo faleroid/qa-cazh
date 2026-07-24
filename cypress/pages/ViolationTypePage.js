@@ -211,6 +211,23 @@ class ViolationTypePage {
       }
     });
   }
+
+  deleteAllDataIfExists() {
+    cy.get('body', { timeout: 15000 }).should('be.visible');
+    cy.wait(1500);
+    const deleteRowIfDataExists = () => {
+      cy.get('tbody').then(($tbody) => {
+        const trashBtns = $tbody.find('tr button:has(svg.lucide-trash)');
+        if (trashBtns.length > 0) {
+          cy.wrap(trashBtns.first()).click({ force: true });
+          cy.wait(800);
+          this.confirmDelete();
+          deleteRowIfDataExists();
+        }
+      });
+    };
+    deleteRowIfDataExists();
+  }
 }
 
 export default new ViolationTypePage();

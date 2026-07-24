@@ -8,6 +8,7 @@ describe('PGT-17 - Kategori Inventaris (Combined Suite POM)', () => {
   });
 
   it('PGT-17.1 Isi form Tambah Kategori Inventaris dengan data valid (pilih Instansi + isi Nama Kategori) -> klik Simpan', () => {
+    InventoryCategoryPage.deleteAllDataIfExists();
     InventoryCategoryPage.clickAddButton();
     InventoryCategoryPage.fillModalForm({ instansiIndex: 0, namaKategori: testData.validData.kategoriBaru });
     InventoryCategoryPage.saveForm();
