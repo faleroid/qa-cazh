@@ -9,7 +9,7 @@ describe('PGT-18.45 - Tipe Pelanggaran', () => {
 
   it('PGT-18.45 Ubah Nama Tipe Pelanggaran jadi nama yang SUDAH ADA (duplikat) -> klik Simpan', () => {
     ViolationTypePage.clickEditFirstRow();
-    ViolationTypePage.fillModalForm({ nama: 'Pelanggaran Auto 1' });
+    ViolationTypePage.fillModalForm({ nama: 'Keterlambatan Masuk Sekolah' });
     ViolationTypePage.saveForm();
 
     // Notif Error 'Nama tipe pelanggaran sudah ada, silakan gunakan nama lain' muncul

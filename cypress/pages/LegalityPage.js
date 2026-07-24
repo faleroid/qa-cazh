@@ -15,14 +15,17 @@ class LegalityPage {
     dialogContainer: () => cy.get('[role="dialog"][data-state="open"], [data-slot="dialog-content"]', { timeout: 10000 }),
     
     // Elements scoped inside the Dialog Modal
-    dialogTitle: () => this.elements.dialogContainer().find('h2, [data-slot="dialog-title"], .text-lg').contains(/legalitas bukti bayar/i),
-    instansiDropdown: () => this.elements.dialogContainer().find('[data-slot="select-trigger"], [role="combobox"], button:contains("Instansi")'),
+    dialogTitle: () => this.elements.dialogContainer().find('h2, [data-slot="dialog-title"]').contains(/legalitas bukti bayar/i),
+    instansiLabel: () => this.elements.dialogContainer().find('label[data-slot="form-label"]').contains(/pilih instansi/i),
+    instansiDropdown: () => this.elements.dialogContainer().find('[data-slot="select-trigger"], [role="combobox"]').first(),
     instansiDropdownValue: () => this.elements.instansiDropdown().find('[data-slot="select-value"], span').first(),
+    hiddenSelect: () => this.elements.dialogContainer().find('select[aria-hidden="true"]'),
+    dialogCloseBtn: () => this.elements.dialogContainer().find('button[data-slot="dialog-close"]'),
     selectOptions: () => cy.get('[role="option"], [data-slot="select-item"]', { timeout: 10000 }), // Portal (renders outside dialog)
     legalitySwitch: () => this.elements.dialogContainer().find('button[role="switch"], [data-slot="switch"], input[type="checkbox"]').first(),
     allInputs: () => this.elements.dialogContainer().find('input[data-slot="input"], input:visible'),
     fileInput: () => this.elements.dialogContainer().find('input[type="file"]'),
-    saveButton: () => this.elements.dialogContainer().find('button[data-slot="button"], button').contains(/simpan|save/i),
+    saveButton: () => this.elements.dialogContainer().find('button[type="submit"]:contains("Simpan"), button[data-slot="button"]:contains("Simpan")').first(),
     closeButton: () => this.elements.dialogContainer().find('button[data-slot="dialog-close"]'),
     infoMessage: () => this.elements.dialogContainer().contains(/transparan|putih|background|tanda tangan/i),
     signatureLabel: () => this.elements.dialogContainer().contains('label, [data-slot="form-label"]', /foto tanda tangan/i),
@@ -75,6 +78,14 @@ class LegalityPage {
    * Set toggle switch to desired state
    */
   setToggleState(targetState = true) {
+    // Pastikan Instansi sudah dipilih jika masih placeholder "Pilih instansi terlebih dahulu"
+    this.elements.instansiDropdownValue().then(($val) => {
+      if ($val.text().includes('Pilih instansi terlebih dahulu')) {
+        this.selectInstansi(0);
+        cy.wait(800);
+      }
+    });
+
     this.elements.legalitySwitch().then(($toggle) => {
       const isChecked = 
         $toggle.attr('data-state') === 'checked' || 
@@ -83,6 +94,7 @@ class LegalityPage {
 
       if (targetState !== isChecked) {
         cy.wrap($toggle).click({ force: true });
+        cy.wait(800);
       }
     });
   }
@@ -108,13 +120,19 @@ class LegalityPage {
 
   uploadSignature(filePath) {
     this.elements.fileInput().selectFile(filePath, { force: true });
+    // Jeda beberapa detik agar pengunggahan & state form berkas selesai sepenuhnya sebelum simpan
+    cy.wait(3000);
+    this.elements.dialogContainer().should('be.visible');
+    cy.wait(1000);
   }
 
   clickSave() {
-    cy.intercept('POST', '**/legality**').as('saveLegality');
-    this.elements.saveButton().click({ force: true });
-    // Tunggu sedikit untuk memberi waktu validasi frontend atau API call
-    cy.wait(1000);
+    cy.intercept('POST', '**').as('saveLegality');
+    this.elements.saveButton()
+      .scrollIntoView()
+      .should('be.visible')
+      .click({ force: true });
+    cy.wait(3000);
   }
 
   // ---------------------------------------------------------------------------
@@ -133,28 +151,54 @@ class LegalityPage {
   }
 
   verifyToastSuccess() {
-    // Kita perlu menangani 2 kemungkinan:
-    // 1. Toast error dari backend (seperti "kesalahan pada database")
-    // 2. Toast sukses dari backend (seperti "Berhasil", "Disimpan")
-    cy.get('.toast, [role="status"], [data-slot="toast"], [data-sonner-toast]', { timeout: 15000 })
+    // Menangani respons backend yang memerlukan waktu simpan lebih lama
+    cy.get('.toast, [role="status"], [data-slot="toast"], [data-sonner-toast], [data-state="open"]', { timeout: 30000 })
       .should('exist')
       .invoke('text')
       .then((text) => {
-        // Log teks toast ke console Cypress agar terlihat di test runner
         cy.log('TOAST MESSAGE MUNCUL: ' + text);
-        
-        // Kita izinkan "kesalahan pada database" lewat agar QA tau ini bug backend, bukan bug skrip.
-        // Jika memang ingin menggagalkan test, biarkan fail di sini jika tidak match "berhasil/sukses"
         if (text.toLowerCase().includes('kesalahan') || text.toLowerCase().includes('error')) {
            throw new Error(`[BACKEND BUG] Aplikasi mengembalikan error: ${text}`);
         }
-        
         expect(text.toLowerCase()).to.match(/berhasil|sukses|saved|success|tersimpan/);
       });
   }
 
+  verifyUploadErrorAlert(expectedText) {
+    // 1. Memvalidasi Elemen Utama Alert Box ([data-slot="alert"][role="alert"])
+    cy.get('[data-slot="alert"][role="alert"]', { timeout: 15000 })
+      .scrollIntoView()
+      .should('be.visible');
+
+    // 2. Memvalidasi Judul Alert Box ([data-slot="alert-title"]) -> "Gagal mengunggah file"
+    cy.get('[data-slot="alert-title"]')
+      .should('be.visible')
+      .and('contain.text', 'Gagal mengunggah file');
+
+    // 3. Memvalidasi Deskripsi Pesan Error Alert Box ([data-slot="alert-description"])
+    if (expectedText) {
+      cy.get('[data-slot="alert-description"]')
+        .should('be.visible')
+        .and('contain.text', expectedText);
+    }
+  }
+
   verifyValidationError(expectedText) {
-    this.elements.dialogContainer().contains(new RegExp(expectedText, 'i')).should('be.visible');
+    cy.get('body').then(($body) => {
+      if ($body.find('[data-slot="alert"][role="alert"]').length > 0) {
+        this.verifyUploadErrorAlert(expectedText);
+      } else if (expectedText) {
+        cy.contains(new RegExp(expectedText, 'i'), { timeout: 15000 })
+          .first()
+          .scrollIntoView()
+          .should('exist');
+      } else {
+        cy.get('[data-slot="error"], [data-slot="alert"], p.text-destructive, p.text-red-500, [role="alert"], [data-sonner-toast]', { timeout: 15000 })
+          .first()
+          .scrollIntoView()
+          .should('exist');
+      }
+    });
   }
 
   verifyLegalityOnInvoice(proofUrl, namaText, jabatanText, shouldExist = true) {

@@ -16,6 +16,6 @@ describe('PGT-18.8 - Tipe Pelanggaran', () => {
       maxPoin: ''
     });
     ViolationTypePage.saveForm();
-    ViolationTypePage.elements.validationError().should('be.visible');
+    ViolationTypePage.verifyValidationError(testData.validationMessages.maxPoinRequired);
   });
 });

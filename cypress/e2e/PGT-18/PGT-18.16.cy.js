@@ -12,7 +12,7 @@ describe('PGT-18.16 - Tipe Pelanggaran', () => {
     ViolationTypePage.clickAddButton();
     ViolationTypePage.fillModalForm({
       instansiIndex: 0,
-      nama: 'Pelanggaran Overlap Test',
+      nama: 'Merokok di Lingkungan Sekolah',
       minPoin: '1',
       maxPoin: '10'
     });

@@ -10,7 +10,7 @@ describe('PGT-18.41 - Tipe Pelanggaran', () => {
   it('PGT-18.41 Ubah field di form Edit -> klik Batal', () => {
     ViolationTypePage.ensureDataExists();
     ViolationTypePage.clickEditFirstRow();
-    ViolationTypePage.fillModalForm({ nama: 'Nama Edit Batal' });
+    ViolationTypePage.fillModalForm({ nama: 'Meninggalkan Kelas Tanpa Izin' });
     ViolationTypePage.cancelForm();
     ViolationTypePage.elements.formModal().should('not.exist');
   });

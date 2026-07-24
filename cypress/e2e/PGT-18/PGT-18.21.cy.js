@@ -8,15 +8,32 @@ describe('PGT-18.21 - Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.21 Buka halaman list Tipe Pelanggaran saat belum ada data', () => {
-    cy.get('body').then(($body) => {
-      const rows = $body.find('tbody tr button:has(svg.lucide-trash)');
-      if (rows.length > 0) {
-        cy.wrap(rows.first()).click({ force: true });
-        ViolationTypePage.confirmDelete();
-        cy.wait(1000);
-        cy.reload();
-      }
-    });
-    ViolationTypePage.elements.emptyState().should('be.visible');
+    // 1. Tunggu tabel selesai muat data awal dari API backend
+    cy.get('tbody', { timeout: 15000 }).should('be.visible');
+    cy.wait(2000);
+
+    // 2. Fungsi Hapus Bertahap Seluruh Data Eksis
+    const deleteRowIfDataExists = () => {
+      cy.get('tbody').then(($tbody) => {
+        const trashBtns = $tbody.find('tr button:has(svg.lucide-trash)');
+        if (trashBtns.length > 0) {
+          // Klik tombol trash baris pertama
+          cy.wrap(trashBtns.first()).click({ force: true });
+          cy.wait(800);
+
+          // Klik konfirmasi Hapus
+          ViolationTypePage.confirmDelete();
+          cy.wait(2500);
+
+          // Cek kembali baris berikutnya secara rekursif
+          deleteRowIfDataExists();
+        } else {
+          // 3. Ketika seluruh data terhapus, verifikasi state kosong
+          ViolationTypePage.elements.emptyState().should('be.visible');
+        }
+      });
+    };
+
+    deleteRowIfDataExists();
   });
 });

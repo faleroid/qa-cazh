@@ -10,8 +10,22 @@ describe('PGT-17.27 - Kategori Inventaris', () => {
   it("PGT-17.27 Buka dropdown Instansi di filter -> pilih 1 instansi -> klik btn 'Terapkan'", () => {
     InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.elements.filterInstansiSelect().click({ force: true });
-    InventoryCategoryPage.elements.selectOptions().last().click({ force: true });
-    cy.wait(1000); 
-    InventoryCategoryPage.elements.tableRows().should('exist');
+    cy.wait(500);
+
+    // Pilih instansi spesifik yang BUKAN opsi 'Semua'
+    InventoryCategoryPage.elements.selectOptions()
+      .filter(':not(:contains("Semua"))')
+      .first()
+      .then(($opt) => {
+        const selectedInstansiName = $opt.text().trim();
+        cy.wrap($opt).click({ force: true });
+        cy.wait(1500); 
+
+        // Verifikasi bahwa tabel benar-benar terfilter dan menampilkan instansi terpilih
+        InventoryCategoryPage.elements.tableRows().should('be.visible').and('have.length.at.least', 1);
+        cy.get('tbody tr').each(($row) => {
+          cy.wrap($row).should('contain.text', selectedInstansiName);
+        });
+      });
   });
 });

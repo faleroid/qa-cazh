@@ -8,8 +8,8 @@ describe('PGT-18.22 - Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.22 Tambah 2 tipe pelanggaran berturut-turut -> reload halaman', () => {
-    const cat1 = 'Pelanggaran Auto 1';
-    const cat2 = 'Pelanggaran Auto 2';
+    const cat1 = 'Penggunaan Ponsel Saat KBM';
+    const cat2 = 'Tindakan Perundungan (Bullying)';
 
     ViolationTypePage.clickAddButton();
     ViolationTypePage.fillModalForm({ instansiIndex: 0, nama: cat1, minPoin: '1', maxPoin: '10' });
@@ -31,6 +31,14 @@ describe('PGT-18.22 - Tipe Pelanggaran', () => {
       }
     });
 
+    ViolationTypePage.elements.formModal().should('not.exist');
+    cy.wait(1500);
+
+    // Edit salah satu tipe pelanggaran (cat2) menjadi 'Tidak Aktif' untuk keperluan testing filter status
+    cy.contains('tbody tr', cat2).find('button[data-slot="dialog-trigger"]:has(svg.lucide-square-pen), button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil)').first().click({ force: true });
+    cy.wait(1000);
+    ViolationTypePage.fillModalForm({ statusText: 'Tidak Aktif' });
+    ViolationTypePage.saveForm();
     ViolationTypePage.elements.formModal().should('not.exist');
     cy.wait(1500);
 

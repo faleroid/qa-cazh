@@ -8,7 +8,7 @@ describe('PGT-18.31 - Tipe Pelanggaran', () => {
   });
 
   it("PGT-18.31 Aktifkan Filter Status = 'Tidak Aktif'", () => {
-    ViolationTypePage.ensureDataExists();
+    ViolationTypePage.ensureInactiveDataExists();
     
     // 1. Buka dropdown Filter Status
     ViolationTypePage.elements.filterStatusSelect().click({ force: true });
@@ -17,15 +17,10 @@ describe('PGT-18.31 - Tipe Pelanggaran', () => {
     ViolationTypePage.elements.selectOptions().contains(/^\s*Tidak Aktif\s*$/i).first().click({ force: true });
     cy.wait(1500);
 
-    // 3. Verifikasi hasil filter (atau Empty State jika tidak ada data 'Tidak Aktif')
-    cy.get('body').then(($body) => {
-      if ($body.find('tbody tr').length > 0) {
-        ViolationTypePage.elements.tableRows().each(($row) => {
-          cy.wrap($row).should('contain.text', 'Tidak Aktif');
-        });
-      } else {
-        ViolationTypePage.elements.emptyState().should('be.visible');
-      }
+    // 3. Verifikasi baris tabel ter-filter hanya menampilkan status 'Tidak Aktif'
+    ViolationTypePage.elements.tableRows().should('have.length.at.least', 1);
+    ViolationTypePage.elements.tableRows().each(($row) => {
+      cy.wrap($row).should('contain.text', 'Tidak Aktif');
     });
   });
 });

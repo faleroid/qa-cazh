@@ -8,8 +8,7 @@ describe('PGT-18.36 - Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.36 Ubah Nama Tipe Pelanggaran ke nama BARU -> klik Simpan', () => {
-    const newName = 'Pelanggaran Edit Baru';
-    ViolationTypePage.ensureDataExists();
+    const newName = 'Pengrusakan Fasilitas Sekolah';
     ViolationTypePage.clickEditFirstRow();
     ViolationTypePage.fillModalForm({ nama: newName });
     ViolationTypePage.saveForm();

@@ -8,7 +8,7 @@ describe('PGT-18.56 - Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.56 Search sampai hasil tinggal 1 row -> hapus row tersebut', () => {
-    const uniqueCat = 'Khusus Hapus Data';
+    const uniqueCat = 'Sikap Tidak Sopan Terhadap Guru';
     ViolationTypePage.clickAddButton();
     ViolationTypePage.fillModalForm({ instansiIndex: 0, nama: uniqueCat, minPoin: '301', maxPoin: '305' });
     ViolationTypePage.saveForm();

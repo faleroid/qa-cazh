@@ -11,7 +11,7 @@ describe('PGT-18.3 - Tipe Pelanggaran', () => {
     ViolationTypePage.clickAddButton();
     ViolationTypePage.fillModalForm({
       instansiIndex: 0,
-      nama: 'Pelanggaran Batal',
+      nama: 'Ketidakhadiran Tanpa Keterangan',
       minPoin: '1',
       maxPoin: '5'
     });

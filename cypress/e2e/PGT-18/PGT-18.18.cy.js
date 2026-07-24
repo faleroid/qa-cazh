@@ -16,8 +16,13 @@ describe('PGT-18.18 - Tipe Pelanggaran', () => {
       minPoin: '91',
       maxPoin: '95'
     });
-    ViolationTypePage.elements.modalNamaInput().invoke('val').then((val) => {
-      expect(val.length).to.be.at.most(100);
-    });
+    ViolationTypePage.saveForm();
+    ViolationTypePage.elements.modalNamaInput()
+      .should('have.attr', 'maxlength', '100')
+      .should('have.attr', 'aria-invalid', 'true')
+      .closest('[data-slot="form-item"]')
+      .should('have.attr', 'data-invalid', 'true');
+    ViolationTypePage.verifyValidationError(testData.validationMessages.namaMaxLength);
+    ViolationTypePage.elements.formModal().should('be.visible');
   });
 });

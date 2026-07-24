@@ -447,9 +447,9 @@ describe('PGT-18.18 - Tipe Pelanggaran', () => {
       minPoin: '91',
       maxPoin: '95'
     });
-    ViolationTypePage.elements.modalNamaInput().invoke('val').then((val) => {
-      expect(val.length).to.be.at.most(100);
-    });
+    ViolationTypePage.saveForm();
+    ViolationTypePage.verifyValidationError(testData.validationMessages.namaMaxLength);
+    ViolationTypePage.elements.formModal().should('be.visible');
   });
 });
 `
@@ -506,16 +506,33 @@ describe('PGT-18.21 - Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.21 Buka halaman list Tipe Pelanggaran saat belum ada data', () => {
-    cy.get('body').then(($body) => {
-      const rows = $body.find('tbody tr button:has(svg.lucide-trash)');
-      if (rows.length > 0) {
-        cy.wrap(rows.first()).click({ force: true });
-        ViolationTypePage.confirmDelete();
-        cy.wait(1000);
-        cy.reload();
-      }
-    });
-    ViolationTypePage.elements.emptyState().should('be.visible');
+    // 1. Tunggu tabel selesai muat data awal dari API backend
+    cy.get('tbody', { timeout: 15000 }).should('be.visible');
+    cy.wait(2000);
+
+    // 2. Fungsi Hapus Bertahap Seluruh Data Eksis
+    const deleteRowIfDataExists = () => {
+      cy.get('tbody').then(($tbody) => {
+        const trashBtns = $tbody.find('tr button:has(svg.lucide-trash)');
+        if (trashBtns.length > 0) {
+          // Klik tombol trash baris pertama
+          cy.wrap(trashBtns.first()).click({ force: true });
+          cy.wait(800);
+
+          // Klik konfirmasi Hapus
+          ViolationTypePage.confirmDelete();
+          cy.wait(2500);
+
+          // Cek kembali baris berikutnya secara rekursif
+          deleteRowIfDataExists();
+        } else {
+          // 3. Ketika seluruh data terhapus, verifikasi state kosong
+          ViolationTypePage.elements.emptyState().should('be.visible');
+        }
+      });
+    };
+
+    deleteRowIfDataExists();
   });
 });
 `
@@ -547,6 +564,14 @@ describe('PGT-18.22 - Tipe Pelanggaran', () => {
     ViolationTypePage.saveForm();
     ViolationTypePage.elements.formModal().should('not.exist');
     cy.wait(1000);
+
+    // Edit cat2 menjadi 'Tidak Aktif'
+    cy.contains('tbody tr', cat2).find('button[data-slot="dialog-trigger"]:has(svg.lucide-square-pen), button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil)').first().click({ force: true });
+    cy.wait(1000);
+    ViolationTypePage.fillModalForm({ statusText: 'Tidak Aktif' });
+    ViolationTypePage.saveForm();
+    ViolationTypePage.elements.formModal().should('not.exist');
+    cy.wait(1500);
 
     cy.reload();
     cy.get('body', { timeout: 15000 }).should('be.visible');
@@ -717,9 +742,14 @@ describe('PGT-18.31 - Tipe Pelanggaran', () => {
   });
 
   it("PGT-18.31 Aktifkan Filter Status = 'Tidak Aktif'", () => {
+    ViolationTypePage.ensureInactiveDataExists();
     ViolationTypePage.elements.filterStatusSelect().click({ force: true });
-    ViolationTypePage.elements.selectOptions().contains(/tidak aktif/i).first().click({ force: true });
-    cy.wait(1000);
+    ViolationTypePage.elements.selectOptions().contains(/^\s*Tidak Aktif\s*$/i).first().click({ force: true });
+    cy.wait(1500);
+    ViolationTypePage.elements.tableRows().should('have.length.at.least', 1);
+    ViolationTypePage.elements.tableRows().each(($row) => {
+      cy.wrap($row).should('contain.text', 'Tidak Aktif');
+    });
   });
 });
 `
@@ -1097,9 +1127,9 @@ describe('PGT-18.49 - Tipe Pelanggaran', () => {
     ViolationTypePage.ensureDataExists();
     ViolationTypePage.clickEditFirstRow();
     ViolationTypePage.fillModalForm({ nama: longName });
-    ViolationTypePage.elements.modalNamaInput().invoke('val').then((val) => {
-      expect(val.length).to.be.at.most(100);
-    });
+    ViolationTypePage.saveForm();
+    ViolationTypePage.verifyValidationError(testData.validationMessages.namaMaxLength);
+    ViolationTypePage.elements.formModal().should('be.visible');
   });
 });
 `

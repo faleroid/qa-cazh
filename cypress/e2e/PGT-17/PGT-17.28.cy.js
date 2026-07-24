@@ -8,10 +8,26 @@ describe('PGT-17.28 - Kategori Inventaris', () => {
   });
 
   it("PGT-17.28 Klik btn 'Bersihkan' di samping filter aktif", () => {
+    InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.elements.filterInstansiSelect().click({ force: true });
-    InventoryCategoryPage.elements.selectOptions().last().click({ force: true });
-    cy.wait(1000);
+    cy.wait(800);
+
+    // Pilih instansi spesifik yang BUKAN opsi 'Semua'
+    InventoryCategoryPage.elements.selectOptions()
+      .filter(':not(:contains("Semua"))')
+      .first()
+      .click({ force: true });
+
+    // Tunggu beberapa detik agar UI badge 'Bersihkan' ter-render sempurna & data ter-filter
+    cy.wait(2500);
+
+    // Klik tombol 'Bersihkan' di samping filter aktif
     InventoryCategoryPage.elements.filterClearBtnInList().should('be.visible').click({ force: true });
+    
+    // Beri jeda beberapa detik setelah bersihkan filter
+    cy.wait(2000);
+
+    // Verifikasi tombol filter clear sudah tidak ada lagi
     InventoryCategoryPage.elements.filterClearBtnInList().should('not.exist');
   });
 });

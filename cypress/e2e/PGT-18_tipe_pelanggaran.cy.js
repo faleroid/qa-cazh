@@ -1,5 +1,5 @@
-import ViolationTypePage from './pages/ViolationTypePage';
-import testData from './fixtures/violationTypeData.json';
+import ViolationTypePage from '../pages/ViolationTypePage';
+import testData from '../fixtures/violationTypeData.json';
 
 describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
   beforeEach(() => {
@@ -39,7 +39,7 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
     ViolationTypePage.clickAddButton();
     ViolationTypePage.fillModalForm({
       instansiIndex: 0,
-      nama: 'Pelanggaran Batal',
+      nama: 'Ketidakhadiran Tanpa Keterangan',
       minPoin: '1',
       maxPoin: '5'
     });
@@ -86,7 +86,7 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
       maxPoin: '10'
     });
     ViolationTypePage.saveForm();
-    ViolationTypePage.elements.validationError().should('be.visible');
+    ViolationTypePage.verifyValidationError(testData.validationMessages.minPoinRequired);
   });
 
   it('PGT-18.8 Kosongkan Maksimal Poin (Min terisi) -> klik Simpan', () => {
@@ -98,7 +98,7 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
       maxPoin: ''
     });
     ViolationTypePage.saveForm();
-    ViolationTypePage.elements.validationError().should('be.visible');
+    ViolationTypePage.verifyValidationError(testData.validationMessages.maxPoinRequired);
   });
 
   it('PGT-18.9 Kosongkan kedua Range Poin (Min + Max) -> klik Simpan', () => {
@@ -110,7 +110,7 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
       maxPoin: ''
     });
     ViolationTypePage.saveForm();
-    ViolationTypePage.elements.validationError().should('be.visible');
+    ViolationTypePage.verifyValidationError();
   });
 
   it('PGT-18.10 Buka dropdown Instansi', () => {
@@ -152,7 +152,7 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
       maxPoin: '10'
     });
     ViolationTypePage.saveForm();
-    ViolationTypePage.elements.validationError().contains(new RegExp(testData.validationMessages.minGreaterMax, 'i')).should('be.visible');
+    ViolationTypePage.verifyValidationError(testData.validationMessages.minGreaterMax);
   });
 
   it('PGT-18.14 Input Min Poin = Max Poin (misal keduanya 10) -> klik Simpan', () => {
@@ -164,7 +164,7 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
       maxPoin: '10'
     });
     ViolationTypePage.saveForm();
-    ViolationTypePage.elements.validationError().should('be.visible');
+    ViolationTypePage.verifyValidationError();
   });
 
   it('PGT-18.15 Input Max Poin = 1000 (> 999) -> klik Simpan', () => {
@@ -176,20 +176,19 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
       maxPoin: '1000'
     });
     ViolationTypePage.saveForm();
-    ViolationTypePage.elements.validationError().contains(new RegExp(testData.validationMessages.maxExceeds999, 'i')).should('be.visible');
+    ViolationTypePage.verifyValidationError(testData.validationMessages.maxExceeds999);
   });
 
   it('PGT-18.16 Input Range Poin yang OVERLAP dengan tipe pelanggaran existing -> klik Simpan', () => {
-    ViolationTypePage.ensureDataExists();
     ViolationTypePage.clickAddButton();
     ViolationTypePage.fillModalForm({
       instansiIndex: 0,
-      nama: 'Pelanggaran Overlap Test',
+      nama: 'Merokok di Lingkungan Sekolah',
       minPoin: '1',
       maxPoin: '10'
     });
     ViolationTypePage.saveForm();
-    ViolationTypePage.elements.validationError().should('be.visible');
+    ViolationTypePage.verifyValidationError(testData.validationMessages.overlap);
   });
 
   it('PGT-18.17 Input Nama Tipe Pelanggaran yang sudah ada (duplikat) -> klik Simpan', () => {
@@ -216,9 +215,14 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
       minPoin: '91',
       maxPoin: '95'
     });
-    ViolationTypePage.elements.modalNamaInput().invoke('val').then((val) => {
-      expect(val.length).to.be.at.most(100);
-    });
+    ViolationTypePage.saveForm();
+    ViolationTypePage.elements.modalNamaInput()
+      .should('have.attr', 'maxlength', '100')
+      .should('have.attr', 'aria-invalid', 'true')
+      .closest('[data-slot="form-item"]')
+      .should('have.attr', 'data-invalid', 'true');
+    ViolationTypePage.verifyValidationError(testData.validationMessages.namaMaxLength);
+    ViolationTypePage.elements.formModal().should('be.visible');
   });
 
   // ---------------------------------------------------------------------------
@@ -239,21 +243,38 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.21 Buka halaman list Tipe Pelanggaran saat belum ada data', () => {
-    cy.get('body').then(($body) => {
-      const rows = $body.find('tbody tr button:has(svg.lucide-trash)');
-      if (rows.length > 0) {
-        cy.wrap(rows.first()).click({ force: true });
-        ViolationTypePage.confirmDelete();
-        cy.wait(1000);
-        cy.reload();
-      }
-    });
-    ViolationTypePage.elements.emptyState().should('be.visible');
+    // 1. Tunggu tabel selesai muat data awal dari API backend
+    cy.get('tbody', { timeout: 15000 }).should('be.visible');
+    cy.wait(2000);
+
+    // 2. Fungsi Hapus Bertahap Seluruh Data Eksis
+    const deleteRowIfDataExists = () => {
+      cy.get('tbody').then(($tbody) => {
+        const trashBtns = $tbody.find('tr button:has(svg.lucide-trash)');
+        if (trashBtns.length > 0) {
+          // Klik tombol trash baris pertama
+          cy.wrap(trashBtns.first()).click({ force: true });
+          cy.wait(800);
+
+          // Klik konfirmasi Hapus
+          ViolationTypePage.confirmDelete();
+          cy.wait(2500);
+
+          // Cek kembali baris berikutnya secara rekursif
+          deleteRowIfDataExists();
+        } else {
+          // 3. Ketika seluruh data terhapus, verifikasi state kosong
+          ViolationTypePage.elements.emptyState().should('be.visible');
+        }
+      });
+    };
+
+    deleteRowIfDataExists();
   });
 
   it('PGT-18.22 Tambah 2 tipe pelanggaran berturut-turut -> reload halaman', () => {
-    const cat1 = 'Pelanggaran Auto 1';
-    const cat2 = 'Pelanggaran Auto 2';
+    const cat1 = 'Penggunaan Ponsel Saat KBM';
+    const cat2 = 'Tindakan Perundungan (Bullying)';
 
     ViolationTypePage.clickAddButton();
     ViolationTypePage.fillModalForm({ instansiIndex: 0, nama: cat1, minPoin: '101', maxPoin: '105' });
@@ -275,6 +296,14 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
       }
     });
 
+    ViolationTypePage.elements.formModal().should('not.exist');
+    cy.wait(1500);
+
+    // Edit salah satu tipe pelanggaran (cat2) menjadi 'Tidak Aktif' untuk keperluan testing filter status
+    cy.contains('tbody tr', cat2).find('button[data-slot="dialog-trigger"]:has(svg.lucide-square-pen), button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil)').first().click({ force: true });
+    cy.wait(1000);
+    ViolationTypePage.fillModalForm({ statusText: 'Tidak Aktif' });
+    ViolationTypePage.saveForm();
     ViolationTypePage.elements.formModal().should('not.exist');
     cy.wait(1500);
 
@@ -354,7 +383,7 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
   });
 
   it("PGT-18.31 Aktifkan Filter Status = 'Tidak Aktif'", () => {
-    ViolationTypePage.ensureDataExists();
+    ViolationTypePage.ensureInactiveDataExists();
     
     // 1. Buka dropdown Filter Status
     ViolationTypePage.elements.filterStatusSelect().click({ force: true });
@@ -363,15 +392,10 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
     ViolationTypePage.elements.selectOptions().contains(/^\s*Tidak Aktif\s*$/i).first().click({ force: true });
     cy.wait(1500);
 
-    // 3. Verifikasi hasil filter (atau Empty State jika tidak ada data 'Tidak Aktif')
-    cy.get('body').then(($body) => {
-      if ($body.find('tbody tr').length > 0) {
-        ViolationTypePage.elements.tableRows().each(($row) => {
-          cy.wrap($row).should('contain.text', 'Tidak Aktif');
-        });
-      } else {
-        ViolationTypePage.elements.emptyState().should('be.visible');
-      }
+    // 3. Verifikasi baris tabel ter-filter hanya menampilkan status 'Tidak Aktif'
+    ViolationTypePage.elements.tableRows().should('have.length.at.least', 1);
+    ViolationTypePage.elements.tableRows().each(($row) => {
+      cy.wrap($row).should('contain.text', 'Tidak Aktif');
     });
   });
 
@@ -410,8 +434,7 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.36 Ubah Nama Tipe Pelanggaran ke nama BARU -> klik Simpan', () => {
-    const newName = 'Pelanggaran Edit Baru';
-    ViolationTypePage.ensureDataExists();
+    const newName = 'Pengrusakan Fasilitas Sekolah';
     ViolationTypePage.clickEditFirstRow();
     ViolationTypePage.fillModalForm({ nama: newName });
     ViolationTypePage.saveForm();
@@ -462,7 +485,7 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
   it('PGT-18.41 Ubah field di form Edit -> klik Batal', () => {
     ViolationTypePage.ensureDataExists();
     ViolationTypePage.clickEditFirstRow();
-    ViolationTypePage.fillModalForm({ nama: 'Nama Edit Batal' });
+    ViolationTypePage.fillModalForm({ nama: 'Meninggalkan Kelas Tanpa Izin' });
     ViolationTypePage.cancelForm();
     ViolationTypePage.elements.formModal().should('not.exist');
   });
@@ -492,7 +515,7 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
 
   it('PGT-18.45 Ubah Nama Tipe Pelanggaran jadi nama yang SUDAH ADA (duplikat) -> klik Simpan', () => {
     ViolationTypePage.clickEditFirstRow();
-    ViolationTypePage.fillModalForm({ nama: 'Pelanggaran Auto 1' });
+    ViolationTypePage.fillModalForm({ nama: 'Keterlambatan Masuk Sekolah' });
     ViolationTypePage.saveForm();
 
     // Notif Error 'Nama tipe pelanggaran sudah ada, silakan gunakan nama lain' muncul
@@ -539,14 +562,18 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
   // ---------------------------------------------------------------------------
   // 5. INTEGRATION WITH CREATE VIOLATION FEATURE & DELETE LIFECYCLE
   // ---------------------------------------------------------------------------
-  it("PGT-18.50 Set status 'Aktif' -> buka fitur Buat Pelanggaran / Laporan Pelanggaran", () => {
-    ViolationTypePage.visit();
-    ViolationTypePage.elements.tableRows().should('be.visible');
+  it("PGT-18.50 Set status 'Aktif' -> buka fitur Pelanggaran di /student-affairs/violation", () => {
+    cy.visit('/student-affairs/violation', { failOnStatusCode: false });
+    cy.get('body', { timeout: 10000 }).should('be.visible');
+    cy.contains('h1', 'Pelanggaran').should('be.visible');
+    cy.get('table[data-slot="data-grid-table"]').should('be.visible');
   });
 
-  it("PGT-18.51 Set status 'Tidak Aktif' -> buka fitur Buat Pelanggaran / Laporan Pelanggaran", () => {
-    ViolationTypePage.visit();
-    ViolationTypePage.elements.tableRows().should('be.visible');
+  it("PGT-18.51 Set status 'Tidak Aktif' -> buka fitur Pelanggaran di /student-affairs/violation", () => {
+    cy.visit('/student-affairs/violation', { failOnStatusCode: false });
+    cy.get('body', { timeout: 10000 }).should('be.visible');
+    cy.contains('h1', 'Pelanggaran').should('be.visible');
+    cy.get('table[data-slot="data-grid-table"]').should('be.visible');
   });
 
   it("PGT-18.52 Klik Aksi -> 'Hapus' di row tipe pelanggaran", () => {
@@ -579,7 +606,7 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.56 Search sampai hasil tinggal 1 row -> hapus row tersebut', () => {
-    const uniqueCat = 'Khusus Hapus Data';
+    const uniqueCat = 'Sikap Tidak Sopan Terhadap Guru';
     ViolationTypePage.clickAddButton();
     ViolationTypePage.fillModalForm({ instansiIndex: 0, nama: uniqueCat, minPoin: '301', maxPoin: '305' });
     ViolationTypePage.saveForm();
@@ -593,8 +620,39 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
     ViolationTypePage.elements.emptyState().should('be.visible');
   });
 
-  it('PGT-18.57 Hapus tipe pelanggaran -> buka fitur Buat Pelanggaran / Laporan Pelanggaran', () => {
+  it('PGT-18.57 Hapus tipe pelanggaran -> Cek Tipe di /student-affairs/violation terhapus (-)', () => {
+    // 1. Buka /setting/student-affairs/violation-type & baca nama tipe di baris pertama
     ViolationTypePage.visit();
-    ViolationTypePage.elements.tableRows().should('be.visible');
+    cy.wait(1500);
+
+    ViolationTypePage.ensureDataExists();
+    cy.wait(500);
+
+    ViolationTypePage.elements.tableRows().first().within(() => {
+      cy.get('td').eq(1).invoke('text').as('deletedTypeName');
+    });
+
+    cy.get('@deletedTypeName').then((typeName) => {
+      const cleanTypeName = typeName.trim();
+
+      // 2. Hapus tipe pelanggaran tersebut
+      ViolationTypePage.clickDeleteFirstRow();
+      cy.wait(800);
+      ViolationTypePage.confirmDelete();
+      cy.wait(2000);
+
+      // 3. Buka halaman Laporan Pelanggaran https://v3.cazh.id/student-affairs/violation
+      cy.visit('/student-affairs/violation', { failOnStatusCode: false });
+      cy.wait(1500);
+      cy.get('body', { timeout: 10000 }).should('be.visible');
+      cy.contains('h1', 'Pelanggaran').should('be.visible');
+      cy.get('table[data-slot="data-grid-table"]').should('be.visible');
+
+      // Tipe yang dihapus TIDAK BOLEH ADA di tabel ("jika tidak ada benar")
+      cy.get('table[data-slot="data-grid-table"]').should('not.contain', cleanTypeName);
+
+      // Sel kolom Tipe menampilkan tanda hubung '-'
+      cy.get('table[data-slot="data-grid-table"] tbody td').contains('-').should('exist');
+    });
   });
 });

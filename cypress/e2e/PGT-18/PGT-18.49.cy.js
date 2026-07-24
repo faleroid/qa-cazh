@@ -12,7 +12,12 @@ describe('PGT-18.49 - Tipe Pelanggaran', () => {
     ViolationTypePage.clickEditFirstRow();
     ViolationTypePage.fillModalForm({ nama: longName });
     ViolationTypePage.saveForm();
-    ViolationTypePage.verifyValidationError('100');
+    ViolationTypePage.elements.modalNamaInput()
+      .should('have.attr', 'maxlength', '100')
+      .should('have.attr', 'aria-invalid', 'true')
+      .closest('[data-slot="form-item"]')
+      .should('have.attr', 'data-invalid', 'true');
+    ViolationTypePage.verifyValidationError(testData.validationMessages.namaMaxLength);
     ViolationTypePage.elements.formModal().should('be.visible');
   });
 });

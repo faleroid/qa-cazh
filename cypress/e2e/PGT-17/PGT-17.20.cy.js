@@ -9,6 +9,6 @@ describe('PGT-17.20 - Kategori Inventaris', () => {
 
   it('PGT-17.20 Klik dropdown Pagination Page Size Selector', () => {
     InventoryCategoryPage.elements.pageSizeDropdown().click({ force: true });
-    InventoryCategoryPage.elements.selectOptions().should('have.length', 5);
+    InventoryCategoryPage.elements.selectOptions().should('have.length', 6);
   });
 });

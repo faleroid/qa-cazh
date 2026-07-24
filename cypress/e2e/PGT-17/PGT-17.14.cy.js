@@ -9,19 +9,19 @@ describe('PGT-17.14 - Kategori Inventaris', () => {
 
   it('PGT-17.14 Tambah beberapa kategori -> reload halaman', () => {
     const timestamp = Date.now();
-    const cat1 = `Kat Multi 1 ${timestamp}`;
-    const cat2 = `Kat Multi 2 ${timestamp}`;
+    const cat1 = `Peralatan Olahraga SMA ${timestamp}`;
+    const cat2 = `Proyektor Lab Komputer ${timestamp}`;
 
-    // 1. Tambah Kategori Pertama
+    // 1. Tambah Kategori Pertama di Instansi Index 0
     InventoryCategoryPage.clickAddButton();
     InventoryCategoryPage.fillModalForm({ instansiIndex: 0, namaKategori: cat1 });
     InventoryCategoryPage.saveForm();
     InventoryCategoryPage.elements.formModal().should('not.exist');
     cy.wait(1000);
 
-    // 2. Tambah Kategori Kedua
+    // 2. Tambah Kategori Kedua di Instansi Index 1 (Instansi Berbeda)
     InventoryCategoryPage.clickAddButton();
-    InventoryCategoryPage.fillModalForm({ instansiIndex: 0, namaKategori: cat2 });
+    InventoryCategoryPage.fillModalForm({ instansiIndex: 1, namaKategori: cat2 });
     InventoryCategoryPage.saveForm();
     InventoryCategoryPage.elements.formModal().should('not.exist');
     cy.wait(1000);

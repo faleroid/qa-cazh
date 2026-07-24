@@ -62,6 +62,7 @@ class ViolationTypePage {
 
   clickAddButton() {
     this.elements.addButton().scrollIntoView().click({ force: true });
+    cy.wait(800);
   }
 
   clearAndType(cyElement, value) {
@@ -94,12 +95,14 @@ class ViolationTypePage {
     }
     if (statusText !== undefined) {
       this.elements.modalStatusDropdown().click({ force: true });
-      cy.wait(300);
+      cy.wait(500);
       this.elements.selectOptions().contains(new RegExp(statusText, 'i')).click({ force: true });
+      cy.wait(500);
     } else if (statusIndex !== undefined) {
       this.elements.modalStatusDropdown().click({ force: true });
-      cy.wait(300);
+      cy.wait(500);
       this.elements.selectOptions().eq(statusIndex).click({ force: true });
+      cy.wait(500);
     }
   }
 
@@ -110,6 +113,7 @@ class ViolationTypePage {
 
   cancelForm() {
     this.elements.modalCancelBtn().scrollIntoView().click({ force: true });
+    cy.wait(800);
   }
 
   search(keyword) {
@@ -118,11 +122,14 @@ class ViolationTypePage {
     } else {
       this.elements.searchInput().clear({ force: true }).type(keyword, { force: true });
     }
+    cy.wait(1000);
   }
 
   changePageSize(size) {
     this.elements.pageSizeDropdown().click({ force: true });
+    cy.wait(500);
     this.elements.selectOptions().contains(String(size)).click({ force: true });
+    cy.wait(1000);
   }
 
   clickEditFirstRow() {
@@ -133,6 +140,7 @@ class ViolationTypePage {
       .find('button[data-slot="dialog-trigger"]:has(svg.lucide-square-pen), button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil)')
       .first()
       .click();
+    cy.wait(1000);
     this.elements.formModal().should('be.visible');
   }
 
@@ -144,26 +152,30 @@ class ViolationTypePage {
       .find('button[data-slot="dialog-trigger"]:has(svg.lucide-trash), button:has(svg.lucide-trash)')
       .first()
       .click();
+    cy.wait(1000);
     this.elements.deleteModal().should('be.visible');
   }
 
   confirmDelete() {
     this.elements.deleteConfirmBtn().click({ force: true });
+    cy.wait(1500);
   }
 
   cancelDelete() {
     this.elements.deleteCancelBtn().click({ force: true });
+    cy.wait(800);
   }
 
   cancelDeleteByX() {
     this.elements.deleteCloseXBtn().click({ force: true });
+    cy.wait(800);
   }
 
   verifyValidationError(expectedText) {
     if (expectedText) {
-      cy.contains(new RegExp(expectedText, 'i'), { timeout: 15000 }).scrollIntoView().should('exist');
+      cy.contains(new RegExp(expectedText, 'i'), { timeout: 15000 }).first().scrollIntoView().should('exist');
     } else {
-      this.elements.validationError().scrollIntoView().should('exist');
+      this.elements.validationError().first().scrollIntoView().should('exist');
     }
   }
 
@@ -171,7 +183,7 @@ class ViolationTypePage {
     cy.get('body').then(($body) => {
       if ($body.find('tbody tr').length === 0 || $body.text().match(/tidak ada data/i)) {
         cy.log('Tabel kosong. Membuat data dummy otomatis...');
-        const setupName = `Default Data ${Date.now()}`;
+        const setupName = 'Keterlambatan Masuk Sekolah';
         this.clickAddButton();
         this.fillModalForm({
           instansiIndex: 0,
@@ -179,6 +191,20 @@ class ViolationTypePage {
           minPoin: '990',
           maxPoin: '999'
         });
+        this.saveForm();
+        this.elements.formModal().should('not.exist');
+        cy.wait(1500);
+      }
+    });
+  }
+
+  ensureInactiveDataExists() {
+    this.ensureDataExists();
+    cy.get('body').then(($body) => {
+      if (!$body.text().match(/tidak aktif/i)) {
+        cy.log('Tidak ada data Tidak Aktif. Mengubah status baris pertama menjadi Tidak Aktif...');
+        this.clickEditFirstRow();
+        this.fillModalForm({ statusText: 'Tidak Aktif' });
         this.saveForm();
         this.elements.formModal().should('not.exist');
         cy.wait(1500);

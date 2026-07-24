@@ -10,7 +10,7 @@ describe('PGT-17.34 - Kategori Inventaris', () => {
   it('PGT-17.34 Ubah field di popup Edit -> klik btn Batal', () => {
     InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.clickEditFirstRow();
-    InventoryCategoryPage.fillModalForm({ namaKategori: 'Batal Update' });
+    InventoryCategoryPage.fillModalForm({ namaKategori: 'Perlengkapan UKS Sekolah' });
     InventoryCategoryPage.cancelForm();
     InventoryCategoryPage.elements.formModal().should('not.exist');
   });

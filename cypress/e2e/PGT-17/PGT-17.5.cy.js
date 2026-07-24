@@ -9,7 +9,7 @@ describe('PGT-17.5 - Kategori Inventaris', () => {
 
   it('PGT-17.5 Isi form -> klik btn Batal/Cancel', () => {
     InventoryCategoryPage.clickAddButton();
-    InventoryCategoryPage.fillModalForm({ instansiIndex: 0, namaKategori: 'Test Batal' });
+    InventoryCategoryPage.fillModalForm({ instansiIndex: 0, namaKategori: 'Buku Perpustakaan' });
     InventoryCategoryPage.cancelForm();
     InventoryCategoryPage.elements.formModal().should('not.exist');
   });

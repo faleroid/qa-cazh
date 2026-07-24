@@ -4,24 +4,27 @@
     "createViolationPage": "/student-affairs/violation/create"
   },
   "validData": {
-    "namaBaru": "Pelanggaran Ringan A",
-    "namaUpdate": "Pelanggaran Sedang B",
+    "namaBaru": "Keterlambatan Masuk Sekolah",
+    "namaUpdate": "Pelanggaran Seragam & Atribut",
     "minPoin": "5",
     "maxPoin": "15"
   },
   "validationMessages": {
     "instansiRequired": "Instansi wajib diisi",
-    "namaRequired": "Nama Tipe Pelanggaran wajib diisi",
+    "namaRequired": "Tipe pelanggaran wajib diisi",
+    "minPoinRequired": "Poin minimum wajib diisi",
+    "maxPoinRequired": "Poin maksimum wajib diisi",
     "rangeRequired": "Range poin wajib diisi",
     "statusRequired": "Status wajib diisi",
     "minGreaterMax": "harus lebih kecil",
     "maxExceeds999": "tidak boleh lebih dari 999",
     "overlap": "bertumpuk",
-    "duplicate": "sudah digunakan|sudah ada"
+    "duplicate": "sudah digunakan|sudah ada",
+    "namaMaxLength": "Tipe pelanggaran maksimal 100 karakter"
   },
   "search": {
-    "validKeyword": "Pelanggaran",
-    "invalidKeyword": "xyz123abc"
+    "validKeyword": "Keterlambatan",
+    "invalidKeyword": "PelanggaranTidakAda999"
   },
   "emptyStateText": "Data Tipe Pelanggaran tidak ditemukan"
 }

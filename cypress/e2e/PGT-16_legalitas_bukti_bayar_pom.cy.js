@@ -13,12 +13,13 @@ describe('UAT Suite: PGT-16 - Legalitas Bukti Bayar (Modal Dialog UI)', () => {
   // ---------------------------------------------------------------------------
   // 1. NAVIGATION & INITIAL LOAD (MODAL STATE)
   // ---------------------------------------------------------------------------
-  it('PGT-16.1: Buka submenu Legalitas Bukti Bayar -> Modal Legalitas terbuka', () => {
+  it('PGT-16.1: Buka submenu Legalitas Bukti Bayar -> Modal Legalitas terbuka & elemen modal (Title, Form Label, Dropdown Instansi, Close Button) teruji', () => {
     LegalityPage.elements.dialogContainer().should('be.visible');
-    LegalityPage.elements.dialogTitle().should('be.visible');
-    LegalityPage.elements.instansiDropdown().should('exist');
-    LegalityPage.elements.legalitySwitch().should('exist');
-    LegalityPage.elements.saveButton().should('be.visible');
+    LegalityPage.elements.dialogTitle().should('be.visible').and('contain.text', 'Legalitas Bukti Bayar');
+    LegalityPage.elements.instansiLabel().should('be.visible').and('contain.text', 'Pilih Instansi');
+    LegalityPage.elements.instansiDropdown().should('be.visible');
+    LegalityPage.elements.instansiDropdownValue().should('contain.text', 'Pilih instansi terlebih dahulu');
+    LegalityPage.elements.dialogCloseBtn().should('exist');
   });
 
   it('PGT-16.2: Buka dropdown Instansi -> Placeholder "Pilih instansi terlebih dahulu" & List instansi muncul', () => {
@@ -38,17 +39,22 @@ describe('UAT Suite: PGT-16 - Legalitas Bukti Bayar (Modal Dialog UI)', () => {
   // ---------------------------------------------------------------------------
   // 2. TOGGLE & CONDITIONAL RENDERING (MODAL CONTEXT)
   // ---------------------------------------------------------------------------
-  it('PGT-16.4: Cek default state toggle -> Default OFF, 4 sub-field tersembunyi', () => {
+  it('PGT-16.4: Pilih instansi & Cek default state toggle -> Default OFF ("Tidak Aktif"), 4 sub-field tersembunyi', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(false);
+    LegalityPage.elements.dialogContainer().contains('span', 'Tidak Aktif').should('be.visible');
     LegalityPage.verifySubFieldsHidden();
   });
 
-  it('PGT-16.5: Aktifkan toggle -> 4 sub-field muncul (Pengesahan, Jabatan, Nama Terang, TTD)', () => {
+  it('PGT-16.5: Pilih instansi + Aktifkan toggle ("Aktif") -> 4 sub-field muncul (Pengesahan, Jabatan, Nama Terang, TTD)', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
+    LegalityPage.elements.dialogContainer().contains('span', 'Aktif').should('be.visible');
     LegalityPage.verifySubFieldsVisible();
   });
 
   it('PGT-16.6: Matikan kembali toggle setelah aktif -> 4 sub-field tersembunyi lagi', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
     LegalityPage.setToggleState(false);
     LegalityPage.verifySubFieldsHidden();
@@ -135,38 +141,48 @@ describe('UAT Suite: PGT-16 - Legalitas Bukti Bayar (Modal Dialog UI)', () => {
   });
 
   it('PGT-16.16: Upload TTD format .PNG (< 2MB) -> Berhasil ter-upload & simpan', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
     LegalityPage.fillForm(testData.validForm);
     LegalityPage.uploadSignature(testData.files.validPng);
+    cy.wait(2000);
     LegalityPage.clickSave();
     LegalityPage.verifyToastSuccess();
   });
 
   it('PGT-16.17: Upload TTD format .JPG (< 2MB) -> Format JPG diterima & simpan', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
     LegalityPage.fillForm(testData.validForm);
     LegalityPage.uploadSignature(testData.files.validJpg);
+    cy.wait(2000);
     LegalityPage.clickSave();
     LegalityPage.verifyToastSuccess();
   });
 
   it('PGT-16.18: Upload TTD format .JPEG (< 2MB) -> Format JPEG diterima & simpan', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
     LegalityPage.fillForm(testData.validForm);
     LegalityPage.uploadSignature(testData.files.validJpeg);
+    cy.wait(2000);
     LegalityPage.clickSave();
     LegalityPage.verifyToastSuccess();
   });
 
   it('PGT-16.19: Upload TTD ukuran > 2MB -> Sistem tolak dengan error ukuran file', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
     LegalityPage.uploadSignature(testData.files.largePng);
+    cy.wait(1500);
     LegalityPage.verifyValidationError(testData.validationMessages.maxFileSize);
   });
 
   it('PGT-16.20: Upload TTD format .PDF -> Sistem tolak dengan error tipe file', () => {
+    LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
     LegalityPage.uploadSignature(testData.files.invalidPdf);
+    cy.wait(1500);
     LegalityPage.verifyValidationError(testData.validationMessages.invalidFileType);
   });
 

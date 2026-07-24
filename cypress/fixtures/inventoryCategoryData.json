@@ -17,16 +17,16 @@
     ]
   },
   "validData": {
-    "kategoriBaru": "Meja Baru",
-    "kategoriUpdate": "Meja Baru"
+    "kategoriBaru": "Peralatan Laboratorium IPA",
+    "kategoriUpdate": "Perangkat Komputer Lab"
   },
   "validationMessages": {
     "instansiRequired": "Instansi wajib diisi",
     "kategoriRequired": "Nama kategori inventaris wajib diisi"
   },
   "search": {
-    "validKeyword": "Meja",
-    "invalidKeyword": "SatelitLuarAngkasa999"
+    "validKeyword": "Komputer",
+    "invalidKeyword": "KategoriTidakAda999"
   },
   "emptyStateText": "Tidak ada data yang ditemukan"
 }
