@@ -1,6 +1,6 @@
 const input = {
   email: "androidtesting117@gmail.com",
-  password: "8x8xsizf",
+  password: "f7ki6b2u",
 };
 
 describe("Input Email", () => {
