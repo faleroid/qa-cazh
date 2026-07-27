@@ -8,7 +8,6 @@ describe('PGT-18.29 - Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.29 Aktifkan Filter Instansi (pilih 1 instansi)', () => {
-    ViolationTypePage.ensureDataExists();
     ViolationTypePage.elements.filterInstansiSelect().click({ force: true });
     ViolationTypePage.elements.selectOptions().eq(1).click({ force: true });
     cy.wait(1000);

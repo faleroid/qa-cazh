@@ -8,7 +8,6 @@ describe('PGT-18.20 - Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.20 Cek Aksi di setiap row', () => {
-    ViolationTypePage.ensureDataExists();
     ViolationTypePage.elements.rowEditBtn().should('exist');
     ViolationTypePage.elements.rowDeleteBtn().should('exist');
   });

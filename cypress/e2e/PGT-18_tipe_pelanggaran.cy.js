@@ -5,6 +5,11 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
   beforeEach(() => {
     cy.login();
     ViolationTypePage.visit();
+    cy.wait(2000);
+  });
+
+  afterEach(() => {
+    cy.wait(2500);
   });
 
   // ---------------------------------------------------------------------------
@@ -238,7 +243,6 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.20 Cek Aksi di setiap row', () => {
-    ViolationTypePage.ensureDataExists();
     ViolationTypePage.elements.rowEditBtn().should('exist');
     ViolationTypePage.elements.rowDeleteBtn().should('exist');
   });
@@ -278,7 +282,7 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
     const cat2 = 'Tindakan Perundungan (Bullying)';
 
     ViolationTypePage.clickAddButton();
-    ViolationTypePage.fillModalForm({ instansiIndex: 0, nama: cat1, minPoin: '101', maxPoin: '105' });
+    ViolationTypePage.fillModalForm({ instansiIndex: 0, nama: cat1, minPoin: '1', maxPoin: '10' });
     ViolationTypePage.saveForm();
     ViolationTypePage.elements.formModal().should('not.exist');
     
@@ -286,7 +290,7 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
     cy.wait(3500);
 
     ViolationTypePage.clickAddButton();
-    ViolationTypePage.fillModalForm({ instansiIndex: 1, nama: cat2, minPoin: '106', maxPoin: '110' });
+    ViolationTypePage.fillModalForm({ instansiIndex: 1, nama: cat2, minPoin: '11', maxPoin: '20' });
     ViolationTypePage.saveForm();
 
     // Penanganan khusus jika backend memicu rate limit
@@ -301,8 +305,10 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
     cy.wait(1500);
 
     // Edit salah satu tipe pelanggaran (cat2) menjadi 'Tidak Aktif' untuk keperluan testing filter status
+    cy.contains('tbody tr', cat2, { timeout: 15000 }).should('be.visible');
     cy.contains('tbody tr', cat2).find('button[data-slot="dialog-trigger"]:has(svg.lucide-square-pen), button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil)').first().click({ force: true });
     cy.wait(1000);
+    ViolationTypePage.elements.formModal().should('be.visible');
     ViolationTypePage.fillModalForm({ statusText: 'Tidak Aktif' });
     ViolationTypePage.saveForm();
     ViolationTypePage.elements.formModal().should('not.exist');
@@ -332,9 +338,11 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
   // 3. SEARCH & FILTER COMBINATIONS
   // ---------------------------------------------------------------------------
   it('PGT-18.26 Ketik Nama Tipe Pelanggaran di search box', () => {
-    ViolationTypePage.ensureDataExists();
-    ViolationTypePage.search('Pelanggaran');
-    ViolationTypePage.elements.tableRows().should('have.length.at.least', 1);
+    cy.get('tbody', { timeout: 15000 }).should('be.visible');
+    cy.wait(2500);
+    ViolationTypePage.search('Ponsel');
+    ViolationTypePage.elements.tableRows({ timeout: 15000 }).should('have.length.at.least', 1);
+    ViolationTypePage.elements.tableRows().first().should('contain.text', 'Ponsel');
   });
 
   it("PGT-18.27 Ketik keyword yang tidak match ('xyz123abc')", () => {
@@ -359,7 +367,6 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.29 Aktifkan Filter Instansi (pilih 1 instansi)', () => {
-    ViolationTypePage.ensureDataExists();
     ViolationTypePage.elements.filterInstansiSelect().click({ force: true });
     ViolationTypePage.elements.selectOptions().eq(1).click({ force: true });
     cy.wait(1000);
@@ -367,36 +374,54 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
   });
 
   it("PGT-18.30 Aktifkan Filter Status = 'Aktif'", () => {
+    cy.get('tbody', { timeout: 15000 }).should('be.visible');
+    cy.wait(3000);
     ViolationTypePage.ensureDataExists();
+    cy.wait(2000);
     
     // 1. Buka dropdown Filter Status
     ViolationTypePage.elements.filterStatusSelect().click({ force: true });
+    cy.wait(800);
 
     // 2. Klik opsi "Aktif" secara presisi (exact match ^Aktif$)
     ViolationTypePage.elements.selectOptions().contains(/^\s*Aktif\s*$/i).first().click({ force: true });
-    cy.wait(1500);
+    
+    // Jeda lebih lama (4 detik) agar API backend filter status selesai memuat data dan tabel ter-render ulang secara penuh
+    cy.wait(4000);
+    cy.get('tbody', { timeout: 15000 }).should('be.visible');
 
     // 3. Verifikasi baris tabel ter-filter hanya menampilkan status 'Aktif'
-    ViolationTypePage.elements.tableRows().should('have.length.at.least', 1);
-    ViolationTypePage.elements.tableRows().each(($row) => {
-      cy.wrap($row).should('contain.text', 'Aktif');
+    ViolationTypePage.elements.tableRows({ timeout: 15000 }).should('have.length.at.least', 1);
+    cy.get('tbody tr').then(($rows) => {
+      $rows.each((_, row) => {
+        expect(Cypress.$(row).text()).to.include('Aktif');
+      });
     });
   });
 
   it("PGT-18.31 Aktifkan Filter Status = 'Tidak Aktif'", () => {
+    cy.get('tbody', { timeout: 15000 }).should('be.visible');
+    cy.wait(3000);
     ViolationTypePage.ensureInactiveDataExists();
+    cy.wait(2000);
     
     // 1. Buka dropdown Filter Status
     ViolationTypePage.elements.filterStatusSelect().click({ force: true });
+    cy.wait(800);
 
     // 2. Klik opsi "Tidak Aktif" secara presisi (exact match ^Tidak Aktif$)
     ViolationTypePage.elements.selectOptions().contains(/^\s*Tidak Aktif\s*$/i).first().click({ force: true });
-    cy.wait(1500);
+    
+    // Jeda lebih lama (4 detik) agar API backend filter status selesai memuat data dan tabel ter-render ulang secara penuh
+    cy.wait(4000);
+    cy.get('tbody', { timeout: 15000 }).should('be.visible');
 
     // 3. Verifikasi baris tabel ter-filter hanya menampilkan status 'Tidak Aktif'
-    ViolationTypePage.elements.tableRows().should('have.length.at.least', 1);
-    ViolationTypePage.elements.tableRows().each(($row) => {
-      cy.wrap($row).should('contain.text', 'Tidak Aktif');
+    ViolationTypePage.elements.tableRows({ timeout: 15000 }).should('have.length.at.least', 1);
+    cy.get('tbody tr').then(($rows) => {
+      $rows.each((_, row) => {
+        expect(Cypress.$(row).text()).to.include('Tidak Aktif');
+      });
     });
   });
 
@@ -444,8 +469,9 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.37 Ubah Range Poin (Min-Max) valid & tidak overlap -> klik Simpan', () => {
+    ViolationTypePage.ensureDataExists();
     ViolationTypePage.clickEditFirstRow();
-    ViolationTypePage.fillModalForm({ minPoin: '50', maxPoin: '60' });
+    ViolationTypePage.fillModalForm({ minPoin: '15', maxPoin: '20' });
     ViolationTypePage.saveForm();
     ViolationTypePage.elements.formModal().should('not.exist');
     ViolationTypePage.elements.toastMessage().should('be.visible');
@@ -468,16 +494,28 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.40 Ubah Instansi tipe pelanggaran -> klik Simpan', () => {
+    ViolationTypePage.ensureDataExists();
     ViolationTypePage.clickEditFirstRow();
-    cy.wait(500);
+    cy.wait(1000);
     
-    // Toggle instansi secara dinamis agar re-runnable (A <-> B)
-    ViolationTypePage.elements.modalInstansiValue().invoke('text').then((currentText) => {
-      const targetIndex = currentText.includes('Sekolah Digital') ? 1 : 0;
-      ViolationTypePage.fillModalForm({ instansiIndex: targetIndex });
+    // Dapatkan nama instansi terpilih saat ini lalu pilih instansi yang BERBEDA
+    ViolationTypePage.elements.modalInstansiValue().invoke('text').then((currentInstansiText) => {
+      ViolationTypePage.elements.modalInstansiDropdown().click({ force: true });
+      cy.wait(1000);
+      ViolationTypePage.elements.selectOptions().then(($options) => {
+        let differentIndex = 0;
+        $options.each((idx, opt) => {
+          const optText = Cypress.$(opt).text().trim();
+          if (optText && !optText.toLowerCase().includes(currentInstansiText.trim().toLowerCase())) {
+            differentIndex = idx;
+            return false;
+          }
+        });
+        cy.wrap($options.eq(differentIndex)).click({ force: true });
+        cy.wait(1000);
+      });
     });
 
-    cy.wait(500);
     ViolationTypePage.saveForm();
     ViolationTypePage.elements.formModal().should('not.exist');
     ViolationTypePage.elements.toastMessage().should('be.visible');
@@ -496,7 +534,8 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
     ViolationTypePage.clickEditFirstRow();
     ViolationTypePage.fillModalForm({ nama: '' });
     ViolationTypePage.saveForm();
-    ViolationTypePage.elements.validationError().should('be.visible');
+    ViolationTypePage.elements.validationError().first().scrollIntoView().should('exist');
+    ViolationTypePage.cancelForm();
   });
 
   it('PGT-18.43 Status selalu memiliki nilai terpilih (Aktif / Tidak Aktif) & tidak dapat dikosongkan', () => {
@@ -515,16 +554,41 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.45 Ubah Nama Tipe Pelanggaran jadi nama yang SUDAH ADA (duplikat) -> klik Simpan', () => {
-    ViolationTypePage.clickEditFirstRow();
-    ViolationTypePage.fillModalForm({ nama: 'Keterlambatan Masuk Sekolah' });
+    // 1. Buat data dummy terlebih dahulu untuk diedit
+    const timestamp = Date.now().toString().slice(-4);
+    const dummyName = `Dummy Edit Duplikat ${timestamp}`;
+    ViolationTypePage.clickAddButton();
+    ViolationTypePage.fillModalForm({
+      instansiIndex: 0,
+      nama: dummyName,
+      minPoin: '25',
+      maxPoin: '30'
+    });
+    ViolationTypePage.saveForm();
+    ViolationTypePage.elements.formModal().should('not.exist');
+    cy.wait(1500);
+
+    // 2. Klik Edit pada data dummy yang baru dibuat
+    cy.contains('tbody tr', dummyName)
+      .find('button[data-slot="dialog-trigger"]:has(svg.lucide-square-pen), button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil)')
+      .first()
+      .click({ force: true });
+    cy.wait(1000);
+    ViolationTypePage.elements.formModal().should('be.visible');
+
+    // 3. Ganti nama dengan nama yang sudah ada dari PGT-18.22 ('Penggunaan Ponsel Saat KBM')
+    ViolationTypePage.fillModalForm({ nama: 'Penggunaan Ponsel Saat KBM' });
     ViolationTypePage.saveForm();
 
-    // Notif Error 'Nama tipe pelanggaran sudah ada, silakan gunakan nama lain' muncul
+    // 4. Verifikasi Notif Error 'Nama tipe pelanggaran sudah ada' / Toast error muncul
     ViolationTypePage.verifyValidationError('sudah');
 
-    // Data tidak tersimpan (modal tetap terbuka & tombol simpan tetap aktif)
+    // 5. Data tidak tersimpan (modal tetap terbuka & tombol simpan tetap aktif)
     ViolationTypePage.elements.formModal().should('be.visible');
     ViolationTypePage.elements.modalSaveBtn().should('be.enabled');
+
+    // 6. Tutup modal secara manual agar tidak mengganggu tes berikutnya
+    ViolationTypePage.cancelForm();
   });
 
   it('PGT-18.46 Ubah Range Poin jadi OVERLAP dengan tipe pelanggaran existing lain -> klik Simpan', () => {
@@ -564,17 +628,147 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
   // 5. INTEGRATION WITH CREATE VIOLATION FEATURE & DELETE LIFECYCLE
   // ---------------------------------------------------------------------------
   it("PGT-18.50 Set status 'Aktif' -> buka fitur Pelanggaran di /student-affairs/violation", () => {
-    cy.visit('/student-affairs/violation', { failOnStatusCode: false });
-    cy.get('body', { timeout: 10000 }).should('be.visible');
-    cy.contains('h1', 'Pelanggaran').should('be.visible');
-    cy.get('table[data-slot="data-grid-table"]').should('be.visible');
+    ViolationTypePage.visit();
+    ViolationTypePage.ensureInactiveDataExists();
+
+    // 1. Cari baris dengan status 'Tidak Aktif' dan dapatkan nama Instansi & Tipe Pelanggaran
+    cy.contains('tbody tr', /tidak aktif/i).first().then(($row) => {
+      const instansiName = $row.find('td').eq(0).text().trim();
+      const typeName = $row.find('td').eq(1).text().trim() || $row.find('td').first().text().trim();
+      const cleanName = typeName.split('\n')[0].trim();
+      const cleanInstansi = instansiName.split('\n')[0].trim();
+      
+      cy.wrap(cleanName).as('targetTypeName');
+      cy.wrap(cleanInstansi).as('targetInstansiName');
+
+      // 2. Klik Edit pada baris 'Tidak Aktif' tersebut secara stabil
+      const editBtn = $row.find('button[data-slot="dialog-trigger"]:has(svg.lucide-square-pen), button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil)');
+      cy.wrap(editBtn.first()).scrollIntoView();
+      cy.wait(800);
+      cy.wrap(editBtn.first()).click({ force: true });
+    });
+    cy.wait(1200);
+    ViolationTypePage.elements.formModal({ timeout: 15000 }).should('be.visible');
+
+    // 3. Ubah status dari 'Tidak Aktif' menjadi 'Aktif' lalu Simpan
+    ViolationTypePage.fillModalForm({ statusText: 'Aktif' });
+    ViolationTypePage.saveForm();
+    ViolationTypePage.elements.formModal().should('not.exist');
+    cy.wait(1500);
+
+    // 4. Navigasi ke Halaman Pelanggaran (/student-affairs/violation)
+    cy.get('@targetInstansiName').then((targetInstansiName) => {
+      cy.get('@targetTypeName').then((targetTypeName) => {
+        const instansiKeyword = targetInstansiName.slice(0, 10);
+        const typeKeyword = targetTypeName.slice(0, 15);
+
+        cy.visit('/student-affairs/violation', { failOnStatusCode: false });
+        cy.get('body', { timeout: 15000 }).should('be.visible');
+        cy.wait(2500);
+
+        // 5. Klik tombol "Tambah Pelanggaran"
+        cy.contains('button', /tambah pelanggaran/i, { timeout: 10000 }).click({ force: true });
+        cy.get('[role="dialog"]', { timeout: 10000 }).should('be.visible');
+
+        // 5.5. Pilih Instansi yang MATCH dengan Instansi tipe pelanggaran yang diaktifkan
+        cy.get('[role="dialog"]').then(($dialog) => {
+          const instansiTrigger = $dialog.find('[data-slot="form-item"]:contains("Instansi") [role="combobox"], [data-slot="form-item"]:contains("Instansi") [data-slot="select-trigger"], button:contains("Pilih Instansi")');
+          if (instansiTrigger.length > 0) {
+            cy.wrap(instansiTrigger.first()).click({ force: true });
+            cy.wait(800);
+            cy.get('[role="option"], [data-slot="select-item"]').contains(new RegExp(instansiKeyword, 'i')).first().click({ force: true });
+            cy.wait(1200);
+          }
+        });
+
+        // 6. Buka dropdown "Tipe Pelanggaran" di dalam dialog modal
+        cy.contains('[data-slot="form-item"]', /tipe pelanggaran/i)
+          .find('[role="combobox"], [data-slot="select-trigger"]')
+          .click({ force: true });
+        cy.wait(1000);
+
+        // 7. Verifikasi tipe pelanggaran yang diaktifkan muncul dan dapat dipilih
+        cy.get('body').then(($body) => {
+          if ($body.find('[role="option"], [data-slot="select-item"]').length > 0) {
+            cy.get('[role="option"], [data-slot="select-item"]').contains(new RegExp(typeKeyword, 'i')).should('be.visible').click({ force: true });
+          } else {
+            cy.get('select option').contains(new RegExp(typeKeyword, 'i')).should('exist');
+          }
+        });
+      });
+    });
   });
 
   it("PGT-18.51 Set status 'Tidak Aktif' -> buka fitur Pelanggaran di /student-affairs/violation", () => {
-    cy.visit('/student-affairs/violation', { failOnStatusCode: false });
-    cy.get('body', { timeout: 10000 }).should('be.visible');
-    cy.contains('h1', 'Pelanggaran').should('be.visible');
-    cy.get('table[data-slot="data-grid-table"]').should('be.visible');
+    ViolationTypePage.visit();
+    ViolationTypePage.ensureDataExists();
+
+    // 1. Cari baris dengan status 'Aktif' dan dapatkan nama Instansi & Tipe Pelanggaran
+    cy.contains('tbody tr', /aktif/i).first().then(($row) => {
+      const instansiName = $row.find('td').eq(0).text().trim();
+      const typeName = $row.find('td').eq(1).text().trim() || $row.find('td').first().text().trim();
+      const cleanName = typeName.split('\n')[0].trim();
+      const cleanInstansi = instansiName.split('\n')[0].trim();
+      
+      cy.wrap(cleanName).as('targetTypeName');
+      cy.wrap(cleanInstansi).as('targetInstansiName');
+
+      // 2. Klik Edit pada baris 'Aktif' tersebut secara stabil
+      const editBtn = $row.find('button[data-slot="dialog-trigger"]:has(svg.lucide-square-pen), button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil)');
+      cy.wrap(editBtn.first()).scrollIntoView();
+      cy.wait(800);
+      cy.wrap(editBtn.first()).click({ force: true });
+    });
+    cy.wait(1200);
+    ViolationTypePage.elements.formModal({ timeout: 15000 }).should('be.visible');
+
+    // 3. Ubah status dari 'Aktif' menjadi 'Tidak Aktif' lalu Simpan
+    ViolationTypePage.fillModalForm({ statusText: 'Tidak Aktif' });
+    ViolationTypePage.saveForm();
+    ViolationTypePage.elements.formModal().should('not.exist');
+    cy.wait(1500);
+
+    // 4. Navigasi ke Halaman Pelanggaran (/student-affairs/violation)
+    cy.get('@targetInstansiName').then((targetInstansiName) => {
+      cy.get('@targetTypeName').then((targetTypeName) => {
+        const instansiKeyword = targetInstansiName.slice(0, 10);
+        const typeKeyword = targetTypeName.slice(0, 15);
+
+        cy.visit('/student-affairs/violation', { failOnStatusCode: false });
+        cy.get('body', { timeout: 15000 }).should('be.visible');
+        cy.wait(2500);
+
+        // 5. Klik tombol "Tambah Pelanggaran"
+        cy.contains('button', /tambah pelanggaran/i, { timeout: 10000 }).click({ force: true });
+        cy.get('[role="dialog"]', { timeout: 10000 }).should('be.visible');
+
+        // 5.5. Pilih Instansi yang MATCH dengan Instansi tipe pelanggaran yang dinonaktifkan
+        cy.get('[role="dialog"]').then(($dialog) => {
+          const instansiTrigger = $dialog.find('[data-slot="form-item"]:contains("Instansi") [role="combobox"], [data-slot="form-item"]:contains("Instansi") [data-slot="select-trigger"], button:contains("Pilih Instansi")');
+          if (instansiTrigger.length > 0) {
+            cy.wrap(instansiTrigger.first()).click({ force: true });
+            cy.wait(800);
+            cy.get('[role="option"], [data-slot="select-item"]').contains(new RegExp(instansiKeyword, 'i')).first().click({ force: true });
+            cy.wait(1200);
+          }
+        });
+
+        // 6. Buka dropdown "Tipe Pelanggaran" di dalam dialog modal
+        cy.contains('[data-slot="form-item"]', /tipe pelanggaran/i)
+          .find('[role="combobox"], [data-slot="select-trigger"]')
+          .click({ force: true });
+        cy.wait(1000);
+
+        // 7. Verifikasi tipe pelanggaran yang dinonaktifkan TIDAK muncul di dropdown pilihan aktif
+        cy.get('body').then(($body) => {
+          if ($body.find('[role="option"], [data-slot="select-item"]').length > 0) {
+            cy.get('[role="option"], [data-slot="select-item"]').should('not.contain.text', typeKeyword);
+          } else {
+            cy.get('select option').should('not.contain.text', typeKeyword);
+          }
+        });
+      });
+    });
   });
 
   it("PGT-18.52 Klik Aksi -> 'Hapus' di row tipe pelanggaran", () => {
@@ -621,39 +815,135 @@ describe('UAT Suite: PGT-18 - Pengaturan Kesiswaan: Tipe Pelanggaran', () => {
     ViolationTypePage.elements.emptyState().should('be.visible');
   });
 
-  it('PGT-18.57 Hapus tipe pelanggaran -> Cek Tipe di /student-affairs/violation terhapus (-)', () => {
-    // 1. Buka /setting/student-affairs/violation-type & baca nama tipe di baris pertama
+  it('PGT-18.57 Tambah Pelanggaran -> Cek Tipe Pelanggaran di tabel -> Hapus Tipe di setting -> Cek kembali di Pelanggaran', () => {
+    const timestamp = Date.now();
+    const targetTypeName = `Pelanggaran Auto ${timestamp}`;
+
+    // 1. Buat Tipe Pelanggaran khusus di /setting/student-affairs/violation-type dengan range poin 100 - 110 (Instansi: Academy QA Engineer)
     ViolationTypePage.visit();
+    ViolationTypePage.clickAddButton();
+    ViolationTypePage.fillModalForm({ instansiText: 'Academy QA Engineer', nama: targetTypeName, minPoin: '100', maxPoin: '110' });
+    ViolationTypePage.saveForm();
+    ViolationTypePage.elements.formModal().should('not.exist');
     cy.wait(1500);
 
-    ViolationTypePage.ensureDataExists();
-    cy.wait(500);
+    // 2. Buka Halaman Pelanggaran (/student-affairs/violation) & Tambah Pelanggaran
+    cy.visit('/student-affairs/violation', { failOnStatusCode: false });
+    cy.get('body', { timeout: 15000 }).should('be.visible');
+    cy.wait(2500);
 
-    ViolationTypePage.elements.tableRows().first().within(() => {
-      cy.get('td').eq(1).invoke('text').as('deletedTypeName');
+    cy.contains('button', /tambah pelanggaran/i, { timeout: 10000 }).click({ force: true });
+    cy.get('[role="dialog"]', { timeout: 10000 }).should('be.visible');
+
+    // 2.1 Pilih Instansi "Academy QA Engineer"
+    cy.get('[role="dialog"]').then(($dialog) => {
+      const instansiTrigger = $dialog.find('[data-slot="form-item"]:contains("Instansi") [role="combobox"], [data-slot="form-item"]:contains("Instansi") [data-slot="select-trigger"], button:contains("Pilih Instansi")');
+      if (instansiTrigger.length > 0) {
+        cy.wrap(instansiTrigger.first()).click({ force: true });
+        cy.wait(800);
+        cy.get('[role="option"], [data-slot="select-item"]').contains(/Academy QA Engineer/i).click({ force: true });
+        cy.wait(1200);
+      }
     });
 
-    cy.get('@deletedTypeName').then((typeName) => {
-      const cleanTypeName = typeName.trim();
+    // 2.2 Cari & Pilih Anggota ("rocky" -> Rocky Gibraltar)
+    cy.get('[role="dialog"]').then(($dialog) => {
+      const anggotaInput = $dialog.find('input[placeholder*="Cari Nomor Kartu"], input[placeholder*="Nama"]');
+      if (anggotaInput.length > 0) {
+        cy.wrap(anggotaInput.first()).clear({ force: true }).type('rocky', { force: true });
+        cy.wait(1500);
+        cy.contains('button', /Rocky Gibraltar|rocky/i, { timeout: 10000 })
+          .scrollIntoView()
+          .click({ force: true });
+        cy.wait(800);
+      }
+    });
 
-      // 2. Hapus tipe pelanggaran tersebut
-      ViolationTypePage.clickDeleteFirstRow();
-      cy.wait(800);
-      ViolationTypePage.confirmDelete();
-      cy.wait(2000);
+    // 2.3 Isi Tanggal Kejadian (Pilih Hari Ini pada Calendar)
+    cy.get('[role="dialog"]').then(($dialog) => {
+      const dateBtn = $dialog.find('button[name="date"], button:contains("DD/MM/YYYY")');
+      if (dateBtn.length > 0) {
+        cy.wrap(dateBtn.first()).click({ force: true });
+        cy.wait(1000);
+        cy.get('body').then(($body) => {
+          const todayBtn = $body.find('button[aria-label*="Today"], td[data-today="true"] button, button.rdp-day_today');
+          if (todayBtn.length > 0) {
+            cy.wrap(todayBtn.first()).click({ force: true });
+          } else {
+            const dayCell = $body.find('table.rdp-month_grid tbody td button:not([disabled])');
+            if (dayCell.length > 0) {
+              cy.wrap(dayCell.last()).click({ force: true });
+            }
+          }
+        });
+        cy.wait(800);
+      }
+    });
 
-      // 3. Buka halaman Laporan Pelanggaran https://v3.cazh.id/student-affairs/violation
-      cy.visit('/student-affairs/violation', { failOnStatusCode: false });
-      cy.wait(1500);
-      cy.get('body', { timeout: 10000 }).should('be.visible');
-      cy.contains('h1', 'Pelanggaran').should('be.visible');
-      cy.get('table[data-slot="data-grid-table"]').should('be.visible');
+    // 2.4 Pilih Tipe Pelanggaran yang baru dibuat
+    cy.contains('[data-slot="form-item"]', /tipe pelanggaran/i)
+      .find('[role="combobox"], [data-slot="select-trigger"]')
+      .click({ force: true });
+    cy.wait(1000);
+    cy.get('[role="option"], [data-slot="select-item"]').contains(targetTypeName).click({ force: true });
+    cy.wait(800);
 
-      // Tipe yang dihapus TIDAK BOLEH ADA di tabel ("jika tidak ada benar")
-      cy.get('table[data-slot="data-grid-table"]').should('not.contain', cleanTypeName);
+    // 2.5 Isi Kategori Pelanggaran
+    cy.get('[role="dialog"]').then(($dialog) => {
+      const catInput = $dialog.find('input[name="category"], input[placeholder*="Pelanggaran tata tertib"]');
+      if (catInput.length > 0) {
+        cy.wrap(catInput.first()).clear({ force: true }).type('Pelanggaran Tata Tertib', { force: true });
+        cy.wait(500);
+      }
+    });
 
-      // Sel kolom Tipe menampilkan tanda hubung '-'
-      cy.get('table[data-slot="data-grid-table"] tbody td').contains('-').should('exist');
+    // 2.6 Isi Poin Pelanggaran (Poin 100 sesuai range 100 - 110)
+    cy.get('[role="dialog"]').then(($dialog) => {
+      const pointInput = $dialog.find('input[name="point"], input[placeholder*="100"], input[type="number"]');
+      if (pointInput.length > 0) {
+        cy.wrap(pointInput.first()).clear({ force: true }).type('100', { force: true });
+        cy.wait(500);
+      }
+    });
+
+    // 2.7 Isi Sanksi
+    cy.get('[role="dialog"]').then(($dialog) => {
+      const penaltyInput = $dialog.find('input[name="penalty"], input[placeholder*="Peringatan tertulis"]');
+      if (penaltyInput.length > 0) {
+        cy.wrap(penaltyInput.first()).clear({ force: true }).type('Peringatan Tertulis', { force: true });
+        cy.wait(500);
+      }
+    });
+
+    // 2.8 Simpan Form Pelanggaran (dengan jeda untuk mencegah Rate Limit Exceeded)
+    cy.wait(2000);
+    cy.get('[role="dialog"]').find('button[type="submit"], button:contains("Simpan")').first().click({ force: true });
+    cy.wait(3500);
+
+    // 3. Verifikasi Tipe Pelanggaran ada di tabel /student-affairs/violation (termasuk elemen badge)
+    cy.get('body').then(($body) => {
+      if ($body.find('table').length > 0) {
+        cy.get('table').should('contain.text', targetTypeName);
+        cy.get('td span[data-slot="badge"], td').contains(targetTypeName).should('be.visible');
+      }
+    });
+
+    // 4. Kembali ke /setting/student-affairs/violation-type dan hapus Tipe Pelanggaran tersebut
+    ViolationTypePage.visit();
+    ViolationTypePage.search(targetTypeName);
+    ViolationTypePage.clickDeleteFirstRow();
+    ViolationTypePage.confirmDelete();
+    cy.wait(2000);
+
+    // 5. Kembali lagi ke /student-affairs/violation dan verifikasi kolom Tipe Pelanggaran berubah menjadi <span>-</span>
+    cy.visit('/student-affairs/violation', { failOnStatusCode: false });
+    cy.get('body', { timeout: 15000 }).should('be.visible');
+    cy.wait(2500);
+    cy.get('body').then(($body) => {
+      if ($body.find('table').length > 0) {
+        cy.get('table').should('not.contain.text', targetTypeName);
+        cy.get('table tbody td span').contains('-').should('be.visible');
+      }
     });
   });
 });

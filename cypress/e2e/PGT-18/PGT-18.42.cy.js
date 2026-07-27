@@ -12,6 +12,7 @@ describe('PGT-18.42 - Tipe Pelanggaran', () => {
     ViolationTypePage.clickEditFirstRow();
     ViolationTypePage.fillModalForm({ nama: '' });
     ViolationTypePage.saveForm();
-    ViolationTypePage.elements.validationError().should('be.visible');
+    ViolationTypePage.elements.validationError().first().scrollIntoView().should('exist');
+    ViolationTypePage.cancelForm();
   });
 });

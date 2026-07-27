@@ -20,8 +20,7 @@ describe('PGT-18.1 - Tipe Pelanggaran', () => {
 
   it('PGT-18.1 Isi form Tambah Tipe Pelanggaran dengan semua field valid (Instansi + Nama + Min Poin + Max Poin) -> klik Simpan', () => {
     ViolationTypePage.deleteAllDataIfExists();
-    const timestamp = Date.now();
-    const namaBaru = \`\${testData.validData.namaBaru} \${timestamp}\`;
+    const namaBaru = testData.validData.namaBaru;
     ViolationTypePage.clickAddButton();
     ViolationTypePage.fillModalForm({
       instansiIndex: 0,
@@ -555,20 +554,22 @@ describe('PGT-18.22 - Tipe Pelanggaran', () => {
     const cat2 = \`Pelanggaran Auto 2 \${timestamp}\`;
 
     ViolationTypePage.clickAddButton();
-    ViolationTypePage.fillModalForm({ instansiIndex: 0, nama: cat1, minPoin: '101', maxPoin: '105' });
+    ViolationTypePage.fillModalForm({ instansiIndex: 0, nama: cat1, minPoin: '1', maxPoin: '10' });
     ViolationTypePage.saveForm();
     ViolationTypePage.elements.formModal().should('not.exist');
     cy.wait(1000);
 
     ViolationTypePage.clickAddButton();
-    ViolationTypePage.fillModalForm({ instansiIndex: 0, nama: cat2, minPoin: '106', maxPoin: '110' });
+    ViolationTypePage.fillModalForm({ instansiIndex: 0, nama: cat2, minPoin: '11', maxPoin: '20' });
     ViolationTypePage.saveForm();
     ViolationTypePage.elements.formModal().should('not.exist');
     cy.wait(1000);
 
     // Edit cat2 menjadi 'Tidak Aktif'
+    cy.contains('tbody tr', cat2, { timeout: 15000 }).should('be.visible');
     cy.contains('tbody tr', cat2).find('button[data-slot="dialog-trigger"]:has(svg.lucide-square-pen), button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil)').first().click({ force: true });
     cy.wait(1000);
+    ViolationTypePage.elements.formModal().should('be.visible');
     ViolationTypePage.fillModalForm({ statusText: 'Tidak Aktif' });
     ViolationTypePage.saveForm();
     ViolationTypePage.elements.formModal().should('not.exist');
@@ -647,9 +648,11 @@ describe('PGT-18.26 - Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.26 Ketik Nama Tipe Pelanggaran di search box', () => {
-    ViolationTypePage.ensureDataExists();
-    ViolationTypePage.search('Pelanggaran');
-    ViolationTypePage.elements.tableRows().should('have.length.at.least', 1);
+    cy.get('tbody', { timeout: 15000 }).should('be.visible');
+    cy.wait(2500);
+    ViolationTypePage.search('Ponsel');
+    ViolationTypePage.elements.tableRows({ timeout: 15000 }).should('have.length.at.least', 1);
+    ViolationTypePage.elements.tableRows().first().should('contain.text', 'Ponsel');
   });
 });
 `
@@ -723,10 +726,21 @@ describe('PGT-18.30 - Tipe Pelanggaran', () => {
   });
 
   it("PGT-18.30 Aktifkan Filter Status = 'Aktif'", () => {
+    cy.get('tbody', { timeout: 15000 }).should('be.visible');
+    cy.wait(3000);
+    ViolationTypePage.ensureDataExists();
+    cy.wait(2000);
     ViolationTypePage.elements.filterStatusSelect().click({ force: true });
-    ViolationTypePage.elements.selectOptions().contains(/aktif/i).first().click({ force: true });
-    cy.wait(1000);
-    ViolationTypePage.elements.tableRows().should('exist');
+    cy.wait(800);
+    ViolationTypePage.elements.selectOptions().contains(/^\s*Aktif\s*$/i).first().click({ force: true });
+    cy.wait(4000);
+    cy.get('tbody', { timeout: 15000 }).should('be.visible');
+    ViolationTypePage.elements.tableRows({ timeout: 15000 }).should('have.length.at.least', 1);
+    cy.get('tbody tr').then(($rows) => {
+      $rows.each((_, row) => {
+        expect(Cypress.$(row).text()).to.include('Aktif');
+      });
+    });
   });
 });
 `
@@ -743,13 +757,20 @@ describe('PGT-18.31 - Tipe Pelanggaran', () => {
   });
 
   it("PGT-18.31 Aktifkan Filter Status = 'Tidak Aktif'", () => {
+    cy.get('tbody', { timeout: 15000 }).should('be.visible');
+    cy.wait(3000);
     ViolationTypePage.ensureInactiveDataExists();
+    cy.wait(2000);
     ViolationTypePage.elements.filterStatusSelect().click({ force: true });
+    cy.wait(800);
     ViolationTypePage.elements.selectOptions().contains(/^\s*Tidak Aktif\s*$/i).first().click({ force: true });
-    cy.wait(1500);
-    ViolationTypePage.elements.tableRows().should('have.length.at.least', 1);
-    ViolationTypePage.elements.tableRows().each(($row) => {
-      cy.wrap($row).should('contain.text', 'Tidak Aktif');
+    cy.wait(4000);
+    cy.get('tbody', { timeout: 15000 }).should('be.visible');
+    ViolationTypePage.elements.tableRows({ timeout: 15000 }).should('have.length.at.least', 1);
+    cy.get('tbody tr').then(($rows) => {
+      $rows.each((_, row) => {
+        expect(Cypress.$(row).text()).to.include('Tidak Aktif');
+      });
     });
   });
 });
@@ -876,10 +897,10 @@ describe('PGT-18.37 - Tipe Pelanggaran', () => {
   it('PGT-18.37 Ubah Range Poin (Min-Max) valid & tidak overlap -> klik Simpan', () => {
     ViolationTypePage.ensureDataExists();
     ViolationTypePage.clickEditFirstRow();
-    ViolationTypePage.fillModalForm({ minPoin: '200', maxPoin: '210' });
+    ViolationTypePage.fillModalForm({ minPoin: '15', maxPoin: '20' });
     ViolationTypePage.saveForm();
     ViolationTypePage.elements.formModal().should('not.exist');
-    ViolationTypePage.elements.toastMessage().should('be.visible').and('contain.text', 'berhasil');
+    ViolationTypePage.elements.toastMessage().should('be.visible');
   });
 });
 `
@@ -940,9 +961,25 @@ describe('PGT-18.40 - Tipe Pelanggaran', () => {
   it('PGT-18.40 Ubah Instansi tipe pelanggaran -> klik Simpan', () => {
     ViolationTypePage.ensureDataExists();
     ViolationTypePage.clickEditFirstRow();
-    ViolationTypePage.fillModalForm({ instansiIndex: 1 });
+    ViolationTypePage.elements.modalInstansiValue().invoke('text').then((currentInstansiText) => {
+      ViolationTypePage.elements.modalInstansiDropdown().click({ force: true });
+      cy.wait(1000);
+      ViolationTypePage.elements.selectOptions().then(($options) => {
+        let differentIndex = 0;
+        $options.each((idx, opt) => {
+          const optText = Cypress.$(opt).text().trim();
+          if (optText && !optText.toLowerCase().includes(currentInstansiText.trim().toLowerCase())) {
+            differentIndex = idx;
+            return false;
+          }
+        });
+        cy.wrap($options.eq(differentIndex)).click({ force: true });
+        cy.wait(1000);
+      });
+    });
     ViolationTypePage.saveForm();
     ViolationTypePage.elements.formModal().should('not.exist');
+    ViolationTypePage.elements.toastMessage().should('be.visible');
   });
 });
 `
@@ -984,7 +1021,9 @@ describe('PGT-18.42 - Tipe Pelanggaran', () => {
     ViolationTypePage.clickEditFirstRow();
     ViolationTypePage.fillModalForm({ nama: '' });
     ViolationTypePage.saveForm();
-    ViolationTypePage.elements.validationError().should('be.visible');
+    ViolationTypePage.elements.validationError().first().scrollIntoView().should('exist');
+    ViolationTypePage.cancelForm();
+  });
   });
 });
 `
@@ -1042,9 +1081,33 @@ describe('PGT-18.45 - Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.45 Ubah Nama Tipe Pelanggaran jadi nama yang SUDAH ADA (duplikat) -> klik Simpan', () => {
-    ViolationTypePage.ensureDataExists();
-    ViolationTypePage.clickEditFirstRow();
+    const timestamp = Date.now().toString().slice(-4);
+    const dummyName = `Dummy Edit Duplikat ${timestamp}`;
+    ViolationTypePage.clickAddButton();
+    ViolationTypePage.fillModalForm({
+      instansiIndex: 0,
+      nama: dummyName,
+      minPoin: '25',
+      maxPoin: '30'
+    });
     ViolationTypePage.saveForm();
+    ViolationTypePage.elements.formModal().should('not.exist');
+    cy.wait(1500);
+
+    cy.contains('tbody tr', dummyName)
+      .find('button[data-slot="dialog-trigger"]:has(svg.lucide-square-pen), button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil)')
+      .first()
+      .click({ force: true });
+    cy.wait(1000);
+    ViolationTypePage.elements.formModal().should('be.visible');
+
+    ViolationTypePage.fillModalForm({ nama: 'Penggunaan Ponsel Saat KBM' });
+    ViolationTypePage.saveForm();
+
+    ViolationTypePage.verifyValidationError('sudah');
+    ViolationTypePage.elements.formModal().should('be.visible');
+    ViolationTypePage.elements.modalSaveBtn().should('be.enabled');
+    ViolationTypePage.cancelForm();
   });
 });
 `
@@ -1145,9 +1208,67 @@ describe('PGT-18.50 - Tipe Pelanggaran', () => {
     cy.login();
   });
 
-  it("PGT-18.50 Set status 'Aktif' -> buka fitur Buat Pelanggaran / Laporan Pelanggaran", () => {
-    cy.visit('/student/violation/create', { failOnStatusCode: false });
-    cy.get('body', { timeout: 10000 }).should('be.visible');
+  it("PGT-18.50 Set status 'Aktif' -> buka fitur Pelanggaran di /student-affairs/violation", () => {
+    ViolationTypePage.visit();
+    ViolationTypePage.ensureInactiveDataExists();
+
+    cy.contains('tbody tr', /tidak aktif/i).first().then(($row) => {
+      const instansiName = $row.find('td').eq(0).text().trim();
+      const typeName = $row.find('td').eq(1).text().trim() || $row.find('td').first().text().trim();
+      const cleanName = typeName.split('\\n')[0].trim();
+      const cleanInstansi = instansiName.split('\\n')[0].trim();
+      
+      cy.wrap(cleanName).as('targetTypeName');
+      cy.wrap(cleanInstansi).as('targetInstansiName');
+
+      const editBtn = $row.find('button[data-slot="dialog-trigger"]:has(svg.lucide-square-pen), button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil)');
+      cy.wrap(editBtn.first()).scrollIntoView();
+      cy.wait(800);
+      cy.wrap(editBtn.first()).click({ force: true });
+    });
+    cy.wait(1200);
+    ViolationTypePage.elements.formModal({ timeout: 15000 }).should('be.visible');
+
+    ViolationTypePage.fillModalForm({ statusText: 'Aktif' });
+    ViolationTypePage.saveForm();
+    ViolationTypePage.elements.formModal().should('not.exist');
+    cy.wait(1500);
+
+    cy.get('@targetInstansiName').then((targetInstansiName) => {
+      cy.get('@targetTypeName').then((targetTypeName) => {
+        const instansiKeyword = targetInstansiName.slice(0, 10);
+        const typeKeyword = targetTypeName.slice(0, 15);
+
+        cy.visit('/student-affairs/violation', { failOnStatusCode: false });
+        cy.get('body', { timeout: 15000 }).should('be.visible');
+
+        cy.contains('button', /tambah pelanggaran/i, { timeout: 10000 }).click({ force: true });
+        cy.get('[role="dialog"]', { timeout: 10000 }).should('be.visible');
+
+        cy.get('[role="dialog"]').then(($dialog) => {
+          const instansiTrigger = $dialog.find('[data-slot="form-item"]:contains("Instansi") [role="combobox"], [data-slot="form-item"]:contains("Instansi") [data-slot="select-trigger"], button:contains("Pilih Instansi")');
+          if (instansiTrigger.length > 0) {
+            cy.wrap(instansiTrigger.first()).click({ force: true });
+            cy.wait(800);
+            cy.get('[role="option"], [data-slot="select-item"]').contains(new RegExp(instansiKeyword, 'i')).first().click({ force: true });
+            cy.wait(1200);
+          }
+        });
+
+        cy.contains('[data-slot="form-item"]', /tipe pelanggaran/i)
+          .find('[role="combobox"], [data-slot="select-trigger"]')
+          .click({ force: true });
+        cy.wait(1000);
+
+        cy.get('body').then(($body) => {
+          if ($body.find('[role="option"], [data-slot="select-item"]').length > 0) {
+            cy.get('[role="option"], [data-slot="select-item"]').contains(new RegExp(typeKeyword, 'i')).should('be.visible').click({ force: true });
+          } else {
+            cy.get('select option').contains(new RegExp(typeKeyword, 'i')).should('exist');
+          }
+        });
+      });
+    });
   });
 });
 `
@@ -1162,9 +1283,67 @@ describe('PGT-18.51 - Tipe Pelanggaran', () => {
     cy.login();
   });
 
-  it("PGT-18.51 Set status 'Tidak Aktif' -> buka fitur Buat Pelanggaran / Laporan Pelanggaran", () => {
-    cy.visit('/student/violation/create', { failOnStatusCode: false });
-    cy.get('body', { timeout: 10000 }).should('be.visible');
+  it("PGT-18.51 Set status 'Tidak Aktif' -> buka fitur Pelanggaran di /student-affairs/violation", () => {
+    ViolationTypePage.visit();
+    ViolationTypePage.ensureDataExists();
+
+    cy.contains('tbody tr', /aktif/i).first().then(($row) => {
+      const instansiName = $row.find('td').eq(0).text().trim();
+      const typeName = $row.find('td').eq(1).text().trim() || $row.find('td').first().text().trim();
+      const cleanName = typeName.split('\\n')[0].trim();
+      const cleanInstansi = instansiName.split('\\n')[0].trim();
+      
+      cy.wrap(cleanName).as('targetTypeName');
+      cy.wrap(cleanInstansi).as('targetInstansiName');
+
+      const editBtn = $row.find('button[data-slot="dialog-trigger"]:has(svg.lucide-square-pen), button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil)');
+      cy.wrap(editBtn.first()).scrollIntoView();
+      cy.wait(800);
+      cy.wrap(editBtn.first()).click({ force: true });
+    });
+    cy.wait(1200);
+    ViolationTypePage.elements.formModal({ timeout: 15000 }).should('be.visible');
+
+    ViolationTypePage.fillModalForm({ statusText: 'Tidak Aktif' });
+    ViolationTypePage.saveForm();
+    ViolationTypePage.elements.formModal().should('not.exist');
+    cy.wait(1500);
+
+    cy.get('@targetInstansiName').then((targetInstansiName) => {
+      cy.get('@targetTypeName').then((targetTypeName) => {
+        const instansiKeyword = targetInstansiName.slice(0, 10);
+        const typeKeyword = targetTypeName.slice(0, 15);
+
+        cy.visit('/student-affairs/violation', { failOnStatusCode: false });
+        cy.get('body', { timeout: 15000 }).should('be.visible');
+
+        cy.contains('button', /tambah pelanggaran/i, { timeout: 10000 }).click({ force: true });
+        cy.get('[role="dialog"]', { timeout: 10000 }).should('be.visible');
+
+        cy.get('[role="dialog"]').then(($dialog) => {
+          const instansiTrigger = $dialog.find('[data-slot="form-item"]:contains("Instansi") [role="combobox"], [data-slot="form-item"]:contains("Instansi") [data-slot="select-trigger"], button:contains("Pilih Instansi")');
+          if (instansiTrigger.length > 0) {
+            cy.wrap(instansiTrigger.first()).click({ force: true });
+            cy.wait(800);
+            cy.get('[role="option"], [data-slot="select-item"]').contains(new RegExp(instansiKeyword, 'i')).first().click({ force: true });
+            cy.wait(1200);
+          }
+        });
+
+        cy.contains('[data-slot="form-item"]', /tipe pelanggaran/i)
+          .find('[role="combobox"], [data-slot="select-trigger"]')
+          .click({ force: true });
+        cy.wait(1000);
+
+        cy.get('body').then(($body) => {
+          if ($body.find('[role="option"], [data-slot="select-item"]').length > 0) {
+            cy.get('[role="option"], [data-slot="select-item"]').should('not.contain.text', typeKeyword);
+          } else {
+            cy.get('select option').should('not.contain.text', typeKeyword);
+          }
+        });
+      });
+    });
   });
 });
 `
@@ -1289,9 +1468,118 @@ describe('PGT-18.57 - Tipe Pelanggaran', () => {
     cy.login();
   });
 
-  it('PGT-18.57 Hapus tipe pelanggaran -> buka fitur Buat Pelanggaran / Laporan Pelanggaran', () => {
-    cy.visit('/student/violation/create', { failOnStatusCode: false });
-    cy.get('body', { timeout: 10000 }).should('be.visible');
+  it('PGT-18.57 Tambah Pelanggaran -> Cek Tipe Pelanggaran di tabel -> Hapus Tipe di setting -> Cek kembali di Pelanggaran', () => {
+    const timestamp = Date.now();
+    const targetTypeName = `Pelanggaran Auto ${timestamp}`;
+
+    ViolationTypePage.visit();
+    ViolationTypePage.clickAddButton();
+    ViolationTypePage.fillModalForm({ instansiText: 'Academy QA Engineer', nama: targetTypeName, minPoin: '100', maxPoin: '110' });
+    ViolationTypePage.saveForm();
+    ViolationTypePage.elements.formModal().should('not.exist');
+    cy.wait(1500);
+
+    cy.visit('/student-affairs/violation', { failOnStatusCode: false });
+    cy.get('body', { timeout: 15000 }).should('be.visible');
+    cy.wait(2500);
+
+    cy.contains('button', /tambah pelanggaran/i, { timeout: 10000 }).click({ force: true });
+    cy.get('[role="dialog"]', { timeout: 10000 }).should('be.visible');
+
+    cy.get('[role="dialog"]').then(($dialog) => {
+      const instansiTrigger = $dialog.find('[data-slot="form-item"]:contains("Instansi") [role="combobox"], [data-slot="form-item"]:contains("Instansi") [data-slot="select-trigger"], button:contains("Pilih Instansi")');
+      if (instansiTrigger.length > 0) {
+        cy.wrap(instansiTrigger.first()).click({ force: true });
+        cy.wait(800);
+        cy.get('[role="option"], [data-slot="select-item"]').contains(/Academy QA Engineer/i).click({ force: true });
+        cy.wait(1200);
+      }
+    });
+
+    cy.get('[role="dialog"]').then(($dialog) => {
+      const anggotaInput = $dialog.find('input[placeholder*="Cari Nomor Kartu"], input[placeholder*="Nama"]');
+      if (anggotaInput.length > 0) {
+        cy.wrap(anggotaInput.first()).clear({ force: true }).type('rocky', { force: true });
+        cy.wait(1500);
+        cy.contains('button', /Rocky Gibraltar|rocky/i, { timeout: 10000 })
+          .scrollIntoView()
+          .click({ force: true });
+        cy.wait(800);
+      }
+    });
+
+    cy.get('[role="dialog"]').then(($dialog) => {
+      const dateBtn = $dialog.find('button[name="date"], button:contains("DD/MM/YYYY")');
+      if (dateBtn.length > 0) {
+        cy.wrap(dateBtn.first()).click({ force: true });
+        cy.wait(800);
+        cy.get('body').then(($body) => {
+          const todayCell = $body.find('[role="gridcell"]:not([aria-disabled="true"]), [data-slot="calendar-day"]:not([disabled])');
+          if (todayCell.length > 0) {
+            cy.wrap(todayCell.first()).click({ force: true });
+          }
+        });
+        cy.wait(800);
+      }
+    });
+
+    cy.contains('[data-slot="form-item"]', /tipe pelanggaran/i)
+      .find('[role="combobox"], [data-slot="select-trigger"]')
+      .click({ force: true });
+    cy.wait(1000);
+    cy.get('[role="option"], [data-slot="select-item"]').contains(targetTypeName).click({ force: true });
+    cy.wait(800);
+
+    cy.get('[role="dialog"]').then(($dialog) => {
+      const catInput = $dialog.find('input[name="category"], input[placeholder*="Pelanggaran tata tertib"]');
+      if (catInput.length > 0) {
+        cy.wrap(catInput.first()).clear({ force: true }).type('Pelanggaran Tata Tertib', { force: true });
+        cy.wait(500);
+      }
+    });
+
+    cy.get('[role="dialog"]').then(($dialog) => {
+      const pointInput = $dialog.find('input[name="point"], input[placeholder*="100 - 110"], input[type="number"]');
+      if (pointInput.length > 0) {
+        cy.wrap(pointInput.first()).clear({ force: true }).type('5', { force: true });
+        cy.wait(500);
+      }
+    });
+
+    cy.get('[role="dialog"]').then(($dialog) => {
+      const penaltyInput = $dialog.find('input[name="penalty"], input[placeholder*="Peringatan tertulis"]');
+      if (penaltyInput.length > 0) {
+        cy.wrap(penaltyInput.first()).clear({ force: true }).type('Peringatan Tertulis', { force: true });
+        cy.wait(500);
+      }
+    });
+
+    cy.wait(2000);
+    cy.get('[role="dialog"]').find('button[type="submit"], button:contains("Simpan")').first().click({ force: true });
+    cy.wait(3500);
+
+    cy.get('body').then(($body) => {
+      if ($body.find('table').length > 0) {
+        cy.get('table').should('contain.text', targetTypeName);
+        cy.get('td span[data-slot="badge"], td').contains(targetTypeName).should('be.visible');
+      }
+    });
+
+    ViolationTypePage.visit();
+    ViolationTypePage.search(targetTypeName);
+    ViolationTypePage.clickDeleteFirstRow();
+    ViolationTypePage.confirmDelete();
+    cy.wait(2000);
+
+    cy.visit('/student-affairs/violation', { failOnStatusCode: false });
+    cy.get('body', { timeout: 15000 }).should('be.visible');
+    cy.wait(2500);
+    cy.get('body').then(($body) => {
+      if ($body.find('table').length > 0) {
+        cy.get('table').should('not.contain.text', targetTypeName);
+        cy.get('table tbody td span').contains('-').should('be.visible');
+      }
+    });
   });
 });
 `

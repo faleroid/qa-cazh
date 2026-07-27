@@ -135,15 +135,24 @@ class InventoryCategoryPage {
 
   deleteAllDataIfExists() {
     cy.get('body', { timeout: 15000 }).should('be.visible');
-    cy.wait(1500);
-    const deleteRowIfDataExists = () => {
-      cy.get('tbody').then(($tbody) => {
-        const trashBtns = $tbody.find('tr button:has(svg.lucide-trash)');
+    cy.wait(2500);
+    const deleteRowIfDataExists = (retryCount = 0) => {
+      if (retryCount > 15) return;
+      cy.get('body').then(($body) => {
+        if ($body.find('[role="dialog"]').length > 0) {
+          cy.wait(1200);
+        }
+        const trashBtns = $body.find('tbody tr button:has(svg.lucide-trash), tbody tr button[data-slot="dialog-trigger"]:has(svg.lucide-trash), tbody tr button:has(svg.lucide-trash-2)');
         if (trashBtns.length > 0) {
+          cy.wrap(trashBtns.first()).scrollIntoView();
+          cy.wait(500);
           cy.wrap(trashBtns.first()).click({ force: true });
-          cy.wait(800);
+          cy.wait(1200);
+          this.elements.deleteModal({ timeout: 10000 }).should('be.visible');
           this.confirmDelete();
-          deleteRowIfDataExists();
+          this.elements.deleteModal().should('not.exist');
+          cy.wait(2500);
+          deleteRowIfDataExists(retryCount + 1);
         }
       });
     };

@@ -5,6 +5,11 @@ describe('PGT-17 - Kategori Inventaris (Combined Suite POM)', () => {
   beforeEach(() => {
     cy.login();
     InventoryCategoryPage.visit();
+    cy.wait(1500);
+  });
+
+  afterEach(() => {
+    cy.wait(1500);
   });
 
   it('PGT-17.1 Isi form Tambah Kategori Inventaris dengan data valid (pilih Instansi + isi Nama Kategori) -> klik Simpan', () => {

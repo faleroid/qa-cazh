@@ -8,8 +8,9 @@ describe('PGT-18.37 - Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.37 Ubah Range Poin (Min-Max) valid & tidak overlap -> klik Simpan', () => {
+    ViolationTypePage.ensureDataExists();
     ViolationTypePage.clickEditFirstRow();
-    ViolationTypePage.fillModalForm({ minPoin: '50', maxPoin: '60' });
+    ViolationTypePage.fillModalForm({ minPoin: '15', maxPoin: '20' });
     ViolationTypePage.saveForm();
     ViolationTypePage.elements.formModal().should('not.exist');
     ViolationTypePage.elements.toastMessage().should('be.visible');

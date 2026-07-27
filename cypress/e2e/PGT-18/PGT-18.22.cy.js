@@ -20,7 +20,7 @@ describe('PGT-18.22 - Tipe Pelanggaran', () => {
     cy.wait(3500);
 
     ViolationTypePage.clickAddButton();
-    ViolationTypePage.fillModalForm({ instansiIndex: 1, nama: cat2, minPoin: '1', maxPoin: '10' });
+    ViolationTypePage.fillModalForm({ instansiIndex: 1, nama: cat2, minPoin: '11', maxPoin: '20' });
     ViolationTypePage.saveForm();
 
     // Penanganan khusus jika backend memicu rate limit
@@ -35,8 +35,10 @@ describe('PGT-18.22 - Tipe Pelanggaran', () => {
     cy.wait(1500);
 
     // Edit salah satu tipe pelanggaran (cat2) menjadi 'Tidak Aktif' untuk keperluan testing filter status
+    cy.contains('tbody tr', cat2, { timeout: 15000 }).should('be.visible');
     cy.contains('tbody tr', cat2).find('button[data-slot="dialog-trigger"]:has(svg.lucide-square-pen), button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil)').first().click({ force: true });
     cy.wait(1000);
+    ViolationTypePage.elements.formModal().should('be.visible');
     ViolationTypePage.fillModalForm({ statusText: 'Tidak Aktif' });
     ViolationTypePage.saveForm();
     ViolationTypePage.elements.formModal().should('not.exist');

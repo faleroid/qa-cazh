@@ -36,14 +36,14 @@ class ViolationTypePage {
     deleteCloseXBtn: () => this.elements.deleteModal().find('button[data-slot="dialog-close"], button:has(svg.lucide-x)').last(),
     
     // Portal / Dropdown Options & Validation
-    selectOptions: () => cy.get('[role="option"], [data-slot="select-item"]', { timeout: 10000 }),
+    selectOptions: () => cy.get('[role="option"], [data-slot="select-item"], [data-radix-collection-item], div[class*="select-item"]', { timeout: 15000 }),
     validationError: () => cy.get('[data-slot="form-message"], [data-slot="error"], p.text-destructive, p.text-red-500, [role="alert"], [data-sonner-toast]', { timeout: 15000 }),
     toastMessage: () => cy.get('.toast, [role="status"], [class*="toast"], [data-slot="toast"], [data-sonner-toast]', { timeout: 15000 }),
     
     // Data Table & List
     tableRows: () => cy.get('tbody tr', { timeout: 10000 }),
     tableHeaderNodes: () => cy.get('thead th'),
-    emptyState: () => cy.contains(/tidak ada data|tidak ditemukan|halaman kosong/i, { timeout: 10000 }),
+    emptyState: () => cy.contains('td, div, p', /tidak ada data|no data/i, { timeout: 10000 }),
     rowEditBtn: () => cy.get('tbody tr', { timeout: 10000 }).first().find('button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil), a:has(svg.lucide-pencil)').first(),
     rowDeleteBtn: () => cy.get('tbody tr', { timeout: 10000 }).first().find('button:has(svg.lucide-trash), a:has(svg.lucide-trash)').first(),
     
@@ -56,33 +56,57 @@ class ViolationTypePage {
   // ---------------------------------------------------------------------------
   visit() {
     cy.visit('/setting/student-affairs/violation-type', { failOnStatusCode: false, timeout: 30000 });
-    cy.get('body', { timeout: 10000 }).should('be.visible');
-    cy.wait(1500);
+    cy.get('body', { timeout: 15000 }).should('be.visible');
+    cy.get('tbody', { timeout: 15000 }).should('exist');
+    cy.wait(2500);
   }
 
   clickAddButton() {
+    cy.get('body').then(($body) => {
+      if ($body.find('[role="dialog"]').length > 0) {
+        cy.wait(1000);
+      }
+    });
     this.elements.addButton().scrollIntoView().click({ force: true });
-    cy.wait(800);
+    cy.wait(1000);
+    this.elements.formModal().should('be.visible');
   }
 
   clearAndType(cyElement, value) {
     if (value === undefined) return;
-    cyElement.then(($input) => {
-      $input[0].focus();
-      const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-      nativeSetter.call($input[0], String(value));
-      $input[0].dispatchEvent(new Event('input', { bubbles: true }));
-      $input[0].dispatchEvent(new Event('change', { bubbles: true }));
-      $input[0].dispatchEvent(new Event('blur', { bubbles: true }));
-    });
+    cyElement.scrollIntoView().focus();
+    cy.wait(200);
+    cyElement.clear({ force: true }).type(value, { force: true });
+    cy.wait(300);
   }
 
-  fillModalForm({ instansiIndex, nama, minPoin, maxPoin, statusIndex, statusText }) {
-    if (instansiIndex !== undefined) {
+  fillModalForm({ instansiIndex, instansiText, nama, minPoin, maxPoin, statusIndex, statusText }) {
+    if (instansiText !== undefined) {
       this.elements.modalInstansiDropdown().click({ force: true });
-      cy.wait(500);
-      this.elements.selectOptions().eq(instansiIndex).click({ force: true });
-      cy.wait(500);
+      cy.wait(1000);
+      cy.get('body').then(($body) => {
+        const options = $body.find('[role="option"], [data-slot="select-item"], [data-radix-collection-item]');
+        if (options.length > 0) {
+          const matched = options.filter((_, el) => new RegExp(instansiText, 'i').test(Cypress.$(el).text()));
+          if (matched.length > 0) {
+            cy.wrap(matched.first()).click({ force: true });
+          } else {
+            cy.wrap(options.first()).click({ force: true });
+          }
+        }
+      });
+      cy.wait(1000);
+    } else if (instansiIndex !== undefined) {
+      this.elements.modalInstansiDropdown().click({ force: true });
+      cy.wait(1000);
+      cy.get('body').then(($body) => {
+        const options = $body.find('[role="option"], [data-slot="select-item"], [data-radix-collection-item]');
+        if (options.length > 0) {
+          const targetOpt = options.eq(instansiIndex).length > 0 ? options.eq(instansiIndex) : options.first();
+          cy.wrap(targetOpt).click({ force: true });
+        }
+      });
+      cy.wait(1000);
     }
     if (nama !== undefined) {
       this.clearAndType(this.elements.modalNamaInput(), nama);
@@ -95,20 +119,37 @@ class ViolationTypePage {
     }
     if (statusText !== undefined) {
       this.elements.modalStatusDropdown().click({ force: true });
-      cy.wait(500);
-      this.elements.selectOptions().contains(new RegExp(statusText, 'i')).click({ force: true });
-      cy.wait(500);
+      cy.wait(800);
+      cy.get('body').then(($body) => {
+        const options = $body.find('[role="option"], [data-slot="select-item"], [data-radix-collection-item]');
+        if (options.length > 0) {
+          const matched = options.filter((_, el) => new RegExp(statusText, 'i').test(Cypress.$(el).text()));
+          if (matched.length > 0) {
+            cy.wrap(matched.first()).click({ force: true });
+          } else {
+            cy.wrap(options.first()).click({ force: true });
+          }
+        }
+      });
+      cy.wait(800);
     } else if (statusIndex !== undefined) {
       this.elements.modalStatusDropdown().click({ force: true });
-      cy.wait(500);
-      this.elements.selectOptions().eq(statusIndex).click({ force: true });
-      cy.wait(500);
+      cy.wait(800);
+      cy.get('body').then(($body) => {
+        const options = $body.find('[role="option"], [data-slot="select-item"], [data-radix-collection-item]');
+        if (options.length > 0) {
+          const targetOpt = options.eq(statusIndex).length > 0 ? options.eq(statusIndex) : options.first();
+          cy.wrap(targetOpt).click({ force: true });
+        }
+      });
+      cy.wait(800);
     }
   }
 
   saveForm() {
-    this.elements.modalSaveBtn().scrollIntoView().click({ force: true });
     cy.wait(1500);
+    this.elements.modalSaveBtn().scrollIntoView().click({ force: true });
+    cy.wait(3000);
   }
 
   cancelForm() {
@@ -122,7 +163,7 @@ class ViolationTypePage {
     } else {
       this.elements.searchInput().clear({ force: true }).type(keyword, { force: true });
     }
-    cy.wait(1000);
+    cy.wait(2000);
   }
 
   changePageSize(size) {
@@ -133,32 +174,81 @@ class ViolationTypePage {
   }
 
   clickEditFirstRow() {
-    cy.get('tbody tr', { timeout: 10000 }).should('be.visible').and('have.length.at.least', 1);
-    cy.wait(1500);
-    cy.get('tbody tr', { timeout: 10000 })
-      .first()
-      .find('button[data-slot="dialog-trigger"]:has(svg.lucide-square-pen), button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil)')
-      .first()
-      .click();
+    this.ensureDataExists();
+    cy.get('body').then(($body) => {
+      if ($body.find('[role="dialog"]').length > 0) {
+        cy.wait(1000);
+      }
+    });
+    cy.get('tbody tr', { timeout: 15000 }).should('be.visible').and('have.length.at.least', 1);
     cy.wait(1000);
-    this.elements.formModal().should('be.visible');
+
+    const tryClickEdit = () => {
+      cy.get('tbody tr', { timeout: 10000 }).first().then(($row) => {
+        const editBtn = $row.find('button[data-slot="dialog-trigger"]:has(svg.lucide-square-pen), button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil), button:has(svg[class*="pen"]), button:has(svg[class*="pencil"])');
+        if (editBtn.length > 0) {
+          cy.wrap(editBtn.first()).scrollIntoView();
+          cy.wait(500);
+          cy.wrap(editBtn.first()).click({ force: true });
+        } else {
+          cy.wrap($row).find('button').first().click({ force: true });
+        }
+      });
+    };
+
+    tryClickEdit();
+    cy.wait(1500);
+
+    cy.get('body').then(($body) => {
+      if ($body.find('[role="dialog"], [data-slot="dialog-content"]').length === 0) {
+        cy.log('Modal edit belum terbuka, mencoba klik ulang...');
+        tryClickEdit();
+        cy.wait(1500);
+      }
+    });
+
+    this.elements.formModal({ timeout: 15000 }).should('be.visible');
   }
 
   clickDeleteFirstRow() {
-    cy.get('tbody tr', { timeout: 10000 }).should('be.visible').and('have.length.at.least', 1);
-    cy.wait(1500);
-    cy.get('tbody tr', { timeout: 10000 })
-      .first()
-      .find('button[data-slot="dialog-trigger"]:has(svg.lucide-trash), button:has(svg.lucide-trash)')
-      .first()
-      .click();
+    this.ensureDataExists();
+    cy.get('body').then(($body) => {
+      if ($body.find('[role="dialog"]').length > 0) {
+        cy.wait(1000);
+      }
+    });
+    cy.get('tbody tr', { timeout: 15000 }).should('be.visible').and('have.length.at.least', 1);
     cy.wait(1000);
-    this.elements.deleteModal().should('be.visible');
+
+    const tryClickDelete = () => {
+      cy.get('tbody tr', { timeout: 10000 }).first().then(($row) => {
+        const deleteBtn = $row.find('button[data-slot="dialog-trigger"]:has(svg.lucide-trash), button:has(svg.lucide-trash), button:has(svg.lucide-trash-2), button:has(svg[class*="trash"])');
+        if (deleteBtn.length > 0) {
+          cy.wrap(deleteBtn.first()).scrollIntoView();
+          cy.wait(500);
+          cy.wrap(deleteBtn.first()).click({ force: true });
+        }
+      });
+    };
+
+    tryClickDelete();
+    cy.wait(1500);
+
+    cy.get('body').then(($body) => {
+      if ($body.find('[role="dialog"], [data-slot="dialog-content"]').length === 0) {
+        cy.log('Modal delete belum terbuka, mencoba klik ulang...');
+        tryClickDelete();
+        cy.wait(1500);
+      }
+    });
+
+    this.elements.deleteModal({ timeout: 15000 }).should('be.visible');
   }
 
   confirmDelete() {
+    cy.wait(1000);
     this.elements.deleteConfirmBtn().click({ force: true });
-    cy.wait(1500);
+    cy.wait(2500);
   }
 
   cancelDelete() {
@@ -214,15 +304,24 @@ class ViolationTypePage {
 
   deleteAllDataIfExists() {
     cy.get('body', { timeout: 15000 }).should('be.visible');
-    cy.wait(1500);
-    const deleteRowIfDataExists = () => {
-      cy.get('tbody').then(($tbody) => {
-        const trashBtns = $tbody.find('tr button:has(svg.lucide-trash)');
+    cy.wait(2500);
+    const deleteRowIfDataExists = (retryCount = 0) => {
+      if (retryCount > 15) return;
+      cy.get('body').then(($body) => {
+        if ($body.find('[role="dialog"]').length > 0) {
+          cy.wait(1200);
+        }
+        const trashBtns = $body.find('tbody tr button:has(svg.lucide-trash), tbody tr button[data-slot="dialog-trigger"]:has(svg.lucide-trash), tbody tr button:has(svg.lucide-trash-2)');
         if (trashBtns.length > 0) {
+          cy.wrap(trashBtns.first()).scrollIntoView();
+          cy.wait(500);
           cy.wrap(trashBtns.first()).click({ force: true });
-          cy.wait(800);
+          cy.wait(1200);
+          this.elements.deleteModal({ timeout: 10000 }).should('be.visible');
           this.confirmDelete();
-          deleteRowIfDataExists();
+          this.elements.deleteModal().should('not.exist');
+          cy.wait(2500);
+          deleteRowIfDataExists(retryCount + 1);
         }
       });
     };

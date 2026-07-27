@@ -8,7 +8,6 @@ describe('PGT-17.24 - Kategori Inventaris', () => {
   });
 
   it('PGT-17.24 Ketik keyword yang match dengan Nama Kategori existing', () => {
-    InventoryCategoryPage.ensureDataExists();
     InventoryCategoryPage.search(testData.search.validKeyword);
     InventoryCategoryPage.elements.tableRows().should('have.length.at.least', 1);
   });

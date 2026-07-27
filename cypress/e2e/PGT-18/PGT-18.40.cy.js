@@ -8,16 +8,28 @@ describe('PGT-18.40 - Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.40 Ubah Instansi tipe pelanggaran -> klik Simpan', () => {
+    ViolationTypePage.ensureDataExists();
     ViolationTypePage.clickEditFirstRow();
-    cy.wait(500);
+    cy.wait(1000);
     
-    // Toggle instansi secara dinamis agar re-runnable (A <-> B)
-    ViolationTypePage.elements.modalInstansiValue().invoke('text').then((currentText) => {
-      const targetIndex = currentText.includes('Sekolah Digital') ? 1 : 0;
-      ViolationTypePage.fillModalForm({ instansiIndex: targetIndex });
+    // Dapatkan nama instansi terpilih saat ini lalu pilih instansi yang BERBEDA
+    ViolationTypePage.elements.modalInstansiValue().invoke('text').then((currentInstansiText) => {
+      ViolationTypePage.elements.modalInstansiDropdown().click({ force: true });
+      cy.wait(1000);
+      ViolationTypePage.elements.selectOptions().then(($options) => {
+        let differentIndex = 0;
+        $options.each((idx, opt) => {
+          const optText = Cypress.$(opt).text().trim();
+          if (optText && !optText.toLowerCase().includes(currentInstansiText.trim().toLowerCase())) {
+            differentIndex = idx;
+            return false;
+          }
+        });
+        cy.wrap($options.eq(differentIndex)).click({ force: true });
+        cy.wait(1000);
+      });
     });
 
-    cy.wait(500);
     ViolationTypePage.saveForm();
     ViolationTypePage.elements.formModal().should('not.exist');
     ViolationTypePage.elements.toastMessage().should('be.visible');
