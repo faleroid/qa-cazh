@@ -9,8 +9,11 @@ describe('PGT-16.19 - Legalitas Bukti Bayar', () => {
 
   it('PGT-16.19: Upload TTD ukuran > 2MB -> Sistem tolak dengan error ukuran file', () => {
     LegalityPage.selectInstansi(0);
+    cy.wait(1000);
     LegalityPage.setToggleState(true);
+    cy.wait(100);
     LegalityPage.uploadSignature(testData.files.largePng);
+    cy.wait(100);
     LegalityPage.verifyValidationError(testData.validationMessages.maxFileSize);
   });
 });

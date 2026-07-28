@@ -1,0 +1,22 @@
+{
+  "urls": {
+    "permissionTimePage": "/setting/student-affairs/permission-time",
+    "permissionTimePageAlt": "/setting/student-affairs/permit-time",
+    "permissionPage": "/student-affairs/permission"
+  },
+  "instansi": {
+    "instansiA": "Sekolah Digital Indonesia",
+    "instansiB": "Academy QA Engineer"
+  },
+  "helperTexts": {
+    "off": "Jika diaktifkan, pengajuan perizinan untuk hari yang sama hanya dapat dilakukan sebelum batas waktu yang ditentukan.",
+    "on": "Contoh: Jika diatur pada pukul 07.00, maka pengajuan perizinan untuk hari yang sama hanya dapat dilakukan sebelum pukul tersebut."
+  },
+  "validationMessages": {
+    "timeRequired": "Batas Waktu Maksimal Pengajuan wajib diisi",
+    "invalidFormat": "Format waktu tidak valid"
+  },
+  "validTime": "09:00",
+  "invalidTime24h": "25:00",
+  "invalidTimeAMPM": "3:00 PM"
+}

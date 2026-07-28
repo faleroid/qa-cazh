@@ -172,17 +172,21 @@ describe('UAT Suite: PGT-16 - Legalitas Bukti Bayar (Modal Dialog UI)', () => {
 
   it('PGT-16.19: Upload TTD ukuran > 2MB -> Sistem tolak dengan error ukuran file', () => {
     LegalityPage.selectInstansi(0);
+    cy.wait(1000);
     LegalityPage.setToggleState(true);
+    cy.wait(1000);
     LegalityPage.uploadSignature(testData.files.largePng);
-    cy.wait(1500);
+    cy.wait(1000);
     LegalityPage.verifyValidationError(testData.validationMessages.maxFileSize);
   });
 
   it('PGT-16.20: Upload TTD format .PDF -> Sistem tolak dengan error tipe file', () => {
     LegalityPage.selectInstansi(0);
+    cy.wait(1000);
     LegalityPage.setToggleState(true);
+    cy.wait(1000);
     LegalityPage.uploadSignature(testData.files.invalidPdf);
-    cy.wait(1500);
+    cy.wait(1000);
     LegalityPage.verifyValidationError(testData.validationMessages.invalidFileType);
   });
 

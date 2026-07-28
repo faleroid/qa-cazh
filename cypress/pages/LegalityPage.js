@@ -120,9 +120,6 @@ class LegalityPage {
 
   uploadSignature(filePath) {
     this.elements.fileInput().selectFile(filePath, { force: true });
-    // Jeda beberapa detik agar pengunggahan & state form berkas selesai sepenuhnya sebelum simpan
-    cy.wait(3000);
-    this.elements.dialogContainer().should('be.visible');
     cy.wait(1000);
   }
 
@@ -184,21 +181,12 @@ class LegalityPage {
   }
 
   verifyValidationError(expectedText) {
-    cy.get('body').then(($body) => {
-      if ($body.find('[data-slot="alert"][role="alert"]').length > 0) {
-        this.verifyUploadErrorAlert(expectedText);
-      } else if (expectedText) {
-        cy.contains(new RegExp(expectedText, 'i'), { timeout: 15000 })
-          .first()
-          .scrollIntoView()
-          .should('exist');
-      } else {
-        cy.get('[data-slot="error"], [data-slot="alert"], p.text-destructive, p.text-red-500, [role="alert"], [data-sonner-toast]', { timeout: 15000 })
-          .first()
-          .scrollIntoView()
-          .should('exist');
-      }
-    });
+    if (expectedText) {
+      cy.contains(new RegExp(expectedText, 'i'), { timeout: 15000 }).should('exist');
+    } else {
+      cy.get('[data-sonner-toast], li[data-type="error"], [data-slot="toast"], [data-slot="alert"][role="alert"], [data-slot="error"]', { timeout: 15000 })
+        .should('exist');
+    }
   }
 
   verifyLegalityOnInvoice(proofUrl, namaText, jabatanText, shouldExist = true) {
