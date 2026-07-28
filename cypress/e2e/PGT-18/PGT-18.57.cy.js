@@ -7,11 +7,12 @@ describe('PGT-18.57 - Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.57 Tambah Pelanggaran -> Cek Tipe Pelanggaran di tabel -> Hapus Tipe di setting -> Cek kembali di Pelanggaran', () => {
-    const timestamp = Date.now();
-    const targetTypeName = `Pelanggaran Auto ${timestamp}`;
+    const targetTypeName = 'Meninggalkan Kelas Tanpa Izin';
 
-    // 1. Buat Tipe Pelanggaran khusus di /setting/student-affairs/violation-type dengan range poin 100 - 110 (Instansi: Academy QA Engineer)
+    // 1. Clean up existing test data with this name if present
     ViolationTypePage.visit();
+    ViolationTypePage.search(targetTypeName);
+    ViolationTypePage.deleteAllDataIfExists();
     ViolationTypePage.clickAddButton();
     ViolationTypePage.fillModalForm({ instansiText: 'Academy QA Engineer', nama: targetTypeName, minPoin: '100', maxPoin: '110' });
     ViolationTypePage.saveForm();

@@ -8,17 +8,16 @@ describe('PGT-18.56 - Tipe Pelanggaran', () => {
   });
 
   it('PGT-18.56 Search sampai hasil tinggal 1 row -> hapus row tersebut', () => {
-    const uniqueCat = 'Sikap Tidak Sopan Terhadap Guru';
-    ViolationTypePage.clickAddButton();
-    ViolationTypePage.fillModalForm({ instansiIndex: 0, nama: uniqueCat, minPoin: '301', maxPoin: '305' });
-    ViolationTypePage.saveForm();
-    ViolationTypePage.elements.formModal().should('not.exist');
-    cy.wait(1000);
+    ViolationTypePage.ensureDataExists();
+    cy.get('tbody tr').first().then(($row) => {
+      const typeName = $row.find('td').eq(1).text().trim() || $row.find('td').first().text().trim();
+      const cleanName = typeName.split('\n')[0].trim();
 
-    ViolationTypePage.search(uniqueCat);
-    ViolationTypePage.elements.tableRows().should('have.length', 1);
-    ViolationTypePage.clickDeleteFirstRow();
-    ViolationTypePage.confirmDelete();
-    ViolationTypePage.elements.emptyState().should('be.visible');
+      ViolationTypePage.search(cleanName);
+      ViolationTypePage.elements.tableRows().should('have.length', 1);
+      ViolationTypePage.clickDeleteFirstRow();
+      ViolationTypePage.confirmDelete();
+      ViolationTypePage.elements.emptyState().should('be.visible');
+    });
   });
 });

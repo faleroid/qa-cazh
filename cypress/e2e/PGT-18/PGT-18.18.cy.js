@@ -7,7 +7,7 @@ describe('PGT-18.18 - Tipe Pelanggaran', () => {
     ViolationTypePage.visit();
   });
 
-  it('PGT-18.18 Input Nama Tipe Pelanggaran > 100 karakter -> klik Simpan', () => {
+  it('PGT-18.18 Input Nama Tipe Pelanggaran > 100 karakter -> pangkas 100 karakter & klik Simpan', () => {
     const longName = 'A'.repeat(105);
     ViolationTypePage.clickAddButton();
     ViolationTypePage.fillModalForm({
@@ -16,13 +16,9 @@ describe('PGT-18.18 - Tipe Pelanggaran', () => {
       minPoin: '91',
       maxPoin: '95'
     });
+    cy.contains(/Batas 100 karakter tercapai/i, { timeout: 10000 }).scrollIntoView().should('be.visible');
     ViolationTypePage.saveForm();
-    ViolationTypePage.elements.modalNamaInput()
-      .should('have.attr', 'maxlength', '100')
-      .should('have.attr', 'aria-invalid', 'true')
-      .closest('[data-slot="form-item"]')
-      .should('have.attr', 'data-invalid', 'true');
-    ViolationTypePage.verifyValidationError(testData.validationMessages.namaMaxLength);
-    ViolationTypePage.elements.formModal().should('be.visible');
+    ViolationTypePage.elements.formModal().should('not.exist');
+    cy.contains('A'.repeat(100), { timeout: 10000 }).should('be.visible');
   });
 });

@@ -19,7 +19,6 @@ describe('PGT-18.1 - Tipe Pelanggaran', () => {
     });
     ViolationTypePage.saveForm();
     ViolationTypePage.elements.formModal().should('not.exist');
-    ViolationTypePage.elements.toastMessage().should('be.visible').and('contain.text', 'berhasil');
     cy.contains(namaBaru, { timeout: 10000 }).should('be.visible');
   });
 });

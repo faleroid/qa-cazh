@@ -14,20 +14,9 @@ describe('PGT-18.40 - Tipe Pelanggaran', () => {
     
     // Dapatkan nama instansi terpilih saat ini lalu pilih instansi yang BERBEDA
     ViolationTypePage.elements.modalInstansiValue().invoke('text').then((currentInstansiText) => {
-      ViolationTypePage.elements.modalInstansiDropdown().click({ force: true });
-      cy.wait(1000);
-      ViolationTypePage.elements.selectOptions().then(($options) => {
-        let differentIndex = 0;
-        $options.each((idx, opt) => {
-          const optText = Cypress.$(opt).text().trim();
-          if (optText && !optText.toLowerCase().includes(currentInstansiText.trim().toLowerCase())) {
-            differentIndex = idx;
-            return false;
-          }
-        });
-        cy.wrap($options.eq(differentIndex)).click({ force: true });
-        cy.wait(1000);
-      });
+      const cleanCurrent = currentInstansiText.trim();
+      const targetNewInstansi = cleanCurrent.includes('QA') ? 'Academy Cazh' : 'Academy QA Engineer';
+      ViolationTypePage.fillModalForm({ instansiText: targetNewInstansi });
     });
 
     ViolationTypePage.saveForm();

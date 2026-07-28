@@ -19,13 +19,14 @@ class ViolationTypePage {
     filterInstansiSelect: () => cy.get('[data-slot="card-header"] [role="combobox"], [data-slot="card-header"] [data-slot="select-trigger"]').filter(':contains("Instansi")').last(),
     
     // Dialog Modal (Tambah / Edit)
+    // Dialog Modal (Tambah / Edit)
     formModal: () => cy.get('[role="dialog"], [data-slot="dialog-content"], [data-slot="dialog"]', { timeout: 15000 }),
-    modalInstansiDropdown: () => this.elements.formModal().find('[role="combobox"], [data-slot="select-trigger"]').first(),
+    modalInstansiDropdown: () => this.elements.formModal().find('[data-slot="form-item"]:contains("Instansi") [role="combobox"], [data-slot="form-item"]:contains("Instansi") [data-slot="select-trigger"], [role="combobox"], [data-slot="select-trigger"]').first(),
     modalInstansiValue: () => this.elements.modalInstansiDropdown().find('span, [data-slot="select-value"]'),
     modalNamaInput: () => this.elements.formModal().find('input[name="name"], input[name="title"], input[placeholder*="Nama"], input[data-slot="input"]').first(),
     modalMinPoinInput: () => this.elements.formModal().find('input[name="min_point"], input[name="min_poin"], input[placeholder*="Min"], input[type="number"]').first(),
     modalMaxPoinInput: () => this.elements.formModal().find('input[name="max_point"], input[name="max_poin"], input[placeholder*="Max"], input[type="number"]').last(),
-    modalStatusDropdown: () => this.elements.formModal().find('[role="combobox"], [data-slot="select-trigger"]').last(),
+    modalStatusDropdown: () => this.elements.formModal().find('[data-slot="form-item"]:contains("Status") [role="combobox"], [data-slot="form-item"]:contains("Status") [data-slot="select-trigger"], [role="combobox"], [data-slot="select-trigger"]').last(),
     modalSaveBtn: () => this.elements.formModal().contains('button', /simpan/i),
     modalCancelBtn: () => this.elements.formModal().contains('button', /batal|cancel/i),
     
@@ -43,7 +44,7 @@ class ViolationTypePage {
     // Data Table & List
     tableRows: () => cy.get('tbody tr', { timeout: 10000 }),
     tableHeaderNodes: () => cy.get('thead th'),
-    emptyState: () => cy.contains('td, div, p', /tidak ada data|no data/i, { timeout: 10000 }),
+    emptyState: () => cy.contains('td, div, p, h3', /tidak ada data|tidak ditemukan|no data/i, { timeout: 10000 }),
     rowEditBtn: () => cy.get('tbody tr', { timeout: 10000 }).first().find('button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil), a:has(svg.lucide-pencil)').first(),
     rowDeleteBtn: () => cy.get('tbody tr', { timeout: 10000 }).first().find('button:has(svg.lucide-trash), a:has(svg.lucide-trash)').first(),
     
@@ -57,6 +58,16 @@ class ViolationTypePage {
   visit() {
     cy.visit('/setting/student-affairs/violation-type', { failOnStatusCode: false, timeout: 30000 });
     cy.get('body', { timeout: 15000 }).should('be.visible');
+    cy.get('body').then(($body) => {
+      if ($body.text().includes('Peran Belum Ditetapkan') || $body.text().includes('Hubungi admin')) {
+        cy.log('Terdeteksi halaman Peran Belum Ditetapkan. Memulihkan sesi login...');
+        cy.clearCookies();
+        cy.clearLocalStorage();
+        cy.login();
+        cy.visit('/setting/student-affairs/violation-type', { failOnStatusCode: false, timeout: 30000 });
+        cy.get('body', { timeout: 15000 }).should('be.visible');
+      }
+    });
     cy.get('tbody', { timeout: 15000 }).should('exist');
     cy.wait(2500);
   }
@@ -76,37 +87,35 @@ class ViolationTypePage {
     if (value === undefined) return;
     cyElement.scrollIntoView().focus();
     cy.wait(200);
-    cyElement.clear({ force: true }).type(value, { force: true });
+    cyElement.clear({ force: true });
+    if (value !== '') {
+      cyElement.type(value, { force: true });
+    }
     cy.wait(300);
   }
 
   fillModalForm({ instansiIndex, instansiText, nama, minPoin, maxPoin, statusIndex, statusText }) {
-    if (instansiText !== undefined) {
+    const triggerInstansiClick = () => {
+      this.elements.modalInstansiDropdown().scrollIntoView();
+      cy.wait(300);
       this.elements.modalInstansiDropdown().click({ force: true });
-      cy.wait(1000);
+      cy.wait(800);
       cy.get('body').then(($body) => {
-        const options = $body.find('[role="option"], [data-slot="select-item"], [data-radix-collection-item]');
-        if (options.length > 0) {
-          const matched = options.filter((_, el) => new RegExp(instansiText, 'i').test(Cypress.$(el).text()));
-          if (matched.length > 0) {
-            cy.wrap(matched.first()).click({ force: true });
-          } else {
-            cy.wrap(options.first()).click({ force: true });
-          }
+        if ($body.find('[role="option"], [data-slot="select-item"], [data-radix-collection-item]').length === 0) {
+          cy.log('Portal instansi belum muncul, klik ulang trigger...');
+          this.elements.modalInstansiDropdown().click({ force: true });
+          cy.wait(800);
         }
       });
-      cy.wait(1000);
-    } else if (instansiIndex !== undefined) {
-      this.elements.modalInstansiDropdown().click({ force: true });
-      cy.wait(1000);
-      cy.get('body').then(($body) => {
-        const options = $body.find('[role="option"], [data-slot="select-item"], [data-radix-collection-item]');
-        if (options.length > 0) {
-          const targetOpt = options.eq(instansiIndex).length > 0 ? options.eq(instansiIndex) : options.first();
-          cy.wrap(targetOpt).click({ force: true });
-        }
-      });
-      cy.wait(1000);
+    };
+
+    const targetInstansi = instansiText || 'Academy QA Engineer';
+    if (instansiText !== undefined || instansiIndex !== undefined) {
+      triggerInstansiClick();
+      cy.get('[role="option"], [data-slot="select-item"], [data-radix-collection-item]', { timeout: 10000 })
+        .contains(new RegExp(targetInstansi, 'i'))
+        .click({ force: true });
+      cy.wait(800);
     }
     if (nama !== undefined) {
       this.clearAndType(this.elements.modalNamaInput(), nama);
@@ -118,38 +127,36 @@ class ViolationTypePage {
       this.clearAndType(this.elements.modalMaxPoinInput(), maxPoin);
     }
     if (statusText !== undefined) {
-      this.elements.modalStatusDropdown().click({ force: true });
+      this.elements.modalStatusDropdown().scrollIntoView().click({ force: true });
       cy.wait(800);
-      cy.get('body').then(($body) => {
-        const options = $body.find('[role="option"], [data-slot="select-item"], [data-radix-collection-item]');
-        if (options.length > 0) {
-          const matched = options.filter((_, el) => new RegExp(statusText, 'i').test(Cypress.$(el).text()));
-          if (matched.length > 0) {
-            cy.wrap(matched.first()).click({ force: true });
-          } else {
-            cy.wrap(options.first()).click({ force: true });
-          }
-        }
-      });
+      cy.get('[role="option"], [data-slot="select-item"], [data-radix-collection-item]', { timeout: 10000 })
+        .contains(new RegExp(statusText, 'i'))
+        .click({ force: true });
       cy.wait(800);
     } else if (statusIndex !== undefined) {
-      this.elements.modalStatusDropdown().click({ force: true });
+      this.elements.modalStatusDropdown().scrollIntoView().click({ force: true });
       cy.wait(800);
-      cy.get('body').then(($body) => {
-        const options = $body.find('[role="option"], [data-slot="select-item"], [data-radix-collection-item]');
-        if (options.length > 0) {
-          const targetOpt = options.eq(statusIndex).length > 0 ? options.eq(statusIndex) : options.first();
-          cy.wrap(targetOpt).click({ force: true });
-        }
-      });
+      cy.get('[role="option"], [data-slot="select-item"], [data-radix-collection-item]', { timeout: 10000 })
+        .eq(statusIndex)
+        .click({ force: true });
       cy.wait(800);
     }
   }
 
   saveForm() {
-    cy.wait(1500);
+    cy.wait(1000);
     this.elements.modalSaveBtn().scrollIntoView().click({ force: true });
-    cy.wait(3000);
+    cy.wait(2000);
+    cy.get('body').then(($body) => {
+      if ($body.find('[role="dialog"], [data-slot="dialog-content"]').length > 0 && $body.find('[data-slot="form-message"], p.text-destructive, p.text-red-500').length === 0) {
+        const saveBtn = $body.find('button[type="submit"], button:contains("Simpan")');
+        if (saveBtn.length > 0) {
+          cy.log('Modal masih terbuka tanpa error, mencoba klik Simpan kembali...');
+          cy.wrap(saveBtn.first()).click({ force: true });
+          cy.wait(2000);
+        }
+      }
+    });
   }
 
   cancelForm() {

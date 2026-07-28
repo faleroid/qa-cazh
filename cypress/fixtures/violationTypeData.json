@@ -20,7 +20,7 @@
     "maxExceeds999": "tidak boleh lebih dari 999",
     "overlap": "bertumpuk",
     "duplicate": "sudah digunakan|sudah ada",
-    "namaMaxLength": "Tipe pelanggaran maksimal 100 karakter"
+    "namaMaxLength": "Batas 100 karakter tercapai|maksimal 100"
   },
   "search": {
     "validKeyword": "Keterlambatan",
