@@ -1,0 +1,428 @@
+import AnnouncementCategoryPage from '../pages/AnnouncementCategoryPage';
+import testData from '../fixtures/announcementCategoryData.json';
+
+describe('PGT-20: Pengaturan - Administrasi - Kategori Pengumuman', () => {
+  beforeEach(() => {
+    cy.login();
+    AnnouncementCategoryPage.visitList();
+  });
+
+  it('PGT-20.1: Isi form Tambah dengan Nama Kategori valid → klik Simpan', () => {
+    AnnouncementCategoryPage.deleteAllCategoriesIfExists();
+    AnnouncementCategoryPage.clickAddButton();
+    AnnouncementCategoryPage.fillForm({ namaKategori: testData.validData.validNama });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyToast(testData.toastMessages.addSuccess);
+    cy.contains('tbody tr', testData.validData.validNama).should('be.visible');
+    cy.contains('tbody tr', testData.validData.validNama).should('contain.text', 'Aktif');
+  });
+
+  it('PGT-20.2: Klik btn "Tambah" di halaman list', () => {
+    AnnouncementCategoryPage.clickAddButton();
+    AnnouncementCategoryPage.elements.modalTitle().should('contain.text', 'Tambah Kategori');
+    AnnouncementCategoryPage.elements.modalCancelBtn().should('be.visible');
+    AnnouncementCategoryPage.elements.modalNamaInput().should('have.value', '');
+  });
+
+  it('PGT-20.3: Tutup modal Tambah Kategori dengan tombol "Close (X)"', () => {
+    AnnouncementCategoryPage.clickAddButton();
+    AnnouncementCategoryPage.fillForm({ namaKategori: 'Draft Kategori Sementara' });
+    AnnouncementCategoryPage.elements.modalCloseXBtn().click({ force: true });
+    cy.wait(1000);
+    AnnouncementCategoryPage.elements.formModal().should('not.exist');
+    cy.contains('tbody tr', 'Draft Kategori Sementara').should('not.exist');
+  });
+
+  it('PGT-20.4: Kosongkan Nama Kategori → klik Simpan', () => {
+    AnnouncementCategoryPage.clickAddButton();
+    AnnouncementCategoryPage.fillForm({ namaKategori: '' });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.nameRequired);
+  });
+
+  it('PGT-20.5: Isi Nama Kategori dengan 1 karakter (misal "A") → klik Simpan', () => {
+    AnnouncementCategoryPage.clickAddButton();
+    AnnouncementCategoryPage.fillForm({ namaKategori: testData.invalidData.singleChar });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.nameMinLength);
+  });
+
+  it('PGT-20.6: Isi Nama Kategori dengan > 100 karakter → klik Simpan', () => {
+    AnnouncementCategoryPage.clickAddButton();
+    AnnouncementCategoryPage.fillForm({ namaKategori: testData.invalidData.maxLengthOver });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.nameMaxLength);
+  });
+
+  it('PGT-20.7: Isi Nama Kategori dengan spasi saja (whitespace only) → klik Simpan', () => {
+    AnnouncementCategoryPage.clickAddButton();
+    AnnouncementCategoryPage.fillForm({ namaKategori: testData.invalidData.whitespaceOnly });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.whitespaceError);
+  });
+
+  it('PGT-20.8: Isi Nama Kategori dengan karakter khusus TIDAK diizinkan (misal "@#$%") → klik Simpan', () => {
+    AnnouncementCategoryPage.clickAddButton();
+    AnnouncementCategoryPage.fillForm({ namaKategori: testData.invalidData.disallowedChars });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.disallowedCharsError);
+  });
+
+  it('PGT-20.9: Isi Nama Kategori dengan karakter khusus DIIZINKAN (misal "Info & Update.") → klik Simpan', () => {
+    AnnouncementCategoryPage.clickAddButton();
+    AnnouncementCategoryPage.fillForm({ namaKategori: testData.validData.validNamaAllowedChar });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyToast(testData.toastMessages.addSuccess);
+    cy.contains('tbody tr', testData.validData.validNamaAllowedChar).should('be.visible');
+  });
+
+  it('PGT-20.10: Isi Nama Kategori dengan kombinasi huruf, angka, spasi (misal "Info 2026") → klik Simpan', () => {
+    AnnouncementCategoryPage.clickAddButton();
+    AnnouncementCategoryPage.fillForm({ namaKategori: testData.validData.validNamaAlphanumeric });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyToast(testData.toastMessages.addSuccess);
+    cy.contains('tbody tr', testData.validData.validNamaAlphanumeric).should('be.visible');
+  });
+
+  it('PGT-20.11: Isi Nama Kategori dengan nama yang SUDAH ADA di kategori Aktif → klik Simpan', () => {
+    AnnouncementCategoryPage.clickAddButton();
+    AnnouncementCategoryPage.fillForm({ namaKategori: testData.validData.validNama });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.nameAlreadyUsed);
+    AnnouncementCategoryPage.clickBackButton();
+  });
+
+  it('PGT-20.12: Isi Nama Kategori dengan nama yang SUDAH ADA di kategori Nonaktif → klik Simpan', () => {
+    AnnouncementCategoryPage.clickEditRow(0);
+    AnnouncementCategoryPage.fillForm({ status: 'Tidak Aktif' });
+    AnnouncementCategoryPage.saveForm();
+    cy.wait(1000);
+
+    AnnouncementCategoryPage.clickAddButton();
+    AnnouncementCategoryPage.fillForm({ namaKategori: testData.validData.validNama });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.nameAlreadyUsed);
+    AnnouncementCategoryPage.clickBackButton();
+  });
+
+  it('PGT-20.13: Cek state tombol Simpan saat form belum valid (Nama kosong atau invalid)', () => {
+    AnnouncementCategoryPage.clickAddButton();
+    AnnouncementCategoryPage.elements.modalSaveBtn().then(($btn) => {
+      if (!$btn.is(':disabled')) {
+        AnnouncementCategoryPage.saveForm();
+        AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.nameRequired);
+      } else {
+        expect($btn).to.be.disabled;
+      }
+    });
+  });
+
+  it('PGT-20.14: Simulasi gagal simpan (server error 500) saat klik Simpan dengan data valid', () => {
+    const namaValidTanpaTabrakan = testData.validData.validNamaKategori2;
+
+    cy.intercept('POST', '**/api/**', {
+      statusCode: 500,
+      body: { message: testData.validationMessages.serverSaveError }
+    }).as('serverError500');
+
+    AnnouncementCategoryPage.clickAddButton();
+    AnnouncementCategoryPage.fillForm({ namaKategori: namaValidTanpaTabrakan });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.serverSaveError);
+    AnnouncementCategoryPage.elements.formModal().should('be.visible');
+    AnnouncementCategoryPage.elements.modalNamaInput().should('have.value', namaValidTanpaTabrakan);
+    AnnouncementCategoryPage.clickBackButton();
+  });
+
+  it('PGT-20.15: Setelah tambah sukses → buka fitur Tambah/Edit Pengumuman → cek dropdown Kategori', () => {
+    const newCategoryName = testData.validData.validNamaKategori2;
+    AnnouncementCategoryPage.clickAddButton();
+    AnnouncementCategoryPage.fillForm({ namaKategori: newCategoryName });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyToast(testData.toastMessages.addSuccess);
+    AnnouncementCategoryPage.checkCategoryInAnnouncementForm(newCategoryName, true);
+  });
+
+  it('PGT-20.16: Buka halaman Daftar Kategori Pengumuman', () => {
+    cy.contains('h1', 'Kategori Pengumuman').should('be.visible');
+    cy.contains('[data-slot="card-title"], h3', 'Data Kategori Pengumuman').should('be.visible');
+    cy.contains('button', 'Tambah Kategori').should('be.visible');
+    cy.get('thead').should('contain.text', 'Nama Kategori').and('contain.text', 'Status');
+  });
+
+  it('PGT-20.17: Cek Aksi di setiap row', () => {
+    AnnouncementCategoryPage.elements.tableRows().first().within(() => {
+      cy.get('button, a').filter(':has(svg.lucide-square-pen), :has(svg.lucide-pencil), :contains("Edit")').should('be.visible');
+      cy.get('button, a').filter(':has(svg.lucide-trash), :contains("Hapus")').should('be.visible');
+    });
+  });
+
+  it('PGT-20.18: Buka halaman list saat belum ada data kategori', () => {
+    cy.intercept('GET', '**/api/**', {
+      statusCode: 200,
+      body: { data: [], total: 0, meta: { total: 0 } }
+    }).as('getEmptyCategories');
+
+    AnnouncementCategoryPage.visitList();
+    cy.wait(1000);
+
+    cy.contains('h3', 'Belum Ada Kategori').should('be.visible');
+    cy.contains('div, span, p', /anda dapat membuat kategori baru/i).should('be.visible');
+  });
+
+  it('PGT-20.19: Tambah 2 kategori berturut-turut → reload halaman', () => {
+    const cat1 = 'Pengumuman Akademik';
+    const cat2 = 'Informasi Beasiswa';
+
+    AnnouncementCategoryPage.clickAddButton();
+    AnnouncementCategoryPage.fillForm({ namaKategori: cat1 });
+    AnnouncementCategoryPage.saveForm();
+    cy.wait(1000);
+
+    AnnouncementCategoryPage.clickAddButton();
+    AnnouncementCategoryPage.fillForm({ namaKategori: cat2 });
+    AnnouncementCategoryPage.saveForm();
+    cy.wait(1000);
+
+    cy.reload();
+    cy.get('body', { timeout: 15000 }).should('be.visible');
+    cy.wait(1500);
+
+    cy.contains('tbody tr', cat1).should('be.visible');
+    cy.contains('tbody tr', cat2).should('be.visible');
+  });
+
+  it('PGT-20.20: Cek pagination default value', () => {
+    AnnouncementCategoryPage.elements.pageSizeDropdown().should('contain.text', '10');
+  });
+
+  it('PGT-20.21: Ganti pagination ke 50 atau 100', () => {
+    AnnouncementCategoryPage.changePageSize(50);
+    AnnouncementCategoryPage.elements.pageSizeDropdown().should('contain.text', '50');
+  });
+
+  it('PGT-20.22: Ketik nama kategori partial (misal "inf") di search box', () => {
+    AnnouncementCategoryPage.search(testData.search.partialMatchKeyword);
+    AnnouncementCategoryPage.elements.tableRows().each(($row) => {
+      cy.wrap($row).invoke('text').then((text) => {
+        expect(text.toLowerCase()).to.include(testData.search.partialMatchKeyword.toLowerCase());
+      });
+    });
+  });
+
+  it('PGT-20.23: Ketik keyword yang tidak match ("xyz123abc")', () => {
+    AnnouncementCategoryPage.search(testData.search.noMatchKeyword);
+    AnnouncementCategoryPage.elements.emptyState().should('be.visible');
+  });
+
+  it('PGT-20.24: Aktifkan Filter Status = "Aktif"', () => {
+    AnnouncementCategoryPage.filterStatus('Aktif');
+    AnnouncementCategoryPage.elements.tableRows().each(($row) => {
+      cy.wrap($row).should('contain.text', 'Aktif');
+    });
+  });
+
+  it('PGT-20.25: Aktifkan Filter Status = "Tidak Aktif"', () => {
+    AnnouncementCategoryPage.clickEditRow(0);
+    AnnouncementCategoryPage.fillForm({ status: 'Tidak Aktif' });
+    AnnouncementCategoryPage.saveForm();
+
+    AnnouncementCategoryPage.filterStatus('Tidak Aktif');
+    AnnouncementCategoryPage.elements.tableRows().each(($row) => {
+      cy.wrap($row).should('contain.text', 'Tidak Aktif');
+    });
+  });
+
+  it('PGT-20.26: Aktifkan filter → tidak ada hasil match', () => {
+    cy.intercept('GET', '**/api/v3/announcements/categories*', {
+      statusCode: 200,
+      body: { data: [], total: 0 }
+    }).as('getFilteredEmpty');
+
+    AnnouncementCategoryPage.filterStatus('Nonaktif');
+    AnnouncementCategoryPage.elements.emptyState().should('be.visible');
+  });
+
+  it('PGT-20.27: Klik tombol Edit di row kategori', () => {
+    AnnouncementCategoryPage.clickEditRow(0);
+    AnnouncementCategoryPage.elements.formModal().should('be.visible');
+  });
+
+  it('PGT-20.28: Klik tombol Hapus di row kategori', () => {
+    AnnouncementCategoryPage.clickDeleteRow(0);
+    AnnouncementCategoryPage.elements.deleteModal().should('be.visible');
+  });
+
+  it('PGT-20.29: Klik tombol Edit di row kategori (Form Prefill check)', () => {
+    AnnouncementCategoryPage.clickEditRow(0);
+    AnnouncementCategoryPage.elements.formModal().should('be.visible');
+    AnnouncementCategoryPage.elements.modalTitle().should('contain.text', 'Edit Kategori');
+    AnnouncementCategoryPage.elements.modalNamaInput().should('not.have.value', '');
+    AnnouncementCategoryPage.elements.modalCancelBtn().should('be.visible');
+    AnnouncementCategoryPage.elements.modalSaveBtn().should('be.visible');
+  });
+
+  it('PGT-20.30: Klik btn "Kembali" / Close (X) di atas modal Edit', () => {
+    AnnouncementCategoryPage.clickEditRow(0);
+    AnnouncementCategoryPage.elements.modalCloseXBtn().click({ force: true });
+    cy.wait(1000);
+    AnnouncementCategoryPage.elements.formModal().should('not.exist');
+  });
+
+  it('PGT-20.31: Ubah Nama Kategori ke nilai valid baru → klik Simpan', () => {
+    AnnouncementCategoryPage.clickEditRow(0);
+    AnnouncementCategoryPage.fillForm({ namaKategori: testData.validData.validNamaUpdated });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyToast(testData.toastMessages.editSuccess);
+    cy.contains('tbody tr', testData.validData.validNamaUpdated).should('be.visible');
+  });
+
+  it('PGT-20.32: Ubah Status dari "Aktif" ke "Tidak Aktif" → klik Simpan', () => {
+    AnnouncementCategoryPage.filterStatus('Aktif');
+    cy.wait(1000);
+    AnnouncementCategoryPage.clickEditRow(0);
+    AnnouncementCategoryPage.fillForm({ status: 'Tidak Aktif' });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyToast(testData.toastMessages.editSuccess);
+    AnnouncementCategoryPage.filterStatus('Tidak Aktif');
+    AnnouncementCategoryPage.elements.rowStatusBadge(0).should('contain.text', 'Tidak Aktif');
+    AnnouncementCategoryPage.filterStatus('Semua');
+  });
+
+  it('PGT-20.33: Ubah Status dari "Tidak Aktif" ke "Aktif" → klik Simpan', () => {
+    AnnouncementCategoryPage.filterStatus('Tidak Aktif');
+    cy.wait(1000);
+    AnnouncementCategoryPage.clickEditRow(0);
+    AnnouncementCategoryPage.fillForm({ status: 'Aktif' });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyToast(testData.toastMessages.editSuccess);
+    AnnouncementCategoryPage.filterStatus('Aktif');
+    AnnouncementCategoryPage.elements.rowStatusBadge(0).should('contain.text', 'Aktif');
+    AnnouncementCategoryPage.filterStatus('Semua');
+  });
+
+  it('PGT-20.34: Kosongkan Nama Kategori di Edit → klik Simpan', () => {
+    AnnouncementCategoryPage.clickEditRow(0);
+    AnnouncementCategoryPage.fillForm({ namaKategori: '' });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.nameRequired);
+    AnnouncementCategoryPage.clickBackButton();
+  });
+
+  it('PGT-20.35: Ubah Nama Kategori jadi 1 karakter → klik Simpan', () => {
+    AnnouncementCategoryPage.clickEditRow(0);
+    AnnouncementCategoryPage.fillForm({ namaKategori: testData.invalidData.singleChar });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.nameMinLength);
+  });
+
+  it('PGT-20.36: Ubah Nama Kategori jadi > 100 karakter → klik Simpan', () => {
+    AnnouncementCategoryPage.clickEditRow(0);
+    AnnouncementCategoryPage.fillForm({ namaKategori: testData.invalidData.maxLengthOver });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.nameMaxLength);
+  });
+
+  it('PGT-20.37: Ubah Nama Kategori jadi spasi saja → klik Simpan', () => {
+    AnnouncementCategoryPage.clickEditRow(0);
+    AnnouncementCategoryPage.fillForm({ namaKategori: testData.invalidData.whitespaceOnly });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.whitespaceError);
+  });
+
+  it('PGT-20.38: Ubah Nama Kategori jadi karakter khusus tidak diizinkan (misal "@#$") → klik Simpan', () => {
+    AnnouncementCategoryPage.clickEditRow(0);
+    AnnouncementCategoryPage.fillForm({ namaKategori: testData.invalidData.disallowedChars });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.disallowedCharsError);
+  });
+
+  it('PGT-20.39: Ubah Nama Kategori jadi nama yang sudah ada di kategori Aktif atau Nonaktif lain → klik Simpan', () => {
+    cy.intercept('PUT', '**/api/v3/announcements/categories/*', {
+      statusCode: 400,
+      body: { message: testData.validationMessages.nameAlreadyUsed }
+    }).as('editDuplicateName');
+
+    AnnouncementCategoryPage.clickEditRow(0);
+    AnnouncementCategoryPage.fillForm({ namaKategori: testData.validData.existingActiveCategory });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.nameAlreadyUsed);
+  });
+
+  it('PGT-20.40: Simulasi gagal simpan (server error) di halaman Edit', () => {
+    cy.intercept('PUT', '**/api/v3/announcements/categories/*', {
+      statusCode: 500,
+      body: { message: testData.validationMessages.serverSaveError }
+    }).as('editServerError500');
+
+    AnnouncementCategoryPage.clickEditRow(0);
+    AnnouncementCategoryPage.fillForm({ namaKategori: testData.validData.validNamaUpdated });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.serverSaveError);
+    AnnouncementCategoryPage.elements.formModal().should('be.visible');
+  });
+
+  it('PGT-20.41: Set status kategori "Aktif" → buka fitur Tambah/Edit Pengumuman', () => {
+    AnnouncementCategoryPage.clickEditRow(0);
+    AnnouncementCategoryPage.fillForm({ status: 'Aktif' });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.checkCategoryInAnnouncementForm(testData.validData.validNamaUpdated, true);
+  });
+
+  it('PGT-20.42: Set status kategori "Nonaktif" → buka fitur Tambah/Edit Pengumuman', () => {
+    AnnouncementCategoryPage.clickEditRow(0);
+    AnnouncementCategoryPage.fillForm({ status: 'Nonaktif' });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.checkCategoryInAnnouncementForm(testData.validData.validNamaUpdated, false);
+  });
+
+  it('PGT-20.43: Ubah Nama Kategori → cek di pengumuman existing yang pakai kategori tersebut', () => {
+    AnnouncementCategoryPage.clickEditRow(0);
+    AnnouncementCategoryPage.fillForm({ namaKategori: 'Pengumuman Terbaru Renamed' });
+    AnnouncementCategoryPage.saveForm();
+    AnnouncementCategoryPage.checkCategoryInAnnouncementForm('Pengumuman Terbaru Renamed', true);
+  });
+
+  it('PGT-20.44: Klik tombol Hapus di row kategori (misal kategori "Info")', () => {
+    AnnouncementCategoryPage.clickDeleteRow(0);
+    AnnouncementCategoryPage.elements.deleteModal().should('be.visible');
+    AnnouncementCategoryPage.elements.deleteModal().contains('button', /ya, hapus|hapus/i).should('be.visible');
+    AnnouncementCategoryPage.elements.deleteModal().contains('button, a', /batal|cancel/i).should('be.visible');
+  });
+
+  it('PGT-20.45: Klik btn "Ya, Hapus" di modal konfirmasi (kategori TIDAK dipakai pengumuman aktif)', () => {
+    AnnouncementCategoryPage.clickDeleteRow(0);
+    AnnouncementCategoryPage.confirmDelete();
+    AnnouncementCategoryPage.verifyToast(testData.toastMessages.deleteSuccess);
+  });
+
+  it('PGT-20.46: Klik btn "Ya, Hapus" pada kategori yang MASIH DIPAKAI oleh pengumuman aktif', () => {
+    cy.intercept('DELETE', '**/api/v3/announcements/categories/*', {
+      statusCode: 400,
+      body: { message: testData.validationMessages.deleteInUseError }
+    }).as('deleteInUseErrorResponse');
+
+    AnnouncementCategoryPage.clickDeleteRow(0);
+    AnnouncementCategoryPage.confirmDelete();
+    AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.deleteInUseError);
+  });
+
+  it('PGT-20.47: Buka modal konfirmasi → klik btn "Batal"', () => {
+    AnnouncementCategoryPage.clickDeleteRow(0);
+    AnnouncementCategoryPage.cancelDelete();
+    AnnouncementCategoryPage.elements.deleteModal().should('not.exist');
+  });
+
+  it('PGT-20.48: Buka modal konfirmasi → tekan Esc di keyboard', () => {
+    AnnouncementCategoryPage.clickDeleteRow(0);
+    AnnouncementCategoryPage.pressEscKey();
+    AnnouncementCategoryPage.elements.deleteModal().should('not.exist');
+  });
+
+  it('PGT-20.49: Setelah hapus sukses → buka fitur Tambah/Edit Pengumuman → cek dropdown kategori', () => {
+    AnnouncementCategoryPage.clickDeleteRow(0);
+    AnnouncementCategoryPage.confirmDelete();
+    AnnouncementCategoryPage.checkCategoryInAnnouncementForm('Kategori Dihapus Test', false);
+  });
+
+});

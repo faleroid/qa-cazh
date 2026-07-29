@@ -26,21 +26,24 @@ qa-cazh/
 │   │   ├── PGT-17/                          # Test case modular PGT-17.1 s/d PGT-17.42
 │   │   ├── PGT-17_kategori_inventaris.cy.js # Full Combined Suite PGT-17
 │   │   ├── PGT-18/                          # Test case modular PGT-18.1 s/d PGT-18.57
-│   │   ├── PGT-18_tipe_pelanggaran.cy.js    # Full Combined Suite PGT-18
-│   │   ├── PGT-19/                          # Test case modular PGT-19.1 s/d PGT-19.17
-│   │   └── PGT-19_waktu_perizinan.cy.js     # Full Combined Suite PGT-19
+�│   │   ├── PGT-19/                          # Test case modular PGT-19.1 s/d PGT-19.17
+│   │   ├── PGT-19_waktu_perizinan.cy.js     # Full Combined Suite PGT-19
+│   │   ├── PGT-20/                          # Test case modular PGT-20.1 s/d PGT-20.49
+│   │   └── PGT-20_kategori_pengumuman.cy.js # Full Combined Suite PGT-20
 │   ├── fixtures/                            # Data uji JSON & File media upload
 │   │   ├── legalityData.json
 │   │   ├── inventoryCategoryData.json
 │   │   ├── violationTypeData.json
-      ├── permissionTimeData.json
+│   │   ├── permissionTimeData.json
+│   │   ├── announcementCategoryData.json
 │   │   ├── signature.png / .jpg / .jpeg / large_signature.png
 │   │   └── document.pdf
 │   ├── pages/                               # Page Object Model Classes
 │   │   ├── LegalityPage.js
 │   │   ├── InventoryCategoryPage.js
 │   │   ├── ViolationTypePage.js
-│   │   └── PermissionTimePage.js
+│   │   ├── PermissionTimePage.js
+│   │   └── AnnouncementCategoryPage.js
 │   └── support/                             # Custom Commands & Config
 │       ├── commands.js                      # Custom command cy.login()
 │       └── e2e.js
@@ -95,6 +98,18 @@ Modul pengaturan batas waktu maksimal pengajuan perizinan kesiswaan (Pengaturan 
   * Penyimpanan konfigurasi (*Save & Toast Notification*) & verifikasi persistent state data.
   * Independensi data antar multi-instansi (Perubahan pada Instansi A tidak mengubah Instansi B).
 
+### 5. PGT-20: Kategori Pengumuman Administrasi (Form Navigation & Usage Integration)
+Modul pengelolaan kategori pengumuman administrasi (Pengaturan - Administrasi - Kategori Pengumuman).
+* **Coverage (49 Test Cases)**:
+  * Form Tambah & Edit Kategori Pengumuman (Page Title, Form Prefill, Navigation Back button).
+  * Validasi Nama Kategori: Field Kosong, Limit Minimum (<2 karakter), Limit Maksimum (>100 karakter), Whitespace Only, Karakter Khusus Dilarang (@#$%) vs Karakter Khusus Diizinkan (- _ & .), dan Alfanumerik + Spasi.
+  * Penolakan Duplikat Nama Kategori (Uniqueness check pada Kategori Aktif maupun Nonaktif).
+  * Handling Server Error 500 & Form State Preservation saat submit gagal.
+  * Toggling Status Aktif vs Nonaktif & Badge Status pada Tabel Data.
+  * Integrasi Ketersediaan Dropdown Opsi Kategori pada Fitur Tambah/Edit Pengumuman (Hanya kategori Aktif yang tampil).
+  * Pencarian (*Search Partial Match*), Filter Status (Aktif / Nonaktif), Pagination Page Size (10, 25, 50), dan Default Sorting (Terbaru paling atas).
+  * Soft Delete Kategori: Konfirmasi Modal, Tombol Batal / Key Escape, Penolakan Hapus jika Kategori masih digunakan pengumuman aktif, dan Penghapusan Kategori dari Dropdown Opsi Pengumuman.
+
 ---
 
 ## 🛠️ Persyaratan & Instalasi
@@ -126,7 +141,7 @@ Pilih **E2E Testing** -> Pilih Browser (Chrome/Electron/Edge) -> Klik file test 
 
 ---
 
-### 2. Menjalankan via Command Line (CLI / Headless Mode)
+## 2. Menjalankan via Command Line (CLI / Headless Mode)
 
 * **Menjalankan Seluruh Spec File**:
   ```bash
@@ -146,6 +161,21 @@ Pilih **E2E Testing** -> Pilih Browser (Chrome/Electron/Edge) -> Klik file test 
 
   # Run Full Suite PGT-19
   npx cypress run --spec "cypress/e2e/PGT-19_waktu_perizinan.cy.js"
+
+  # Run Full Suite PGT-20
+  npx cypress run --spec "cypress/e2e/PGT-20_kategori_pengumuman.cy.js"
+  ```
+
+* **Menjalankan Single Test Case Spesifik (Modular Debugging)**:
+  ```bash
+  # Contoh: Run hanya PGT-16.1
+  npx cypress run --spec "cypress/e2e/PGT-16/PGT-16.1.cy.js"
+
+  # Contoh: Run hanya PGT-19.1
+  npx cypress run --spec "cypress/e2e/PGT-19/PGT-19.1.cy.js"
+
+  # Contoh: Run hanya PGT-20.1
+  npx cypress run --spec "cypress/e2e/PGT-20/PGT-20.1.cy.js"
   ```
 
 * **Menjalankan Single Test Case Spesifik (Modular Debugging)**:
