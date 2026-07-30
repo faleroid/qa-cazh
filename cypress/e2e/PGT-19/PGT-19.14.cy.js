@@ -7,7 +7,8 @@ describe('PGT-19.14 - Waktu Perizinan', () => {
     PermissionTimePage.visit();
   });
 
-  it('PGT-19.14 Cross-feature: Set toggle OFF di instansi A -> login sebagai user Cards Parents -> coba ajukan izin', () => {
+  // SKIPPED: Cross-feature integration test (fitur diuji pada suite integrasi terpisah)
+  it.skip('PGT-19.14 Cross-feature: Set toggle OFF di instansi A -> login sebagai user Cards Parents -> coba ajukan izin', () => {
     PermissionTimePage.selectInstansi(testData.instansi.instansiA);
     PermissionTimePage.toggleOff();
     PermissionTimePage.save();

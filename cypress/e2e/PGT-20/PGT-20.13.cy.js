@@ -17,5 +17,6 @@ describe('PGT-20.13 - Kategori Pengumuman', () => {
         expect($btn).to.be.disabled;
       }
     });
+    AnnouncementCategoryPage.clickBackButton();
   });
 });

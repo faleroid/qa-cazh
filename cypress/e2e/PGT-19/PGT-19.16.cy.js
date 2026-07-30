@@ -7,7 +7,8 @@ describe('PGT-19.16 - Waktu Perizinan', () => {
     PermissionTimePage.visit();
   });
 
-  it('PGT-19.16 Cross-feature: Set toggle ON dengan batas 09:00 -> user ajukan izin SETELAH jam 09:00', () => {
+  // SKIPPED: Cross-feature integration test (fitur diuji pada suite integrasi terpisah)
+  it.skip('PGT-19.16 Cross-feature: Set toggle ON dengan batas 09:00 -> user ajukan izin SETELAH jam 09:00', () => {
     PermissionTimePage.selectInstansi(testData.instansi.instansiA);
     PermissionTimePage.toggleOn();
     PermissionTimePage.fillTime('09:00');

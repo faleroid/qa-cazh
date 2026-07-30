@@ -9,8 +9,8 @@ describe('PGT-17.14 - Kategori Inventaris', () => {
 
   it('PGT-17.14 Tambah beberapa kategori -> reload halaman', () => {
     const timestamp = Date.now();
-    const cat1 = `Peralatan Olahraga SMA ${timestamp}`;
-    const cat2 = `Proyektor Lab Komputer ${timestamp}`;
+    const cat1 = `Peralatan Olahraga`;
+    const cat2 = `Proyektor Lab Komputer`;
 
     // 1. Tambah Kategori Pertama di Instansi Index 0
     InventoryCategoryPage.clickAddButton();

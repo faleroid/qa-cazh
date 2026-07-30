@@ -110,7 +110,18 @@ class PermissionTimePage {
     });
   }
 
+  ensureDialogOpen() {
+    cy.get('body').then(($body) => {
+      if ($body.find('[role="dialog"]').length === 0) {
+        this.elements.sidebarMenuWaktuPerizinan().click({ force: true });
+        cy.wait(1500);
+      }
+    });
+    this.elements.dialogContainer().should('be.visible');
+  }
+
   toggleOn() {
+    this.ensureDialogOpen();
     this.elements.instansiValue().then(($val) => {
       if ($val.text().includes('Pilih Instansi')) {
         this.selectInstansi('Sekolah Digital Indonesia');
@@ -126,6 +137,7 @@ class PermissionTimePage {
   }
 
   toggleOff() {
+    this.ensureDialogOpen();
     this.elements.instansiValue().then(($val) => {
       if ($val.text().includes('Pilih Instansi')) {
         this.selectInstansi('Sekolah Digital Indonesia');
@@ -141,21 +153,18 @@ class PermissionTimePage {
   }
 
   fillTime(timeString) {
-    if (timeString === undefined) return;
+    if (timeString === undefined || timeString === '') return;
     cy.get('body').then(($body) => {
-      const hourSpan = $body.find('[data-slot="datefield"] [data-type="hour"], [role="spinbutton"][aria-label="hour"]');
+      const hourSpan = $body.find('[data-slot="datefield"] [data-type="hour"], [role="spinbutton"][aria-label="hour"], [data-type="hour"]');
+      const minSpan = $body.find('[data-slot="datefield"] [data-type="minute"], [role="spinbutton"][aria-label="minute"], [data-type="minute"]');
+      
       if (hourSpan.length > 0) {
-        if (timeString === '') {
-          cy.wrap(hourSpan.first()).focus().clear({ force: true });
-        } else {
-          const parts = timeString.split(':');
-          const hh = parts[0] || '09';
-          const mm = parts[1] || '00';
-          cy.wrap(hourSpan.first()).focus().type(hh, { force: true });
-          const minSpan = $body.find('[data-slot="datefield"] [data-type="minute"], [role="spinbutton"][aria-label="minute"]');
-          if (minSpan.length > 0) {
-            cy.wrap(minSpan.first()).focus().type(mm, { force: true });
-          }
+        const parts = timeString.split(':');
+        const hh = parts[0] || '09';
+        const mm = parts[1] || '00';
+        cy.wrap(hourSpan.first()).focus().type('{selectall}' + hh, { force: true, delay: 50 });
+        if (minSpan.length > 0) {
+          cy.wrap(minSpan.first()).focus().type('{selectall}' + mm, { force: true, delay: 50 });
         }
       } else {
         const input = $body.find('input[name="max_time"], input[name="time"], input[type="time"], input[data-slot="input"]');
@@ -167,7 +176,7 @@ class PermissionTimePage {
         }
       }
     });
-    cy.wait(300);
+    cy.wait(500);
   }
 
   save() {

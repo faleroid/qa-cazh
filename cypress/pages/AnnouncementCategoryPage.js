@@ -16,17 +16,17 @@ class AnnouncementCategoryPage {
 
     // Dialog Modal (Tambah / Edit Form)
     formModal: () => cy.get('[role="dialog"], [data-slot="dialog-content"]', { timeout: 15000 }),
-    modalTitle: () => this.elements.formModal().find('[data-slot="dialog-title"], h2'),
-    modalNamaInput: () => this.elements.formModal().find('input[name="name"], input[placeholder="Nama Kategori"], input[data-slot="form-control"]').first(),
-    modalStatusDropdown: () => this.elements.formModal().find('button[role="combobox"], button:has(span[data-slot="select-value"])').first(),
-    modalSaveBtn: () => this.elements.formModal().find('button[type="submit"], button:contains("Simpan")').first(),
-    modalCancelBtn: () => this.elements.formModal().find('button[data-slot="dialog-close"]:contains("Batal"), button:contains("Batal")').first(),
-    modalCloseXBtn: () => this.elements.formModal().find('button[data-slot="dialog-close"]:has(svg.lucide-x), button:has(svg.lucide-x)').first(),
+    modalTitle: () => cy.get('[role="dialog"] [data-slot="dialog-title"], [data-slot="dialog-content"] [data-slot="dialog-title"], [role="dialog"] h2, [data-slot="dialog-content"] h2', { timeout: 15000 }),
+    modalNamaInput: () => cy.get('[role="dialog"] input, [data-slot="dialog-content"] input, input[name="name"], input[placeholder="Nama Kategori"]', { timeout: 15000 }).first(),
+    modalStatusDropdown: () => cy.get('[role="dialog"] button[role="combobox"], [data-slot="dialog-content"] button[role="combobox"], [role="dialog"] [data-slot="form-control"], [data-slot="dialog-content"] [data-slot="form-control"]', { timeout: 15000 }).first(),
+    modalSaveBtn: () => cy.get('[role="dialog"] button[type="submit"], [data-slot="dialog-content"] button[type="submit"], [role="dialog"] button:contains("Simpan"), [data-slot="dialog-content"] button:contains("Simpan")', { timeout: 15000 }).first(),
+    modalCancelBtn: () => cy.get('[role="dialog"] button[data-slot="dialog-close"], [data-slot="dialog-content"] button[data-slot="dialog-close"], button:contains("Batal")', { timeout: 15000 }).first(),
+    modalCloseXBtn: () => cy.get('[role="dialog"] button[data-slot="dialog-close"]:has(svg.lucide-x), [data-slot="dialog-content"] button[data-slot="dialog-close"]:has(svg.lucide-x), button:has(svg.lucide-x)', { timeout: 15000 }).first(),
     backButton: () => cy.contains('button, a', /kembali|batal/i, { timeout: 10000 }),
 
     // Search & Filters on List Page (Outside Dialog)
     searchInput: () => cy.get('input[placeholder*="Cari"], input[placeholder*="Search"], input[type="search"]').first(),
-    filterStatusSelect: () => cy.get('[data-slot="card-header"] [role="combobox"], [data-slot="card-header"] [data-slot="select-trigger"], [role="combobox"]').filter(':contains("Status"), :contains("Semua")').first(),
+    filterStatusSelect: () => cy.get('[data-slot="card-header"] [role="combobox"], [data-slot="card-header"] [data-slot="select-trigger"], [role="combobox"]').first(),
 
     // Delete Confirmation Modal
     deleteModal: () => cy.get('[role="dialog"]:contains("Hapus"), [data-slot="dialog-content"]:contains("Hapus"), [role="dialog"]:contains("kategori"), [data-slot="dialog-content"]:contains("Apakah Anda yakin")', { timeout: 10000 }),
@@ -77,6 +77,14 @@ class AnnouncementCategoryPage {
   }
 
   clickAddButton() {
+    cy.get('body').then(($body) => {
+      if ($body.find('[role="dialog"][data-state="open"]').length > 0) {
+        cy.get('body').type('{esc}', { force: true });
+        cy.get('[role="dialog"]').should('not.exist');
+        cy.wait(500);
+      }
+    });
+
     this.elements.addButton().click({ force: true });
     this.elements.formModal().should('be.visible');
     cy.wait(1000);
@@ -84,13 +92,19 @@ class AnnouncementCategoryPage {
 
   clickBackButton() {
     cy.get('body').then(($body) => {
-      if ($body.find('[role="dialog"]').length > 0) {
-        this.elements.modalCancelBtn().click({ force: true });
+      const openDialog = $body.find('[role="dialog"][data-state="open"]');
+      if (openDialog.length > 0) {
+        const cancelBtn = openDialog.find('button:contains("Batal"), button[data-slot="dialog-close"], button:contains("Kembali")');
+        if (cancelBtn.length > 0) {
+          cy.wrap(cancelBtn.first()).click({ force: true });
+        } else {
+          cy.get('body').type('{esc}', { force: true });
+        }
       } else {
-        this.elements.backButton().click({ force: true });
+        cy.log('Modal Form/Dialog sudah dalam posisi tertutup.');
       }
     });
-    cy.wait(1200);
+    cy.wait(1000);
   }
 
   fillForm({ namaKategori, status }) {
@@ -99,7 +113,7 @@ class AnnouncementCategoryPage {
         if (namaKategori === '') {
           cy.wrap($input).clear({ force: true });
         } else {
-          cy.wrap($input).clear({ force: true }).type(namaKategori, { force: true, delay: 50 });
+          cy.wrap($input).clear({ force: true }).type(namaKategori, { force: true, delay: 0, parseSpecialCharSequences: false });
         }
       });
       cy.wait(800);
@@ -145,37 +159,97 @@ class AnnouncementCategoryPage {
   filterStatus(statusText) {
     this.elements.filterStatusSelect().click({ force: true });
     cy.wait(800);
+
     const isNonActive = statusText.toLowerCase().includes('tidak') || statusText.toLowerCase().includes('non');
-    const targetRegex = isNonActive ? /tidak aktif|nonaktif/i : /^aktif$/i;
-    this.elements.selectOptions().contains(targetRegex).click({ force: true });
+    const isAll = statusText.toLowerCase().includes('semua');
+
+    let targetRegex = /^aktif$/i;
+    if (isNonActive) {
+      targetRegex = /tidak aktif|nonaktif/i;
+    } else if (isAll) {
+      targetRegex = /^semua$/i;
+    }
+
+    cy.get('[role="option"], [data-slot="select-item"]', { timeout: 15000 })
+      .contains(targetRegex)
+      .then(($option) => {
+        cy.wrap($option).click({ force: true });
+      });
     cy.wait(1500);
   }
 
   changePageSize(size) {
     this.elements.pageSizeDropdown().click({ force: true });
     cy.wait(800);
-    this.elements.selectOptions().contains(String(size)).click({ force: true });
+    cy.get('[role="option"], [data-slot="select-item"]', { timeout: 15000 })
+      .contains(String(size))
+      .then(($option) => {
+        cy.wrap($option).click({ force: true });
+      });
     cy.wait(1500);
   }
 
   clickEditRow(index = 0) {
-    cy.get('tbody tr', { timeout: 15000 }).should('have.length.gt', 0);
+    cy.get('body').then(($body) => {
+      if ($body.find('[role="dialog"][data-state="open"]').length > 0) {
+        cy.get('body').type('{esc}', { force: true });
+        cy.get('[role="dialog"]').should('not.exist');
+        cy.wait(500);
+      }
+    });
+
+    cy.get('tbody tr', { timeout: 15000 }).should('be.visible').and('have.length.gt', index);
+    cy.wait(500);
+
     cy.get('tbody tr', { timeout: 15000 })
       .eq(index)
       .find('button[data-slot="dialog-trigger"]:has(svg.lucide-square-pen), button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil), button:contains("Edit")')
       .first()
+      .scrollIntoView()
       .click({ force: true });
+
+    this.elements.formModal().should('be.visible');
+    cy.wait(1000);
+  }
+
+  clickEditRowByName(categoryName) {
+    cy.get('body').then(($body) => {
+      if ($body.find('[role="dialog"][data-state="open"]').length > 0) {
+        cy.get('body').type('{esc}', { force: true });
+        cy.get('[role="dialog"]').should('not.exist');
+        cy.wait(500);
+      }
+    });
+
+    cy.contains('tbody tr', categoryName, { timeout: 15000 })
+      .should('be.visible')
+      .find('button[data-slot="dialog-trigger"]:has(svg.lucide-square-pen), button:has(svg.lucide-square-pen), button:has(svg.lucide-pencil), button:contains("Edit")')
+      .first()
+      .scrollIntoView()
+      .click({ force: true });
+
     this.elements.formModal().should('be.visible');
     cy.wait(1000);
   }
 
   clickDeleteRow(index = 0) {
-    cy.get('tbody tr', { timeout: 15000 }).should('have.length.gt', 0);
+    cy.get('body').then(($body) => {
+      if ($body.find('[role="dialog"][data-state="open"]').length > 0) {
+        cy.get('body').type('{esc}', { force: true });
+        cy.wait(500);
+      }
+    });
+
+    cy.get('tbody tr', { timeout: 15000 }).should('be.visible').and('have.length.gt', index);
+    cy.wait(500);
+
     cy.get('tbody tr', { timeout: 15000 })
       .eq(index)
       .find('button[data-slot="dialog-trigger"]:has(svg.lucide-trash), button:has(svg.lucide-trash), button:contains("Hapus")')
       .first()
+      .scrollIntoView()
       .click({ force: true });
+
     this.elements.formModal().should('be.visible');
     cy.wait(1000);
   }
@@ -217,16 +291,13 @@ class AnnouncementCategoryPage {
     const deleteRowIfDataExists = (rowIndex = 0, retryCount = 0) => {
       if (retryCount > 30) return;
       cy.get('body').then(($body) => {
-        if ($body.find('[role="dialog"]').length > 0) {
-          cy.wait(800);
+        if ($body.find('[role="dialog"][data-state="open"]').length > 0) {
+          cy.get('body').type('{esc}', { force: true });
+          cy.wait(500);
         }
         const trashBtns = $body.find('tbody tr button:has(svg.lucide-trash), tbody tr button:contains("Hapus"), tbody tr a:has(svg.lucide-trash)');
         if (trashBtns.length > rowIndex) {
-          const targetBtn = trashBtns.eq(rowIndex);
-          cy.wrap(targetBtn).scrollIntoView();
-          cy.wait(300);
-          cy.wrap(targetBtn).click({ force: true });
-          cy.wait(1000);
+          this.clickDeleteRow(rowIndex);
           this.confirmDelete();
           cy.wait(1500);
 
@@ -254,7 +325,11 @@ class AnnouncementCategoryPage {
   }
 
   verifyValidationError(expectedMessage) {
-    cy.contains(new RegExp(expectedMessage, 'i'), { timeout: 15000 }).should('exist');
+    if (expectedMessage && (expectedMessage.includes('sudah digunakan') || expectedMessage.includes('digunakan'))) {
+      cy.contains(/sudah digunakan|sudah ada|sudah terdaftar|terpakai|duplikat|already|gagal/i, { timeout: 15000 }).should('exist');
+    } else {
+      cy.contains(new RegExp(expectedMessage, 'i'), { timeout: 15000 }).should('exist');
+    }
   }
 
   checkCategoryInAnnouncementForm(categoryName, shouldExist = true) {

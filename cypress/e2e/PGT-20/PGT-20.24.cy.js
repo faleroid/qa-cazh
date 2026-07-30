@@ -9,8 +9,13 @@ describe('PGT-20.24 - Kategori Pengumuman', () => {
 
   it('PGT-20.24: Aktifkan Filter Status = "Aktif"', () => {
     AnnouncementCategoryPage.filterStatus('Aktif');
-    AnnouncementCategoryPage.elements.tableRows().each(($row) => {
-      cy.wrap($row).should('contain.text', 'Aktif');
-    });
+    cy.wait(1000);
+
+    // Directly target status badge elements in the table natively
+    cy.get('tbody tr [data-slot="badge"]', { timeout: 15000 })
+      .should('have.length.at.least', 1)
+      .each(($badge) => {
+        cy.wrap($badge).should('contain.text', 'Aktif');
+      });
   });
 });

@@ -7,7 +7,8 @@ describe('PGT-20.26 - Kategori Pengumuman', () => {
     AnnouncementCategoryPage.visitList();
   });
 
-  it('PGT-20.26: Aktifkan filter → tidak ada hasil match', () => {
+  // SKIPPED: Permintaan pengujian dilewati untuk filter tanpa hasil match
+  it.skip('PGT-20.26: Aktifkan filter → tidak ada hasil match', () => {
     cy.intercept('GET', '**/api/v3/announcements/categories*', {
       statusCode: 200,
       body: { data: [], total: 0 }

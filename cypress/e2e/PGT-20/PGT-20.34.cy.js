@@ -11,11 +11,15 @@ describe('PGT-20.34 - Kategori Pengumuman', () => {
     // 1. Klik Edit pada baris pertama
     AnnouncementCategoryPage.clickEditRow(0);
 
-    // 2. Kosongkan input Nama Kategori & klik Simpan
+    // 2. Berikan jeda waktu agar modal Edit terbuka sempurna & data ter-load
+    cy.wait(1500);
+
+    // 3. Kosongkan input Nama Kategori & klik Simpan
     AnnouncementCategoryPage.fillForm({ namaKategori: '' });
     AnnouncementCategoryPage.saveForm();
 
-    // 3. Verifikasi pesan validasi error "Nama kategori harus diisi."
+    // 4. Verifikasi pesan validasi error "Nama kategori harus diisi." & tutup modal
     AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.nameRequired);
+    AnnouncementCategoryPage.clickBackButton();
   });
 });

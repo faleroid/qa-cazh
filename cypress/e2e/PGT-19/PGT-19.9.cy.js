@@ -7,9 +7,19 @@ describe('PGT-19.9 - Waktu Perizinan', () => {
   });
 
   it('PGT-19.9 Aktifkan toggle + kosongkan field jam -> klik Simpan', () => {
-    PermissionTimePage.toggleOn();
-    PermissionTimePage.fillTime('');
+    // 1. Reset toggle OFF & Simpan untuk mengembalikan konfigurasi awal ke kondisi bersih
+    PermissionTimePage.toggleOff();
     PermissionTimePage.save();
-    cy.contains(/wajib diisi|harus diisi|required/i, { timeout: 10000 }).should('be.visible');
+    cy.wait(1000);
+
+    // 2. Aktifkan toggle ON (field jam otomatis muncul dalam kondisi default kosong --:--)
+    PermissionTimePage.toggleOn();
+    cy.wait(800);
+
+    // 3. Tanpa menyentuh/mengetik pada field jam, langsung klik Simpan
+    PermissionTimePage.save();
+
+    // 4. Verifikasi sistem menolak dan menampilkan pesan validasi error wajib diisi
+    PermissionTimePage.elements.validationError().should('be.visible');
   });
 });

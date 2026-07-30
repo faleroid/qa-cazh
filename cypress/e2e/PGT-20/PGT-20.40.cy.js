@@ -8,7 +8,8 @@ describe('PGT-20.40 - Kategori Pengumuman', () => {
   });
 
   it('PGT-20.40: Simulasi gagal simpan (server error) di halaman Edit', () => {
-    cy.intercept('PUT', '**/api/v3/announcements/categories/*', {
+    // Intercept seluruh request PUT/PATCH/POST ke API saat simpan Edit
+    cy.intercept({ method: /PUT|PATCH|POST/i, url: '**/api/**' }, {
       statusCode: 500,
       body: { message: testData.validationMessages.serverSaveError }
     }).as('editServerError500');
@@ -16,7 +17,11 @@ describe('PGT-20.40 - Kategori Pengumuman', () => {
     AnnouncementCategoryPage.clickEditRow(0);
     AnnouncementCategoryPage.fillForm({ namaKategori: testData.validData.validNamaUpdated });
     AnnouncementCategoryPage.saveForm();
+    cy.wait('@editServerError500');
+
+    // Verifikasi pesan error 'Gagal menyimpan kategori. Silakan coba lagi.' & pengguna tetap berada di form modal
     AnnouncementCategoryPage.verifyValidationError(testData.validationMessages.serverSaveError);
     AnnouncementCategoryPage.elements.formModal().should('be.visible');
+    AnnouncementCategoryPage.clickBackButton();
   });
 });

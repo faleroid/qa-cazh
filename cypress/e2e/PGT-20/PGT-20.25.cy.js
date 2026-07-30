@@ -7,15 +7,21 @@ describe('PGT-20.25 - Kategori Pengumuman', () => {
   });
 
   it('PGT-20.25: Filter berdasarkan Status (misal: pilih Status "Tidak Aktif")', () => {
-    // 1. Langsung edit baris pertama yang ada dari PGT-20.19 menjadi Tidak Aktif
+    // 1. Edit baris pertama (row 0) menjadi status "Tidak Aktif"
     AnnouncementCategoryPage.clickEditRow(0);
     AnnouncementCategoryPage.fillForm({ status: 'Tidak Aktif' });
     AnnouncementCategoryPage.saveForm();
+    cy.wait(1500);
 
-    // 2. Filter status "Tidak Aktif" dan verifikasi hasilnya
+    // 2. Filter status "Tidak Aktif"
     AnnouncementCategoryPage.filterStatus('Tidak Aktif');
-    AnnouncementCategoryPage.elements.tableRows().each(($row) => {
-      cy.wrap($row).should('contain.text', 'Tidak Aktif');
-    });
+    cy.wait(1000);
+
+    // 3. Directly target status badge elements in the table natively
+    cy.get('tbody tr [data-slot="badge"]', { timeout: 15000 })
+      .should('have.length.at.least', 1)
+      .each(($badge) => {
+        cy.wrap($badge).should('contain.text', 'Tidak Aktif');
+      });
   });
 });

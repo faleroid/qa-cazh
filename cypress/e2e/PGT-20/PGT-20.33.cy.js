@@ -8,21 +8,18 @@ describe('PGT-20.33 - Kategori Pengumuman', () => {
   });
 
   it('PGT-20.33: Ubah Status dari "Tidak Aktif" ke "Aktif" → klik Simpan', () => {
-    // 1. Filter data berstatus Tidak Aktif
-    AnnouncementCategoryPage.filterStatus('Tidak Aktif');
-    cy.wait(1000);
+    // 1. Cari baris yang berstatus Tidak Aktif langsung di tabel tanpa menggunakan filter
+    cy.contains('tbody tr', 'Tidak Aktif', { timeout: 15000 }).then(($row) => {
+      const rowIndex = $row.index();
 
-    // 2. Klik Edit pada baris pertama dan ubah status ke Aktif
-    AnnouncementCategoryPage.clickEditRow(0);
-    AnnouncementCategoryPage.fillForm({ status: 'Aktif' });
-    AnnouncementCategoryPage.saveForm();
+      // 2. Klik Edit pada baris berstatus Tidak Aktif tersebut dan ubah ke Aktif
+      AnnouncementCategoryPage.clickEditRow(rowIndex);
+      AnnouncementCategoryPage.fillForm({ status: 'Aktif' });
+      AnnouncementCategoryPage.saveForm();
 
-    // 3. Verifikasi notifikasi toast & perubahan badge status menjadi "Aktif"
-    AnnouncementCategoryPage.verifyToast(testData.toastMessages.editSuccess);
-    AnnouncementCategoryPage.filterStatus('Aktif');
-    AnnouncementCategoryPage.elements.rowStatusBadge(0).should('contain.text', 'Aktif');
-
-    // Clean up: Reset filter ke Semua
-    AnnouncementCategoryPage.filterStatus('Semua');
+      // 3. Verifikasi notifikasi toast success & verifikasi badge status baris tersebut menjadi "Aktif"
+      AnnouncementCategoryPage.verifyToast(testData.toastMessages.editSuccess);
+      AnnouncementCategoryPage.elements.rowStatusBadge(rowIndex).should('contain.text', 'Aktif');
+    });
   });
 });

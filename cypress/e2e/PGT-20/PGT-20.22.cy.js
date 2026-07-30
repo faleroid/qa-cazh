@@ -8,10 +8,14 @@ describe('PGT-20.22 - Kategori Pengumuman', () => {
   });
 
   it('PGT-20.22: Ketik nama kategori partial (misal "inf") di search box', () => {
-    AnnouncementCategoryPage.search(testData.search.partialMatchKeyword);
-    AnnouncementCategoryPage.elements.tableRows().each(($row) => {
-      cy.wrap($row).invoke('text').then((text) => {
-        expect(text.toLowerCase()).to.include(testData.search.partialMatchKeyword.toLowerCase());
+    const keyword = testData.search.partialMatchKeyword; // "inf"
+    AnnouncementCategoryPage.search(keyword);
+    cy.wait(1000);
+
+    // Verifikasi seluruh baris hasil pencarian secara case-insensitive (misal: "Informasi Beasiswa" vs "inf")
+    AnnouncementCategoryPage.elements.tableRows().should('have.length.at.least', 1).each(($row) => {
+      cy.wrap($row).invoke('text').should((text) => {
+        expect(text.toLowerCase()).to.include(keyword.toLowerCase());
       });
     });
   });

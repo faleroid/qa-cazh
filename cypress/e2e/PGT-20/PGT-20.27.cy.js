@@ -8,7 +8,9 @@ describe('PGT-20.27 - Kategori Pengumuman', () => {
   });
 
   it('PGT-20.27: Klik tombol Edit di row kategori', () => {
+    cy.wait(1500);
     AnnouncementCategoryPage.clickEditRow(0);
+    cy.wait(1500);
     AnnouncementCategoryPage.elements.formModal().should('be.visible');
   });
 });
