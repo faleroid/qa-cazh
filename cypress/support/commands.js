@@ -4,7 +4,7 @@ Cypress.Commands.add('login', (email = 'androidtesting117@gmail.com', password =
     [email, password],
     () => {
       // 1. Buka halaman login
-      cy.visit('/login');
+      cy.visit('/https://v3.cazh.id/auth/login');
 
       // 2. Tunggu form login muncul
       cy.get('input[type="email"], input[name="email"], input[name="username"], input[type="text"]', { timeout: 10000 })

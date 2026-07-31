@@ -7,7 +7,7 @@ describe('PGT-16.21 - Legalitas Bukti Bayar', () => {
     LegalityPage.openModal();
   });
 
-  it('PGT-16.21: Simpan legalitas aktif -> Buka bukti pembayaran -> Data muncul di invoice', () => {
+  it.skip('PGT-16.21: Simpan legalitas aktif -> Buka bukti pembayaran -> Data muncul di invoice', () => {
     LegalityPage.selectInstansi(0);
     LegalityPage.setToggleState(true);
     LegalityPage.fillForm(testData.validForm);

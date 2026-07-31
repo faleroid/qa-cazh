@@ -8,6 +8,7 @@ describe('PGT-20.28 - Kategori Pengumuman', () => {
   });
 
   it('PGT-20.28: Klik tombol Hapus di row kategori', () => {
+    cy.wait(1000);
     AnnouncementCategoryPage.clickDeleteRow(0);
     AnnouncementCategoryPage.elements.deleteModal().should('be.visible');
   });
