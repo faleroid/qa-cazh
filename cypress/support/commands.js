@@ -4,7 +4,7 @@ Cypress.Commands.add('login', (email = 'androidtesting117@gmail.com', password =
     [email, password],
     () => {
       // 1. Buka halaman login
-      cy.visit('/https://v3.cazh.id/auth/login');
+      cy.visit('https://v3.cazh.id/auth/login');
 
       // 2. Tunggu form login muncul
       cy.get('input[type="email"], input[name="email"], input[name="username"], input[type="text"]', { timeout: 10000 })
@@ -30,7 +30,7 @@ Cypress.Commands.add('login', (email = 'androidtesting117@gmail.com', password =
     },
     {
       validate() {
-        cy.visit('/setting/student-affairs/violation-type', { failOnStatusCode: false });
+        cy.visit('https://v3.cazh.id/dashboard', { failOnStatusCode: false });
         cy.get('body', { timeout: 15000 }).should('not.contain.text', 'Peran Belum Ditetapkan');
       }
     }
