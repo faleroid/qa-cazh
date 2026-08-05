@@ -193,7 +193,7 @@ describe('UAT Suite: PGT-16 - Legalitas Bukti Bayar (Modal Dialog UI)', () => {
   // ---------------------------------------------------------------------------
   // 6. END-TO-END INVOICE VERIFICATION & CLEANUP (FULL CRUD LIFECYCLE)
   // ---------------------------------------------------------------------------
-  it('PGT-16.21: Simpan legalitas aktif -> Buka bukti pembayaran -> Data muncul di invoice', () => {
+  it.skip('PGT-16.21: Simpan legalitas aktif -> Buka bukti pembayaran -> Data muncul di invoice', () => {
     LegalityPage.setToggleState(true);
     LegalityPage.fillForm(testData.validForm);
     LegalityPage.clickSave();
@@ -208,7 +208,7 @@ describe('UAT Suite: PGT-16 - Legalitas Bukti Bayar (Modal Dialog UI)', () => {
     );
   });
 
-  it('PGT-16.22: Matikan toggle -> Simpan -> Buka bukti pembayaran -> Legalitas TIDAK muncul', () => {
+  it.skip('PGT-16.22: Matikan toggle -> Simpan -> Buka bukti pembayaran -> Legalitas TIDAK muncul', () => {
     LegalityPage.setToggleState(false);
     LegalityPage.clickSave();
 

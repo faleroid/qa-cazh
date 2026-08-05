@@ -16,38 +16,16 @@ module.exports = defineConfig({
   videosFolder: "cypress/videos",
   screenshotOnRunFailure: true,
   screenshotsFolder: "cypress/screenshots",
-  downloadsFolder: "cypress/downloads",
+
 
   e2e: {
     baseUrl: "https://v3.cazh.id",
-    supportFile: "cypress/support/e2e.js",
+    // Use a relative path for the support file so Cypress can locate it reliably
+    supportFile: 'cypress/support/e2e.js',
     setupNodeEvents(on, config) {
-
-      // Task Pembersihan Otomatis & Pembacaan Excel
-      const downloadsFolder = path.join(__dirname, 'cypress', 'downloads');
-      const resolveDownloadPath = (filePath) =>
-        path.isAbsolute(filePath) ? filePath : path.join(__dirname, filePath);
-
-      const findLatestDownloadedFile = ({ extension = '.xlsx' } = {}) => {
-        if (!fs.existsSync(downloadsFolder)) {
-          return null;
-        }
-        const files = fs.readdirSync(downloadsFolder)
-          .filter((file) => file.toLowerCase().endsWith(extension.toLowerCase()));
-        if (files.length === 0) {
-          return null;
-        }
-        files.sort((a, b) => {
-          const aTime = fs.statSync(path.join(downloadsFolder, a)).mtimeMs;
-          const bTime = fs.statSync(path.join(downloadsFolder, b)).mtimeMs;
-          return bTime - aTime;
-        });
-        return path.join(downloadsFolder, files[0]);
-      };
-
       on('task', {
-        // 1. Task Membersihkan Folder downloads
         deleteDownloads() {
+          const downloadsFolder = path.join(__dirname, 'cypress', 'downloads');
           if (fs.existsSync(downloadsFolder)) {
             const files = fs.readdirSync(downloadsFolder);
             for (const file of files) {
@@ -56,25 +34,27 @@ module.exports = defineConfig({
           }
           return null;
         },
-
-        // 2. Task Membaca File Excel .xlsx
         readExcel({ filePath }) {
-          const resolvedPath = resolveDownloadPath(filePath);
-          if (!fs.existsSync(resolvedPath)) {
+          if (!fs.existsSync(filePath)) {
             return null;
           }
-          const workbook = XLSX.readFile(resolvedPath);
+          const workbook = XLSX.readFile(filePath);
           const sheetName = workbook.SheetNames[0];
           const sheet = workbook.Sheets[sheetName];
           return XLSX.utils.sheet_to_json(sheet);
         },
-
-        // 3. Task Mencari file terbaru di folder downloads
-        findDownloadedFile({ extension = '.xlsx' } = {}) {
-          return findLatestDownloadedFile({ extension });
+        // Find the most recently downloaded file with the given extension (default: .xlsx)
+        findDownloadedFile({ ext = '.xlsx' } = {}) {
+          const downloadsFolder = path.join(__dirname, 'cypress', 'downloads');
+          if (!fs.existsSync(downloadsFolder)) return null;
+          const files = fs.readdirSync(downloadsFolder).filter((f) => fs.statSync(path.join(downloadsFolder, f)).isFile() && f.endsWith(ext));
+          if (!files.length) return null;
+          files.sort((a, b) => fs.statSync(path.join(downloadsFolder, b)).mtimeMs - fs.statSync(path.join(downloadsFolder, a)).mtimeMs);
+          return path.join(downloadsFolder, files[0]);
         }
       });
     },
+
   },
 
   component: {
