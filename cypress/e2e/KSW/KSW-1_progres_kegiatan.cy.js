@@ -95,8 +95,26 @@ describe('MODUL KESISWAAN - KSW-1 Progres Kegiatan (KSW-1.01 s/d KSW-1.98)', () 
   }); cy.get('[role="dialog"]').should("be.visible");
   });
 
-  it('KSW-1.14: Upload file dengan format/struktur data yang tidak sesuai template', () => {
-    cy.contains("button", "Import Progres").click({ force: true }); cy.get('[role="dialog"]').should("be.visible");
+  it("KSW-1.14: Upload file dengan format/struktur data yang tidak sesuai template", () => {
+    cy.contains("button", "Import Progres").should("be.visible").click({ force: true });
+    cy.wait(1000);
+    cy.get("[role=\"dialog\"]").should("be.visible");
+    cy.get("[role=\"dialog\"] button[data-slot=\"select-trigger\"]").first().click({ force: true });
+    cy.wait(600);
+    cy.get("[role=\"option\"], [data-slot=\"select-item\"]").contains("Academy QA Engineer").click({ force: true });
+    cy.wait(800);
+    cy.get("[role=\"dialog\"] input[name=\"name\"]").clear().type("Pentas Seni Invalid Format Test");
+    cy.get("[role=\"dialog\"] input[type=\"file\"]").selectFile("cypress/fixtures/document.pdf", { force: true });
+    cy.wait(800);
+    cy.contains("[role=\"dialog\"] button", "Simpan").click({ force: true });
+    cy.wait(1000);
+
+    cy.get("[role=\"dialog\"]").should("be.visible");
+    cy.get("[role=\"dialog\"]").then(($dialog) => {
+      const hasError = $dialog.find(".text-destructive, [role=\"alert\"], [data-slot=\"form-message\"]").length > 0;
+      expect(hasError, "Pesan error upload tidak sesuai harus tampil").to.be.true;
+    });
+  }); cy.get('[role="dialog"]').should("be.visible");
   });
 
   it.skip('KSW-1.15: Isi semua field required + upload template valid, klik Simpan', () => {
@@ -111,28 +129,118 @@ describe('MODUL KESISWAAN - KSW-1 Progres Kegiatan (KSW-1.01 s/d KSW-1.98)', () 
     cy.contains("button", "Tambah Progres Kegiatan").click({ force: true }); cy.get('[role="dialog"]').should("be.visible");
   });
 
-  it('KSW-1.18: Cek field pada form Tambah Progres Kegiatan', () => {
-    cy.contains("button", "Tambah Progres Kegiatan").click({ force: true }); cy.get('[role="dialog"]').should("be.visible");
+  it("KSW-1.18: Cek field pada form Tambah Progres Kegiatan", () => {
+    cy.contains("button", "Tambah Progres Kegiatan").should("be.visible").click({ force: true });
+    cy.wait(1000);
+
+    cy.get("[role=\"dialog\"]").should("be.visible");
+    cy.get("[role=\"dialog\"] [data-slot=\"dialog-title\"]").should("contain.text", "Tambah Progres Kegiatan");
+
+    cy.get("[role=\"dialog\"]").within(() => {
+      cy.contains("label", "Instansi").should("be.visible");
+      cy.get("button[data-slot=\"select-trigger\"]").should("be.visible");
+
+      cy.contains("label", "Anggota").should("be.visible");
+      cy.get("input[placeholder=\"Masukan Nomor Kartu atau Nama\"]").should("exist").and("be.disabled");
+      cy.contains("p", "Silakan pilih instansi terlebih dahulu").should("be.visible");
+
+      cy.contains("label", "Nama Progres Kegiatan").should("be.visible");
+      cy.get("input[name=\"name\"]").should("be.visible");
+
+      cy.contains("label", /deskripsi/i).should("be.visible");
+      cy.get("textarea[name=\"description\"]").should("be.visible");
+
+      cy.contains("button", "Batal").should("be.visible");
+      cy.contains("button", "Simpan").should("be.visible");
+    });
+  }); cy.get('[role="dialog"]').should("be.visible");
   });
 
-  it('KSW-1.19: Pada field Anggota, ketik nomor kartu atau nama anggota', () => {
-    cy.contains("button", "Tambah Progres Kegiatan").click({ force: true }); cy.get('[role="dialog"]').should("be.visible");
+  it("KSW-1.19: Pada field Anggota, ketik nomor kartu atau nama anggota", () => {
+    cy.contains("button", "Tambah Progres Kegiatan").should("be.visible").click({ force: true });
+    cy.wait(1000);
+    cy.get("[role=\"dialog\"]").should("be.visible");
+    cy.get("[role=\"dialog\"] button[data-slot=\"select-trigger\"]").first().click({ force: true });
+    cy.wait(600);
+    cy.get("[role=\"option\"], [data-slot=\"select-item\"]").contains("Academy QA Engineer").click({ force: true });
+    cy.wait(800);
+    cy.get("[role=\"dialog\"] input[placeholder=\"Masukan Nomor Kartu atau Nama\"]").should("not.be.disabled").click({ force: true }).clear().type("Rocky Gibraltar");
+    cy.wait(1200);
+
+    cy.get("div.absolute.z-50 button", { timeout: 10000 }).first().should("be.visible").within(() => {
+      cy.contains("Rocky Gibraltar").should("be.visible");
+      cy.contains("1002992462475639").should("be.visible");
+      cy.contains("Siswa").should("be.visible");
+    });
+  }); cy.get('[role="dialog"]').should("be.visible");
   });
 
-  it('KSW-1.20: Cek data yang muncul pada suggestion field Anggota', () => {
-    cy.contains("button", "Tambah Progres Kegiatan").click({ force: true }); cy.get('[role="dialog"]').should("be.visible");
+  it("KSW-1.20: Cek data yang muncul pada suggestion field Anggota", () => {
+    cy.contains("button", "Tambah Progres Kegiatan").should("be.visible").click({ force: true });
+    cy.wait(1000);
+    cy.get("[role=\"dialog\"]").should("be.visible");
+    cy.get("[role=\"dialog\"] button[data-slot=\"select-trigger\"]").first().click({ force: true });
+    cy.wait(600);
+    cy.get("[role=\"option\"], [data-slot=\"select-item\"]").contains("Academy QA Engineer").click({ force: true });
+    cy.wait(800);
+    cy.get("[role=\"dialog\"] input[placeholder=\"Masukan Nomor Kartu atau Nama\"]").should("not.be.disabled").click({ force: true }).clear().type("Rocky Gibraltar");
+    cy.wait(1200);
+
+    cy.get("div.absolute.z-50 button", { timeout: 10000 }).first().within(() => {
+      cy.contains("Siswa").should("be.visible");
+      cy.contains("Guru").should("not.exist");
+    });
+  }); cy.get('[role="dialog"]').should("be.visible");
   });
 
-  it('KSW-1.21: Klik salah satu list suggestion pada field Anggota', () => {
-    cy.contains("button", "Tambah Progres Kegiatan").click({ force: true }); cy.get('[role="dialog"]').should("be.visible");
+  it("KSW-1.21: Klik salah satu list suggestion pada field Anggota", () => {
+    cy.contains("button", "Tambah Progres Kegiatan").should("be.visible").click({ force: true });
+    cy.wait(1000);
+    cy.get("[role=\"dialog\"]").should("be.visible");
+    cy.get("[role=\"dialog\"] button[data-slot=\"select-trigger\"]").first().click({ force: true });
+    cy.wait(600);
+    cy.get("[role=\"option\"], [data-slot=\"select-item\"]").contains("Academy QA Engineer").click({ force: true });
+    cy.wait(800);
+    cy.get("[role=\"dialog\"] input[placeholder=\"Masukan Nomor Kartu atau Nama\"]").should("not.be.disabled").click({ force: true }).clear().type("Rocky Gibraltar");
+    cy.wait(1200);
+    cy.get("div.absolute.z-50 button", { timeout: 10000 }).first().should("be.visible").click({ force: true });
+    cy.wait(800);
+
+    cy.get("[role=\"dialog\"]").within(() => {
+      cy.contains("p", "Rocky Gibraltar").should("be.visible");
+      cy.contains("1002992462475639").should("be.visible");
+    });
+  }); cy.get('[role="dialog"]').should("be.visible");
   });
 
   it.skip('KSW-1.22: Isi semua field required, klik Simpan', () => {
     ProgressActivityPage.createNewProgressActivity("Academy QA Engineer", "Rocky Gibraltar", "Pentas Seni Utama", "Deskripsi Utama");
   });
 
-  it('KSW-1.23: Kosongkan salah satu field required, klik Simpan', () => {
-    cy.contains("button", "Tambah Progres Kegiatan").click({ force: true }); cy.contains('[role="dialog"] button[type="submit"]', "Simpan").click({ force: true });
+  it("KSW-1.23: Kosongkan salah satu field required, klik Simpan", () => {
+    cy.contains("button", "Tambah Progres Kegiatan").should("be.visible").click({ force: true });
+    cy.wait(1000);
+    cy.get("[role=\"dialog\"]").should("be.visible");
+
+    cy.get("[role=\"dialog\"] button[data-slot=\"select-trigger\"]").first().click({ force: true });
+    cy.wait(600);
+    cy.get("[role=\"option\"], [data-slot=\"select-item\"]").contains("Academy QA Engineer").click({ force: true });
+    cy.wait(800);
+
+    cy.get("[role=\"dialog\"] input[placeholder=\"Masukan Nomor Kartu atau Nama\"]").click({ force: true }).clear().type("Rocky Gibraltar");
+    cy.wait(1200);
+    cy.get("div.absolute.z-50 button").first().click({ force: true });
+    cy.wait(800);
+
+    cy.get("[role=\"dialog\"] input[name=\"name\"]").clear();
+    cy.contains("[role=\"dialog\"] button", "Simpan").click({ force: true });
+    cy.wait(800);
+
+    cy.get("[role=\"dialog\"]").should("be.visible");
+    cy.get("[role=\"dialog\"]").within(() => {
+      cy.get(".text-destructive, [data-slot=\"form-message\"], [data-invalid=\"true\"]").should("exist");
+    });
+  }); cy.contains('[role="dialog"] button[type="submit"]', "Simpan").click({ force: true });
   });
 
   it('KSW-1.24: Klik tombol Batal pada form Tambah Progres Kegiatan', () => {
@@ -143,12 +251,39 @@ describe('MODUL KESISWAAN - KSW-1 Progres Kegiatan (KSW-1.01 s/d KSW-1.98)', () 
     cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true }); cy.url().should("include", "/student-affairs/progress/");
   });
 
-  it('KSW-1.26: Cek section Data Siswa pada halaman Detail', () => {
-    cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
+  it("KSW-1.26: Cek section Data Siswa pada halaman Detail", () => {
+    cy.get("tbody td a[href*=\"/student-affairs/progress/\"]").first().click({ force: true });
+    cy.wait(1500);
+
+    cy.url().should("include", "/student-affairs/progress/");
+    cy.contains("h1", "Detail Progres Kegiatan").should("be.visible");
+
+    cy.get("[data-slot=\"card-content\"]").first().within(() => {
+      cy.get("h2.text-xl.font-bold").should("be.visible");
+      cy.get("p.text-sm.text-muted-foreground").should("be.visible");
+      cy.get("span[data-slot=\"badge\"]").should("be.visible");
+    });
+  });
   });
 
-  it('KSW-1.27: Cek section Grafik pada halaman Detail', () => {
-    cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
+  it("KSW-1.27: Cek section Grafik pada halaman Detail", () => {
+    cy.get("tbody td a[href*=\"/student-affairs/progress/\"]").first().click({ force: true });
+    cy.wait(1500);
+
+    cy.contains("[data-slot=\"card-title\"]", "Grafik Progres Kegiatan").should("be.visible");
+    cy.get(".recharts-responsive-container svg.recharts-surface").should("be.visible");
+
+    cy.get(".recharts-xAxis").should("exist").within(() => {
+      cy.get(".recharts-cartesian-axis-tick-value").should("exist");
+    });
+
+    cy.get(".recharts-yAxis").should("exist").within(() => {
+      cy.contains("0").should("exist");
+      cy.contains("100").should("exist");
+    });
+
+    cy.contains(".recharts-legend-item-text", "Diurutkan Berdasarkan Tanggal").should("be.visible");
+  });
   });
 
   it('KSW-1.28: Cek kolom pada tabel List Riwayat Progres Kegiatan', () => {
@@ -171,48 +306,149 @@ describe('MODUL KESISWAAN - KSW-1 Progres Kegiatan (KSW-1.01 s/d KSW-1.98)', () 
     cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
   });
 
-  it('KSW-1.33: Cek field pada form Tambah Riwayat Progres', () => {
-    cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
+  it("KSW-1.33: Cek field pada form Tambah Riwayat", () => {
+    cy.get("tbody td a[href*=\"/student-affairs/progress/\"]").first().click({ force: true });
+    cy.wait(1500);
+    cy.contains("button", "Tambah Riwayat").should("be.visible").click({ force: true });
+    cy.wait(1000);
+    cy.get("[role=\"dialog\"]").should("be.visible").within(() => {
+      cy.contains("label", "Tanggal").should("be.visible");
+      cy.get("button:contains(\"DD/MM/YYYY\")").should("be.visible");
+      cy.contains("label", /persentase/i).should("be.visible");
+      cy.get("input[name=\"percentage\"]").should("be.visible");
+      cy.contains("label", "Deskripsi").should("be.visible");
+      cy.get("textarea[name=\"description\"]").should("be.visible");
+      cy.contains("label", /lampiran/i).should("be.visible");
+      cy.get("input[type=\"file\"]").should("exist");
+      cy.contains("button", "Batal").should("be.visible");
+      cy.contains("button", "Simpan").should("be.visible");
+    });
+  });
   });
 
   it('KSW-1.34: Kosongkan salah satu field required, klik Simpan', () => {
     cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
   });
 
-  it('KSW-1.35: Isi Tanggal Kegiatan dengan tanggal setelah hari ini (future date)', () => {
-    cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
+  it("KSW-1.35: Isi Tanggal Kegiatan dengan tanggal setelah hari ini (future date)", () => {
+    cy.get("tbody td a[href*=\"/student-affairs/progress/\"]").first().click({ force: true });
+    cy.wait(1500);
+    cy.contains("button", "Tambah Riwayat").should("be.visible").click({ force: true });
+    cy.wait(1000);
+
+    cy.get("[role=\"dialog\"] button:contains(\"DD/MM/YYYY\")").click({ force: true });
+    cy.wait(600);
+    cy.get("button[aria-label=\"Go to the Next Month\"]").click({ force: true });
+    cy.wait(600);
+    cy.get("td[data-day] button").last().click({ force: true });
+    cy.wait(600);
+
+    cy.get("[role=\"dialog\"] input[name=\"percentage\"]").clear({ force: true }).type("50", { force: true });
+    cy.get("[role=\"dialog\"] textarea[name=\"description\"]").clear({ force: true }).type("Uji Future Date Validation", { force: true });
+
+    cy.contains("[role=\"dialog\"] button", "Simpan").click({ force: true });
+    cy.wait(1000);
+
+    cy.get("[role=\"dialog\"]").should("be.visible").within(() => {
+      cy.get(".text-destructive, [data-slot=\"form-message\"]").should("exist");
+    });
+  });
   });
 
-  it('KSW-1.36: Isi Presentase Pencapaian dengan angka bulat 1-100 (mis. 75)', () => {
-    cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
+  it("KSW-1.36: Isi Presentase Pencapaian dengan angka bulat 1-100 (mis. 75)", () => {
+    cy.get("tbody td a[href*=\"/student-affairs/progress/\"]").first().click({ force: true });
+    cy.wait(1500);
+    cy.contains("button", "Tambah Riwayat").should("be.visible").click({ force: true });
+    cy.wait(1000);
+    cy.get("[role=\"dialog\"] input[name=\"percentage\"]").clear({ force: true }).type("75", { force: true }).should("have.value", "75");
+    cy.get("[role=\"dialog\"] input[name=\"percentage\"]").should("have.attr", "aria-invalid", "false");
+  });
   });
 
-  it('KSW-1.37: Isi Presentase Pencapaian dengan angka desimal 1.5-95.5 (mis. 87.5)', () => {
-    cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
+  it("KSW-1.37: Isi Presentase Pencapaian dengan angka desimal 1.5-95.5 (mis. 87.5)", () => {
+    cy.get("tbody td a[href*=\"/student-affairs/progress/\"]").first().click({ force: true });
+    cy.wait(1500);
+    cy.contains("button", "Tambah Riwayat").should("be.visible").click({ force: true });
+    cy.wait(1000);
+    cy.get("[role=\"dialog\"] input[name=\"percentage\"]").clear({ force: true }).type("87.5", { force: true }).should("have.value", "87.5");
+    cy.get("[role=\"dialog\"] input[name=\"percentage\"]").should("have.attr", "aria-invalid", "false");
+  });
   });
 
-  it('KSW-1.38: Upload lampiran dengan format selain JPG/JPEG/PNG/MP4/PDF', () => {
-    cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
+  it("KSW-1.38: Upload lampiran dengan format selain JPG/JPEG/PNG/MP4/PDF", () => {
+    cy.get("tbody td a[href*=\"/student-affairs/progress/\"]").first().click({ force: true });
+    cy.wait(1500);
+    cy.contains("button", "Tambah Riwayat").should("be.visible").click({ force: true });
+    cy.wait(1000);
+    cy.get("[role=\"dialog\"] input[type=\"file\"]").selectFile("cypress/fixtures/progressActivityData.json", { force: true });
+    cy.wait(800);
+    cy.get("[role=\"dialog\"]").should("be.visible").within(() => {
+      cy.get(".text-destructive, [data-slot=\"form-message\"]").should("exist");
+    });
+  });
   });
 
-  it('KSW-1.39: Upload lampiran dengan ukuran > 10MB', () => {
-    cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
+  it("KSW-1.39: Upload lampiran dengan ukuran > 10MB", () => {
+    cy.get("tbody td a[href*=\"/student-affairs/progress/\"]").first().click({ force: true });
+    cy.wait(1500);
+    cy.contains("button", "Tambah Riwayat").should("be.visible").click({ force: true });
+    cy.wait(1000);
+    cy.get("[role=\"dialog\"] input[type=\"file\"]").selectFile("cypress/fixtures/large_signature.png", { force: true });
+    cy.wait(800);
+    cy.get("[role=\"dialog\"]").should("be.visible").within(() => {
+      cy.get(".text-destructive, [data-slot=\"form-message\"]").should("exist");
+    });
+  });
   });
 
-  it('KSW-1.40: Upload lampiran valid (JPG/JPEG/PNG/MP4/PDF, ≤ 10MB)', () => {
-    cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
+  it("KSW-1.40: Upload lampiran valid (JPG/JPEG/PNG/MP4/PDF, <= 10MB)", () => {
+    cy.get("tbody td a[href*=\"/student-affairs/progress/\"]").first().click({ force: true });
+    cy.wait(1500);
+    cy.contains("button", "Tambah Riwayat").should("be.visible").click({ force: true });
+    cy.wait(1000);
+    cy.get("[role=\"dialog\"] input[type=\"file\"]").selectFile("cypress/fixtures/document.pdf", { force: true });
+    cy.wait(800);
+    cy.get("[role=\"dialog\"]").should("be.visible").within(() => {
+      cy.get(".text-destructive").should("not.exist");
+      cy.contains("document.pdf").should("be.visible");
+    });
+  });
   });
 
-  it('KSW-1.41: Setelah upload valid, klik ikon Hapus pada lampiran sebelum Simpan', () => {
-    cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
+  it("KSW-1.41: Setelah upload valid, klik ikon Hapus pada lampiran sebelum Simpan", () => {
+    cy.get("tbody td a[href*=\"/student-affairs/progress/\"]").first().click({ force: true });
+    cy.wait(1500);
+    cy.contains("button", "Tambah Riwayat").should("be.visible").click({ force: true });
+    cy.wait(1000);
+
+    cy.get("[role=\"dialog\"] input[type=\"file\"]").selectFile("cypress/fixtures/signature.jpeg", { force: true });
+    cy.wait(1000);
+    cy.get("[role=\"dialog\"] img[src^=\"blob:\"], [role=\"dialog\"] img[alt*=\"signature\"]").should("be.visible");
+
+    cy.get("[role=\"dialog\"]").within(() => {
+      cy.get("button:has(svg.lucide-trash), button:has(svg.lucide-x)").first().click({ force: true });
+    });
+    cy.wait(800);
+
+    cy.get("[role=\"dialog\"] img[src^=\"blob:\"]").should("not.exist");
+    cy.get("[role=\"dialog\"] input[type=\"file\"]").should("exist");
+  });
   });
 
   it.skip('KSW-1.42: Isi semua field required + lampiran valid, klik Simpan', () => {
     cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
   });
 
-  it('KSW-1.43: Pada baris List Riwayat, klik Aksi → Edit', () => {
-    cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
+  it("KSW-1.43: Pada baris List Riwayat, klik Aksi -> Edit", () => {
+    cy.get("tbody td a[href*=\"/student-affairs/progress/\"]").first().click({ force: true });
+    cy.wait(1500);
+
+    cy.get("tbody tr td svg.lucide-square-pen", { timeout: 15000 }).first().closest("button").should("be.visible").click({ force: true });
+    cy.wait(1000);
+
+    cy.get("[role=\"dialog\"]").should("be.visible");
+    cy.get("[role=\"dialog\"] [data-slot=\"dialog-title\"]").should("contain.text", "Edit");
+  });
   });
 
   it.skip('KSW-1.44: Ubah salah satu field, klik Simpan', () => {
@@ -227,20 +463,58 @@ describe('MODUL KESISWAAN - KSW-1 Progres Kegiatan (KSW-1.01 s/d KSW-1.98)', () 
     cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
   });
 
-  it('KSW-1.47: Pada baris List Riwayat, klik Aksi → Hapus', () => {
-    cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
+  it("KSW-1.47: Pada baris List Riwayat, klik Aksi -> Hapus", () => {
+    cy.get("tbody td a[href*=\"/student-affairs/progress/\"]").first().click({ force: true });
+    cy.wait(1500);
+
+    cy.get("tbody tr", { timeout: 15000 }).should("have.length.at.least", 1);
+    cy.get("tbody tr").first().find("svg.lucide-trash").closest("button").click({ force: true });
+    cy.wait(1000);
+
+    cy.get("[role=\"dialog\"]").should("be.visible").within(() => {
+      cy.contains("button", "Batal").should("be.visible");
+      cy.get("button").filter(':contains("Hapus"), :contains("Ya")').should("be.visible");
+    });
+  });
   });
 
   it.skip('KSW-1.48: Pada popup delete confirmation, klik tombol Hapus', () => {
     cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
   });
 
-  it('KSW-1.49: Pada popup delete confirmation, klik tombol Batal', () => {
-    cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
+  it("KSW-1.49: Pada popup delete confirmation, klik tombol Batal", () => {
+    cy.get("tbody td a[href*=\"/student-affairs/progress/\"]").first().click({ force: true });
+    cy.wait(1500);
+
+    cy.get("tbody tr", { timeout: 15000 }).should("have.length.at.least", 1).then(($rows) => {
+      const initialCount = $rows.length;
+
+      cy.get("tbody tr").first().find("svg.lucide-trash").closest("button").click({ force: true });
+      cy.wait(1000);
+
+      cy.get("[role=\"dialog\"]", { timeout: 15000 }).should("be.visible").within(() => {
+        cy.contains("button", "Batal").click({ force: true });
+      });
+      cy.wait(800);
+
+      cy.get("[role=\"dialog\"]").should("not.exist");
+      cy.get("tbody tr").should("have.length", initialCount);
+    });
+  });
   });
 
-  it('KSW-1.50: Centang checkbox pada satu baris data Riwayat', () => {
-    cy.get('tbody td a[href*="/student-affairs/progress/"]').first().click({ force: true });
+  it("KSW-1.50: Centang checkbox pada satu baris data Riwayat", () => {
+    cy.get("tbody td a[href*=\"/student-affairs/progress/\"]").first().click({ force: true });
+    cy.wait(1500);
+
+    cy.get("tbody tr", { timeout: 15000 }).should("have.length.at.least", 1);
+    cy.get("tbody tr").first().find("button[role=\"checkbox\"]").click({ force: true });
+    cy.wait(800);
+
+    cy.get("tbody tr").first().find("button[role=\"checkbox\"]").should("have.attr", "data-state", "checked");
+    cy.contains("riwayat progres dipilih").should("be.visible");
+    cy.contains("button", "Hapus yang dipilih").should("be.visible");
+  });
   });
 
   it('KSW-1.51: Centang checkbox pada header tabel', () => {

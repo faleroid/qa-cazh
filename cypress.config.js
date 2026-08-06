@@ -1,7 +1,6 @@
 const { defineConfig } = require("cypress");
 const fs = require("fs");
 const path = require("path");
-const XLSX = require("xlsx");
 
 module.exports = defineConfig({
   projectId: 'czwj6u',
@@ -16,14 +15,14 @@ module.exports = defineConfig({
   videosFolder: "cypress/videos",
   screenshotOnRunFailure: true,
   screenshotsFolder: "cypress/screenshots",
-
+  experimentalStudio: true,
 
   e2e: {
     baseUrl: "https://v3.cazh.id",
-    // Use a relative path for the support file so Cypress can locate it reliably
-    supportFile: 'cypress/support/e2e.js',
+    supportFile: path.join(__dirname, "cypress/support/e2e.js"),
     setupNodeEvents(on, config) {
       on('task', {
+        // 1. Task Membersihkan Folder downloads
         deleteDownloads() {
           const downloadsFolder = path.join(__dirname, 'cypress', 'downloads');
           if (fs.existsSync(downloadsFolder)) {
@@ -34,27 +33,46 @@ module.exports = defineConfig({
           }
           return null;
         },
-        readExcel({ filePath }) {
-          if (!fs.existsSync(filePath)) {
+
+        // 2. Task Mencari File Hasil Download Terbaru
+        findDownloadedFile(params = {}) {
+          const downloadsFolder = params.folderPath || path.join(__dirname, 'cypress', 'downloads');
+          const ext = params.fileExtension || 'xlsx';
+          if (!fs.existsSync(downloadsFolder)) {
             return null;
           }
-          const workbook = XLSX.readFile(filePath);
-          const sheetName = workbook.SheetNames[0];
-          const sheet = workbook.Sheets[sheetName];
-          return XLSX.utils.sheet_to_json(sheet);
+          const files = fs.readdirSync(downloadsFolder);
+          const matchingFiles = files.filter(f => f.toLowerCase().includes(ext.toLowerCase()));
+          if (matchingFiles.length === 0) {
+            return null;
+          }
+          // Sort berdasarkan waktu dibuat/modifikasi terbaru
+          matchingFiles.sort((a, b) => {
+            const statA = fs.statSync(path.join(downloadsFolder, a));
+            const statB = fs.statSync(path.join(downloadsFolder, b));
+            return statB.mtimeMs - statA.mtimeMs;
+          });
+          return path.join(downloadsFolder, matchingFiles[0]);
         },
-        // Find the most recently downloaded file with the given extension (default: .xlsx)
-        findDownloadedFile({ ext = '.xlsx' } = {}) {
-          const downloadsFolder = path.join(__dirname, 'cypress', 'downloads');
-          if (!fs.existsSync(downloadsFolder)) return null;
-          const files = fs.readdirSync(downloadsFolder).filter((f) => fs.statSync(path.join(downloadsFolder, f)).isFile() && f.endsWith(ext));
-          if (!files.length) return null;
-          files.sort((a, b) => fs.statSync(path.join(downloadsFolder, b)).mtimeMs - fs.statSync(path.join(downloadsFolder, a)).mtimeMs);
-          return path.join(downloadsFolder, files[0]);
+
+        // 3. Task Membaca File Excel .xlsx
+        readExcel({ filePath }) {
+          if (!filePath || !fs.existsSync(filePath)) {
+            return null;
+          }
+          try {
+            const XLSX = require("xlsx");
+            const workbook = XLSX.readFile(filePath);
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            return XLSX.utils.sheet_to_json(sheet);
+          } catch (err) {
+            console.error("XLSX library error:", err.message);
+            return null;
+          }
         }
       });
     },
-
   },
 
   component: {
