@@ -1,0 +1,18 @@
+{
+  "urls": {
+    "studentPage": "https://v3.cazh.id/member/student"
+  },
+  "search": {
+    "validKeyword": "Pentas Seni",
+    "descKeyword": "Kegiatan Seni dan Budaya",
+    "invalidKeyword": "KeywordRandom99999"
+  },
+  "newActivity": {
+    "name": "Pentas Seni Tahunan",
+    "description": "Kegiatan pentas seni dan budaya tahunan siswa"
+  },
+  "editActivity": {
+    "name": "Pentas Seni & Musik",
+    "description": "Perubahan deskripsi kegiatan pentas seni dan musik"
+  }
+}
