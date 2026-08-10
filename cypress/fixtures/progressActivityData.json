@@ -1,0 +1,10 @@
+{
+  "urls": {
+    "progressActivityPage": "https://v3.cazh.id/student-affairs/progress"
+  },
+  "selectors": {
+    "pageTitle": "h1:contains('Progres Kegiatan')",
+    "table": "table[data-slot='data-grid-table']",
+    "searchInput": "input[placeholder='Cari']"
+  }
+}

@@ -2,5 +2,13 @@
 import './commands'
 
 beforeEach(() => {
-    cy.login();
+  cy.login();
+});
+
+// Import commands.js using ES2015 syntax:
+import './commands'
+
+// Ignore uncaught exceptions from third-party scripts or app runtime errors
+Cypress.on('uncaught:exception', (err, runnable) => {
+  return false;
 });

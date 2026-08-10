@@ -1,12 +1,15 @@
 {
-  "name": "cazh-test-cy",
+  "name": "qa-cazh",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
-  "license": "MIT",
   "scripts": {
-    "start": "cypress open"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [],
+  "type": "commonjs",
   "devDependencies": {
-    "cypress": "^15.18.1"
+    "cypress": "^15.20.0",
+    "xlsx": "^0.18.5"
   }
 }

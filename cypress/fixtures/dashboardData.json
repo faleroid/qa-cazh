@@ -1,0 +1,80 @@
+{
+  "urls": {
+    "dashboardPage": "https://v3.cazh.id/dashboard",
+    "paymentReportPage": "/administration/billing/payment-report",
+    "institutionDetailPage": "/setting/institution",
+    "changePinPage": "/profile?tab=pin"
+  },
+  "credentials": {
+    "weakPinAccount": {
+      "email": "cazhv3@pgl.my.id",
+      "password": "346z1pb5"
+    }
+  },
+  "metricCards": [
+    "Saldo Tunai",
+    "Saldo Cazhbox",
+    "Tagihan Terbayar",
+    "Tagihan Aktif",
+    "Saldo Tabungan",
+    "Siswa",
+    "Guru"
+  ],
+  "metricCardsEN": [
+    "Cash Balance",
+    "Cazhbox Balance",
+    "Paid Bills",
+    "Active Bills",
+    "Savings Balance",
+    "Students",
+    "Teachers"
+  ],
+  "overdueSection": {
+    "titleID": "Tunggakan",
+    "titleEN": "Overdue Bills",
+    "descPrefixID": "Jumlah tunggakan berdasarkan tipe tagihan sampai",
+    "descPrefixEN": "Overdue bills count based on bill type until"
+  },
+  "paymentChartSection": {
+    "titleID": "Grafik Pembayaran",
+    "titleEN": "Payment Chart",
+    "descWeeklyID": "Jumlah pembayaran mingguan dari",
+    "descMonthlyID": "Jumlah pembayaran bulanan dari",
+    "descAnnualID": "Jumlah pembayaran tahunan dari"
+  },
+  "recentTransactionsSection": {
+    "titleID": "Transaksi Terakhir",
+    "titleEN": "Recent Transactions",
+    "descSuffixID": "Transaksi bulan ini",
+    "emptyDescID": "0 Transaksi bulan ini"
+  },
+  "paymentMethodsSection": {
+    "titleID": "Metode Pembayaran",
+    "titleEN": "Payment Methods",
+    "descSuffixID": "Metode pembayaran pada bulan ini",
+    "emptyDescID": "0 Metode pembayaran pada bulan ini"
+  },
+  "institutionDataSection": {
+    "titleID": "Data Lembaga",
+    "titleEN": "Institution Data",
+    "descSuffixID": "Lembaga Terdaftar"
+  },
+  "weakPinBanner": {
+    "titleID": "Perkuat Keamanan PIN Anda",
+    "titleEN": "Strengthen Your PIN Security",
+    "descID": "Tingkatkan keamanan akun Anda dengan menggunakan PIN yang lebih kuat",
+    "descEN": "Improve your account security by using a stronger PIN",
+    "ctaID": "Ganti PIN",
+    "ctaEN": "Change PIN"
+  },
+  "weakPinPopup": {
+    "titleID": "Perkuat Keamanan PIN Anda",
+    "titleEN": "Strengthen Your PIN Security",
+    "descID": "Demi keamanan akun, kami sarankan untuk mengganti PIN Anda dengan kombinasi yang lebih kuat",
+    "descEN": "For your account security, we recommend changing your PIN to a stronger combination",
+    "primaryCtaID": "Ganti PIN Sekarang",
+    "primaryCtaEN": "Change PIN Now",
+    "secondaryCtaID": "Nanti Saja",
+    "secondaryCtaEN": "Later"
+  }
+}

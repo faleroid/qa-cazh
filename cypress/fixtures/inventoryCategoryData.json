@@ -1,0 +1,32 @@
+{
+  "urls": {
+    "inventoryCategoryPage": "/setting/inventory"
+  },
+  "placeholders": {
+    "instansi": [
+      "Pilih Instansi",
+      "Select Institution"
+    ],
+    "namaKategori": [
+      "Contoh: Meja atau Kursi",
+      "Example: Table or Chair"
+    ],
+    "search": [
+      "Cari",
+      "Search"
+    ]
+  },
+  "validData": {
+    "kategoriBaru": "Peralatan Laboratorium IPA",
+    "kategoriUpdate": "Perangkat Komputer Lab"
+  },
+  "validationMessages": {
+    "instansiRequired": "Instansi wajib diisi",
+    "kategoriRequired": "Nama kategori inventaris wajib diisi"
+  },
+  "search": {
+    "validKeyword": "Komputer",
+    "invalidKeyword": "KategoriTidakAda999"
+  },
+  "emptyStateText": "Tidak ada data yang ditemukan"
+}
