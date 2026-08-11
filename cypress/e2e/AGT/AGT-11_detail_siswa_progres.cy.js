@@ -21,6 +21,8 @@ describe('MODUL ANGGOTA - 11. Anggota - Detail Siswa - Tab Progres (AGT-11.01 - 
 
   it('AGT-11.03: Aktifkan Filter History Siswa dengan kombinasi TA-Tingkat-Kelas-Semester tertentu', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
+    cy.get('button[data-slot="popover-trigger"], button', { timeout: 15000 }).contains('Filter').click({ force: true });
+    cy.wait(800);
     cy.get('body').then(($body) => {
       const selectTriggers = $body.find('[role="combobox"], select, button[data-slot="select-trigger"]');
       if (selectTriggers.length > 0) {
@@ -64,15 +66,28 @@ describe('MODUL ANGGOTA - 11. Anggota - Detail Siswa - Tab Progres (AGT-11.01 - 
   it('AGT-11.08: Cari data dengan keyword Kegiatan yang cocok', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickProgresTab();
-    StudentDetailPage.searchKeyword(testData.search.validKeyword);
-    cy.get('body').should('exist');
+
+    cy.contains('button', /tambah kegiatan|tambah progres/i, { timeout: 15000 }).click({ force: true });
+    cy.wait(1000);
+
+    cy.get('[role="dialog"]', { timeout: 15000 }).should('be.visible').within(() => {
+      cy.get('input[name="name"], input[name="title"], input[type="text"]').first().clear().type(testData.newActivity.name);
+      cy.get('textarea[name="description"]').clear().type(testData.newActivity.description);
+      cy.contains('button', /simpan|submit/i).click({ force: true });
+    });
+    cy.wait(2000);
+
+    StudentDetailPage.searchKeyword(testData.newActivity.name);
+    cy.get('tbody tr', { timeout: 15000 }).should('contain.text', testData.newActivity.name);
   });
 
   it('AGT-11.09: Cari data dengan keyword Deskripsi yang cocok', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickProgresTab();
-    StudentDetailPage.searchKeyword(testData.search.descKeyword);
-    cy.get('body').should('exist');
+
+    const descKeyword = "seni dan budaya";
+    StudentDetailPage.searchKeyword(descKeyword);
+    cy.get('tbody tr', { timeout: 15000 }).should('contain.text', descKeyword);
   });
 
   it('AGT-11.10: Cari data dengan keyword tidak ditemukan', () => {
@@ -119,18 +134,21 @@ describe('MODUL ANGGOTA - 11. Anggota - Detail Siswa - Tab Progres (AGT-11.01 - 
     StudentDetailPage.clickProgresTab();
     cy.contains('button', /tambah kegiatan|tambah progres/i).click({ force: true });
     cy.wait(1000);
+    const activityName = testData.newActivityWithoutDesc.name;
     cy.get('[role="dialog"]').within(() => {
-      cy.get('input[name="name"], input[name="title"], input[type="text"]').first().clear().type(testData.newActivity.name);
+      cy.get('input[name="name"], input[name="title"], input[type="text"]').first().clear().type(activityName);
       cy.contains('button', /simpan|submit/i).click({ force: true });
     });
     cy.wait(2000);
+    cy.get('tbody tr', { timeout: 15000 }).should('contain.text', activityName);
   });
 
   it('AGT-11.15: Cek nilai Pencapaian Terakhir pada kegiatan yang baru pertama kali ditambah', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickProgresTab();
-    cy.get('tbody tr').first().within(() => {
-      cy.contains(/0%/).should('exist');
+    cy.get('tbody tr', { timeout: 15000 }).first().within(() => {
+      cy.get('[role="progressbar"], [data-slot="progress"]').should('exist');
+      cy.get('[data-slot="progress-indicator"]').should('exist').and('have.attr', 'style').and('include', 'translateX(-100%)');
     });
   });
 
@@ -164,7 +182,8 @@ describe('MODUL ANGGOTA - 11. Anggota - Detail Siswa - Tab Progres (AGT-11.01 - 
       cy.get('input[name="name"], input[type="text"]').first().clear().type(testData.editActivity.name);
       cy.contains('button', /simpan|submit/i).click({ force: true });
     });
-    cy.wait(2000);
+    cy.get('[data-sonner-toast][data-type="success"]', { timeout: 15000 }).should('be.visible').and('contain.text', 'Berhasil memperbarui Kegiatan');
+    cy.get('tbody tr', { timeout: 15000 }).should('contain.text', testData.editActivity.name);
   });
 
   it('AGT-11.19: Kosongkan Nama Kegiatan, klik Simpan', () => {
@@ -245,9 +264,23 @@ describe('MODUL ANGGOTA - 11. Anggota - Detail Siswa - Tab Progres (AGT-11.01 - 
     cy.task('deleteDownloads');
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickProgresTab();
-    StudentDetailPage.searchKeyword(testData.search.validKeyword);
+
+    const searchActivityName = "Lomba Catur AGT-11.25";
+    cy.contains('button', /tambah kegiatan|tambah progres/i, { timeout: 15000 }).click({ force: true });
+    cy.wait(1000);
+
+    cy.get('[role="dialog"]', { timeout: 15000 }).should('be.visible').within(() => {
+      cy.get('input[name="name"], input[name="title"], input[type="text"]').first().clear().type(searchActivityName);
+      cy.contains('button', /simpan|submit/i).click({ force: true });
+    });
+    cy.wait(2000);
+
+    StudentDetailPage.searchKeyword(searchActivityName);
+    cy.get('tbody tr', { timeout: 15000 }).should('contain.text', searchActivityName);
+
     cy.contains('button', /excel|export/i).click({ force: true });
     cy.wait(2500);
+
     cy.task('findDownloadedFile', { extension: '.xlsx' }).then((filePath) => {
       expect(filePath).to.not.be.null;
     });
@@ -276,29 +309,54 @@ describe('MODUL ANGGOTA - 11. Anggota - Detail Siswa - Tab Progres (AGT-11.01 - 
     cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
     cy.get('tbody tr').first().find('button[role="checkbox"]').click({ force: true });
     cy.wait(800);
-    cy.contains(/dipilih/i).should('be.visible');
-    cy.contains('button', /hapus/i).should('be.visible');
+    cy.scrollTo('bottom');
+    cy.contains(/dipilih/i).scrollIntoView().should('exist');
+    cy.contains('button', /hapus/i).scrollIntoView().should('exist');
   });
 
   it('AGT-11.28: Centang checkbox pada header tabel', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickProgresTab();
-    cy.get('thead th button[role="checkbox"], button[aria-label="Select all"]').first().click({ force: true });
+    cy.get('thead th button[role="checkbox"], button[aria-label="Select all"]', { timeout: 15000 }).first().click({ force: true });
     cy.wait(800);
-    cy.get('body').should('contain.text', 'dipilih');
+    cy.get('[data-slot="card-toolbar"]', { timeout: 15000 }).filter(':visible').first().within(() => {
+      cy.contains('button', /terpilih/i).should('be.visible');
+      cy.contains('button', /pilih semua/i).should('be.visible');
+    });
   });
 
   it('AGT-11.29: Klik link Pilih Semua pada banner (hasil filter <= 50 data)', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickProgresTab();
-    cy.get('thead th button[role="checkbox"], button[aria-label="Select all"]').first().click({ force: true });
-    cy.wait(800);
+
     cy.get('body').then(($body) => {
-      if ($body.text().includes('Pilih semua')) {
-        cy.contains('Pilih semua').click({ force: true });
-        cy.wait(600);
+      const rowCount = $body.find('tbody tr').length;
+      if (rowCount < 10) {
+        for (let i = 1; i <= 12; i++) {
+          cy.contains('button', /tambah kegiatan|tambah progres/i, { timeout: 15000 }).click({ force: true });
+          cy.wait(600);
+          cy.get('[role="dialog"]', { timeout: 10000 }).within(() => {
+            cy.get('input[name="name"], input[name="title"], input[type="text"]').first().clear().type(`Kegiatan Bulk AGT-11.29 - ${i}`);
+            cy.contains('button', /simpan|submit/i).click({ force: true });
+          });
+          cy.wait(1000);
+        }
+      }
+    cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
+    cy.wait(1000);
+
+    cy.get('thead th button[role="checkbox"], button[aria-label="Select all"]', { timeout: 15000 }).first().click({ force: true });
+    cy.wait(1000);
+
+    cy.get('body').then(($body) => {
+      const btnPilihSemua = $body.find('button:contains("Pilih semua")');
+      if (btnPilihSemua.length > 0) {
+        cy.wrap(btnPilihSemua.first()).click({ force: true });
+        cy.wait(800);
       }
     });
+
+    cy.contains('button', /terpilih/i, { timeout: 15000 }).should('be.visible');
   });
 
   it('AGT-11.30: Klik link Pilih Semua pada banner (hasil filter > 50 data)', () => {

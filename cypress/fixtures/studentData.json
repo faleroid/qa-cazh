@@ -11,6 +11,9 @@
     "name": "Pentas Seni Tahunan",
     "description": "Kegiatan pentas seni dan budaya tahunan siswa"
   },
+  "newActivityWithoutDesc": {
+    "name": "Kegiatan Pramuka Mandiri"
+  },
   "editActivity": {
     "name": "Pentas Seni & Musik",
     "description": "Perubahan deskripsi kegiatan pentas seni dan musik"

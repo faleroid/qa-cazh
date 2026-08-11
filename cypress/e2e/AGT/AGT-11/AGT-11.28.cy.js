@@ -5,12 +5,21 @@ describe('AGT-11.28 - Centang checkbox pada header tabel', () => {
     cy.login();
   });
 
-  it('AGT-11.28: Centang checkbox header tabel → Seluruh data pada halaman aktif terpilih & muncul banner pilih semua', () => {
+  it('AGT-11.28: Centang checkbox pada header tabel → Seluruh data pada halaman aktif terpilih & muncul toolbar Terpilih & Pilih semua', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickProgresTab();
-    cy.get('thead th button[role="checkbox"], button[aria-label="Select all"]').first().click({ force: true });
+
+    // Centang checkbox header tabel (Select All pada halaman aktif)
+    cy.get('thead th button[role="checkbox"], button[aria-label="Select all"]', { timeout: 15000 }).first().click({ force: true });
     cy.wait(800);
 
-    cy.get('body').should('contain.text', 'dipilih');
+    // Verifikasi card-toolbar yang visible memuat tombol "Terpilih" dan "Pilih semua"
+    cy.get('[data-slot="card-toolbar"]', { timeout: 15000 })
+      .filter(':visible')
+      .first()
+      .within(() => {
+        cy.contains('button', /terpilih/i).should('be.visible');
+        cy.contains('button', /pilih semua/i).should('be.visible');
+      });
   });
 });
