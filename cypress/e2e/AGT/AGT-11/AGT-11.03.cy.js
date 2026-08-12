@@ -9,9 +9,7 @@ describe('AGT-11.03 - Aktifkan Filter History Siswa dengan kombinasi TA-Tingkat-
     StudentDetailPage.navigateToFirstStudentDetail();
     
     // Klik tombol Filter di sebelah tab bar
-    cy.get('button[data-slot="popover-trigger"], button', { timeout: 15000 })
-      .contains('Filter')
-      .click({ force: true });
+    cy.contains('button', /^filter$/i, { timeout: 15000 }).click({ force: true });
     cy.wait(800);
 
     cy.get('body').then(($body) => {

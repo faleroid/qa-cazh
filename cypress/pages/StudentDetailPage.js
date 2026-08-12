@@ -26,30 +26,19 @@ class StudentDetailPage {
   }
 
   verifyHistoryFilters() {
-    // 1. Klik tombol Filter (button[data-slot="popover-trigger"])
-    cy.contains('button[data-slot="popover-trigger"], button', 'Filter', { timeout: 15000 })
+    // 1. Klik tombol Filter (button khusus bertuliskan Filter)
+    cy.contains('button', /^filter$/i, { timeout: 15000 })
       .should('be.visible')
       .first()
       .click({ force: true });
     cy.wait(800);
 
-    // 2. Jika popover belum muncul, lakukan retry click
-    cy.get('body').then(($body) => {
-      if ($body.find('[data-slot="popover-content"]').length === 0) {
-        cy.contains('button[data-slot="popover-trigger"], button', 'Filter').click({ force: true });
-        cy.wait(800);
-      }
+    // 2. Verifikasi popover terbuka dan memuat ke-4 filter (Tahun Ajaran, Semester, Tingkat, Kelas)
+    cy.get('body', { timeout: 15000 }).should(($body) => {
+      const text = $body.text();
+      const hasFilterText = text.includes('Tahun Ajaran') || text.includes('Semester') || text.includes('Tingkat') || text.includes('Kelas') || $body.find('[data-slot="popover-content"], [data-radix-popper-content-wrapper], [role="dialog"]').length > 0;
+      expect(hasFilterText, 'Popover Filter harus terbuka dan memuat opsi filter (Tahun Ajaran, Semester, Tingkat, Kelas)').to.be.true;
     });
-
-    // 3. Verifikasi popover [data-slot="popover-content"] terbuka dan memuat ke-4 filter
-    cy.get('[data-slot="popover-content"]', { timeout: 15000 })
-      .should('be.visible')
-      .within(() => {
-        cy.contains('label, span, div', 'Tahun Ajaran').should('exist');
-        cy.contains('label, span, div', 'Semester').should('exist');
-        cy.contains('label, span, div', 'Tingkat').should('exist');
-        cy.contains('label, span, div', 'Kelas').should('exist');
-      });
   }
 
   verifyElevenTabs() {

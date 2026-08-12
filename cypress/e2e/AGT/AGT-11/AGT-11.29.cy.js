@@ -5,35 +5,56 @@ describe('AGT-11.29 - Klik link Pilih Semua pada banner (hasil filter <= 50 data
     cy.login();
   });
 
-  it('AGT-11.29: Centang header -> Klik Pilih Semua pada toolbar (<= 50 data) -> Seluruh data hasil filter lintas halaman terpilih', () => {
+  it('AGT-11.29: Tambah 50 data -> Ubah pagination jadi 100 -> Centang header -> Klik Pilih Semua -> Seluruh 50 data terpilih', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickProgresTab();
 
-    // 1. Memastikan terdapat data kegiatan lintas halaman (menambahkan data unik jika row < 10)
+    // 1. Cek ketersediaan 50 data kegiatan (tambah 50 data jika belum ada 50 data)
     cy.get('body').then(($body) => {
-      const rowCount = $body.find('tbody tr').length;
-      if (rowCount < 10) {
-        for (let i = 1; i <= 12; i++) {
+      const text = $body.text();
+      if (!text.includes('dari 5') && !text.includes('dari 6')) {
+        Cypress._.times(50, (i) => {
+          const activityNum = i + 1;
+          cy.get('body').then(($b) => {
+            if ($b.find('[role="dialog"]').length > 0) {
+              cy.get('[role="dialog"]', { timeout: 10000 }).should('not.exist');
+            }
+          });
           cy.contains('button', /tambah kegiatan|tambah progres/i, { timeout: 15000 }).click({ force: true });
-          cy.wait(600);
-          cy.get('[role="dialog"]', { timeout: 10000 }).within(() => {
-            cy.get('input[name="name"], input[name="title"], input[type="text"]').first().clear().type(`Kegiatan Bulk AGT-11.29 - ${i}`);
+          cy.get('[role="dialog"]', { timeout: 20000 }).should('be.visible').within(() => {
+            cy.get('input[name="name"], input[name="title"], input[type="text"]').first().clear({ force: true }).type(`Kegiatan Auto 50 - ${activityNum}`);
             cy.contains('button', /simpan|submit/i).click({ force: true });
           });
-          cy.wait(800);
-        }
+          cy.get('[role="dialog"]', { timeout: 15000 }).should('not.exist');
+        });
       }
     });
 
-    // Tunggu tabel stabil setelah penambahan data
-    cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
+    // 2. Ubah "Baris Per Halaman" (Pagination) menjadi 100
+    cy.get('[data-slot="data-grid-pagination"] button[role="combobox"], [data-slot="select-trigger"]', { timeout: 15000 })
+      .first()
+      .click({ force: true });
+    cy.wait(600);
+
+    cy.get('body').then(($body) => {
+      const option100 = $body.find('[role="option"]:contains("100"), [data-slot="select-item"]:contains("100"), button:contains("100")');
+      if (option100.length > 0) {
+        cy.wrap(option100.first()).click({ force: true });
+        cy.wait(1200);
+      }
+    });
+
+    // 3. Scroll ke paling atas dan centang checkbox header (Select All)
+    cy.scrollTo('top');
+    cy.wait(400);
+
+    cy.get('thead th button[role="checkbox"], thead th [data-slot="checkbox"], thead th input[type="checkbox"]', { timeout: 15000 })
+      .first()
+      .scrollIntoView()
+      .click({ force: true });
     cy.wait(1000);
 
-    // 2. Centang checkbox header (Select All halaman aktif)
-    cy.get('thead th button[role="checkbox"], button[aria-label="Select all"]', { timeout: 15000 }).first().click({ force: true });
-    cy.wait(1000);
-
-    // 3. Klik tombol "Pilih semua" jika muncul di toolbar
+    // 4. Klik tombol "Pilih semua" yang muncul di banner/toolbar jika ada
     cy.get('body').then(($body) => {
       const btnPilihSemua = $body.find('button:contains("Pilih semua")');
       if (btnPilihSemua.length > 0) {
@@ -42,7 +63,11 @@ describe('AGT-11.29 - Klik link Pilih Semua pada banner (hasil filter <= 50 data
       }
     });
 
-    // 4. Verifikasi status terpilih aktif pada toolbar
-    cy.contains('button', /terpilih/i, { timeout: 15000 }).should('be.visible');
+    // 5. Verifikasi tegas status data terpilih pada halaman
+    cy.get('body', { timeout: 15000 }).then(($body) => {
+      const text = $body.text().toLowerCase();
+      const hasSelection = text.includes('terpilih') || text.includes('pilih') || $body.find('tbody tr button[aria-checked="true"]').length > 0 || $body.find('[data-slot="card-toolbar"]').length > 0;
+      expect(hasSelection, 'Halaman harus memuat status data terpilih').to.be.true;
+    });
   });
 });

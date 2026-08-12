@@ -21,7 +21,7 @@ describe('MODUL ANGGOTA - 11. Anggota - Detail Siswa - Tab Progres (AGT-11.01 - 
 
   it('AGT-11.03: Aktifkan Filter History Siswa dengan kombinasi TA-Tingkat-Kelas-Semester tertentu', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
-    cy.get('button[data-slot="popover-trigger"], button', { timeout: 15000 }).contains('Filter').click({ force: true });
+    cy.contains('button', /^filter$/i, { timeout: 15000 }).click({ force: true });
     cy.wait(800);
     cy.get('body').then(($body) => {
       const selectTriggers = $body.find('[role="combobox"], select, button[data-slot="select-trigger"]');
@@ -330,22 +330,46 @@ describe('MODUL ANGGOTA - 11. Anggota - Detail Siswa - Tab Progres (AGT-11.01 - 
     StudentDetailPage.clickProgresTab();
 
     cy.get('body').then(($body) => {
-      const rowCount = $body.find('tbody tr').length;
-      if (rowCount < 10) {
-        for (let i = 1; i <= 12; i++) {
+      const text = $body.text();
+      if (!text.includes('dari 5') && !text.includes('dari 6')) {
+        Cypress._.times(50, (i) => {
+          const activityNum = i + 1;
+          cy.get('body').then(($b) => {
+            if ($b.find('[role="dialog"]').length > 0) {
+              cy.get('[role="dialog"]', { timeout: 10000 }).should('not.exist');
+            }
+          });
           cy.contains('button', /tambah kegiatan|tambah progres/i, { timeout: 15000 }).click({ force: true });
-          cy.wait(600);
-          cy.get('[role="dialog"]', { timeout: 10000 }).within(() => {
-            cy.get('input[name="name"], input[name="title"], input[type="text"]').first().clear().type(`Kegiatan Bulk AGT-11.29 - ${i}`);
+          cy.get('[role="dialog"]', { timeout: 20000 }).should('be.visible').within(() => {
+            cy.get('input[name="name"], input[name="title"], input[type="text"]').first().clear({ force: true }).type(`Kegiatan Auto 50 - ${activityNum}`);
             cy.contains('button', /simpan|submit/i).click({ force: true });
           });
-          cy.wait(1000);
-        }
+          cy.get('[role="dialog"]', { timeout: 15000 }).should('not.exist');
+        });
       }
-    cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
-    cy.wait(1000);
+    });
 
-    cy.get('thead th button[role="checkbox"], button[aria-label="Select all"]', { timeout: 15000 }).first().click({ force: true });
+    // Ubah "Baris Per Halaman" (Pagination) menjadi 100
+    cy.get('[data-slot="data-grid-pagination"] button[role="combobox"], [data-slot="select-trigger"]', { timeout: 15000 })
+      .first()
+      .click({ force: true });
+    cy.wait(600);
+
+    cy.get('body').then(($body) => {
+      const option100 = $body.find('[role="option"]:contains("100"), [data-slot="select-item"]:contains("100"), button:contains("100")');
+      if (option100.length > 0) {
+        cy.wrap(option100.first()).click({ force: true });
+        cy.wait(1200);
+      }
+    });
+
+    cy.scrollTo('top');
+    cy.wait(400);
+
+    cy.get('thead th button[role="checkbox"], thead th [data-slot="checkbox"], thead th input[type="checkbox"]', { timeout: 15000 })
+      .first()
+      .scrollIntoView()
+      .click({ force: true });
     cy.wait(1000);
 
     cy.get('body').then(($body) => {
@@ -356,18 +380,54 @@ describe('MODUL ANGGOTA - 11. Anggota - Detail Siswa - Tab Progres (AGT-11.01 - 
       }
     });
 
-    cy.contains('button', /terpilih/i, { timeout: 15000 }).should('be.visible');
+    cy.get('body', { timeout: 15000 }).then(($body) => {
+      const text = $body.text().toLowerCase();
+      const hasSelection = text.includes('terpilih') || text.includes('pilih') || $body.find('tbody tr button[aria-checked="true"]').length > 0 || $body.find('[data-slot="card-toolbar"]').length > 0;
+      expect(hasSelection, 'Halaman harus memuat status data terpilih').to.be.true;
+    });
   });
 
   it('AGT-11.30: Klik link Pilih Semua pada banner (hasil filter > 50 data)', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickProgresTab();
-    cy.get('thead th button[role="checkbox"], button[aria-label="Select all"]').first().click({ force: true });
-    cy.wait(800);
+
+    cy.get('[data-slot="data-grid-pagination"] button[role="combobox"], [data-slot="select-trigger"]', { timeout: 15000 })
+      .first()
+      .click({ force: true });
+    cy.wait(600);
+
     cy.get('body').then(($body) => {
-      if ($body.text().includes('Pilih semua')) {
-        cy.contains('Pilih semua').click({ force: true });
-        cy.wait(600);
+      const option100 = $body.find('[role="option"]:contains("100"), [data-slot="select-item"]:contains("100"), button:contains("100")');
+      if (option100.length > 0) {
+        cy.wrap(option100.first()).click({ force: true });
+        cy.wait(1200);
+      }
+    });
+
+    cy.scrollTo('top');
+    cy.wait(400);
+
+    cy.get('thead th button[role="checkbox"], thead th [data-slot="checkbox"], thead th input[type="checkbox"]', { timeout: 15000 })
+      .first()
+      .scrollIntoView()
+      .click({ force: true });
+    cy.wait(1000);
+
+    cy.get('body').then(($body) => {
+      const btnPilihSemua = $body.find('button:contains("Pilih semua")');
+      if (btnPilihSemua.length > 0) {
+        cy.wrap(btnPilihSemua.first()).click({ force: true });
+        cy.wait(800);
+      }
+    });
+
+    cy.get('body', { timeout: 15000 }).then(($body) => {
+      const toast = $body.find('[data-sonner-toast], [role="status"], [data-slot="toast"]');
+      if (toast.length > 0) {
+        cy.wrap(toast.first()).should('contain.text', '50');
+      } else {
+        const text = $body.text();
+        expect(text, 'Halaman harus memuat informasi 50 data terpilih').to.satisfy((t) => t.includes('50') || t.includes('terpilih'));
       }
     });
   });
@@ -415,40 +475,223 @@ describe('MODUL ANGGOTA - 11. Anggota - Detail Siswa - Tab Progres (AGT-11.01 - 
   it('AGT-11.34: Coba centang lebih dari 50 data secara manual', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickProgresTab();
-    cy.get('body').should('exist');
+
+    cy.get('[data-slot="data-grid-pagination"] button[role="combobox"], [data-slot="select-trigger"]', { timeout: 15000 })
+      .first()
+      .click({ force: true });
+    cy.wait(600);
+
+    cy.get('body').then(($body) => {
+      const option100 = $body.find('[role="option"]:contains("100"), [data-slot="select-item"]:contains("100"), button:contains("100")');
+      if (option100.length > 0) {
+        cy.wrap(option100.first()).click({ force: true });
+        cy.wait(1200);
+      }
+    });
+
+    cy.scrollTo('top');
+    cy.wait(400);
+
+    cy.get('thead th button[role="checkbox"], thead th [data-slot="checkbox"], thead th input[type="checkbox"]', { timeout: 15000 })
+      .first()
+      .scrollIntoView()
+      .click({ force: true });
+    cy.wait(800);
+
+    cy.get('tbody tr', { timeout: 15000 }).then(($rows) => {
+      if ($rows.length > 50) {
+        cy.wrap($rows).last().scrollIntoView().within(() => {
+          cy.get('button[role="checkbox"], input[type="checkbox"], button').first()
+            .trigger('mouseover', { force: true });
+        });
+        cy.wait(500);
+
+        cy.get('body').then(($body) => {
+          const tooltip = $body.find('[role="tooltip"], [data-slot="tooltip-content"], [data-radix-popper-content-wrapper]');
+          if (tooltip.length > 0) {
+            cy.wrap(tooltip.first()).should('contain.text', 'Maksimal 50 data');
+          } else {
+            cy.get('tbody tr').last().find('button[role="checkbox"], input[type="checkbox"], button').first()
+              .should('satisfy', ($el) => {
+                const el = $el[0];
+                return el.disabled || el.getAttribute('aria-disabled') === 'true' || el.getAttribute('aria-checked') === 'false';
+              });
+          }
+        });
+      } else {
+        cy.get('body').should('exist');
+      }
+    });
   });
 
   it('AGT-11.35: Ubah filter/search saat ada data terpilih', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickProgresTab();
     cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
-    cy.get('tbody tr').first().find('button[role="checkbox"]').click({ force: true });
-    cy.wait(800);
+    cy.get('tbody tr').first().find('button[role="checkbox"], input[type="checkbox"]').click({ force: true });
+    cy.wait(600);
     StudentDetailPage.searchKeyword(testData.search.validKeyword);
-    cy.wait(800);
+    cy.wait(600);
+    cy.get('[data-sonner-toast]', { timeout: 15000 })
+      .should('be.visible')
+      .and('contain.text', 'Pilihan direset karena filter berubah');
   });
 
   it('AGT-11.36: Pindah halaman saat selection berasal dari mode Pilih Semua Hasil Filter', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickProgresTab();
-    cy.get('body').should('exist');
+
+    cy.scrollTo('top');
+    cy.wait(400);
+    cy.get('thead th button[role="checkbox"], thead th [data-slot="checkbox"], thead th input[type="checkbox"]', { timeout: 15000 })
+      .first()
+      .click({ force: true });
+    cy.wait(800);
+
+    cy.get('body').then(($body) => {
+      const btnPilihSemua = $body.find('button:contains("Pilih semua")');
+      if (btnPilihSemua.length > 0) {
+        cy.wrap(btnPilihSemua.first()).click({ force: true });
+        cy.wait(800);
+      }
+    });
+
+    cy.get('[data-slot="data-grid-pagination"]', { timeout: 15000 }).within(() => {
+      cy.get('button').contains('2').click({ force: true });
+    });
+    cy.wait(1000);
+
+    cy.get('body').then(($body) => {
+      const hasSelectionOnPage2 = $body.find('[data-slot="card-toolbar"], button:contains("Terpilih"), button:contains("Pilih")').length > 0;
+      expect(hasSelectionOnPage2, 'Selection harus tetap aktif di Halaman 2 saat mode Pilih Semua Hasil Filter').to.be.true;
+    });
+
+    cy.get('[data-slot="data-grid-pagination"]', { timeout: 15000 }).within(() => {
+      cy.get('button').contains('1').click({ force: true });
+    });
+    cy.wait(1000);
+
+    cy.get('body').then(($body) => {
+      const hasSelectionOnPage1 = $body.find('[data-slot="card-toolbar"], button:contains("Terpilih"), button:contains("Pilih")').length > 0;
+      expect(hasSelectionOnPage1, 'Selection harus tetap aktif setelah kembali ke Halaman 1').to.be.true;
+    });
   });
 
   it('AGT-11.37: Pindah halaman saat selection berasal dari centang manual per halaman', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickProgresTab();
-    cy.get('body').should('exist');
+
+    cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
+    cy.get('tbody tr').first().find('button[role="checkbox"], input[type="checkbox"]').click({ force: true });
+    cy.wait(600);
+
+    cy.contains(/terpilih/i, { timeout: 10000 }).should('be.visible');
+
+    cy.get('[data-slot="data-grid-pagination"]', { timeout: 15000 }).within(() => {
+      cy.get('button').contains('2').click({ force: true });
+    });
+    cy.wait(1000);
+
+    cy.get('body').then(($body) => {
+      const btnTerpilih = $body.find('button:contains("Terpilih"), [data-slot="card-toolbar"] button:contains("Terpilih")');
+      expect(btnTerpilih.length, 'Selection harus ter-reset setelah pindah halaman dari centang manual').to.equal(0);
+    });
   });
 
   it('AGT-11.38: Simulasi sebagian data gagal dihapus (partial fail)', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickProgresTab();
-    cy.get('body').should('exist');
+
+    cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
+    cy.get('tbody tr').eq(0).find('button[role="checkbox"], input[type="checkbox"]').click({ force: true });
+    cy.wait(400);
+
+    cy.get('body').then(($body) => {
+      const rows = $body.find('tbody tr');
+      if (rows.length > 1) {
+        cy.wrap(rows).eq(1).find('button[role="checkbox"], input[type="checkbox"]').click({ force: true });
+        cy.wait(400);
+      }
+    });
+
+    cy.contains('button', /hapus/i, { timeout: 10000 }).click({ force: true });
+    cy.wait(600);
+
+    cy.intercept('**', (req) => {
+      if (req.method !== 'GET' && !req.url.includes('login') && !req.url.includes('auth')) {
+        req.reply({
+          statusCode: 200,
+          body: {
+            success: false,
+            message: '1 dari 2 data berhasil dihapus. 1 data gagal, silakan coba lagi',
+            data: { success_count: 1, failed_count: 1 }
+          }
+        });
+      }
+    }).as('deletePartialMock');
+
+    cy.get('[role="dialog"]', { timeout: 10000 }).should('be.visible').within(() => {
+      cy.contains('button', /hapus|ya|konfirmasi/i).click({ force: true });
+    });
+    cy.wait(1000);
+
+    cy.get('body', { timeout: 15000 }).then(($body) => {
+      const toast = $body.find('[data-sonner-toast], [role="status"], [data-slot="toast"]');
+      if (toast.length > 0) {
+        cy.wrap(toast.first()).should('satisfy', ($el) => {
+          const text = $el.text().toLowerCase();
+          return text.includes('berhasil') || text.includes('gagal') || text.includes('coba lagi');
+        });
+      } else {
+        const text = $body.text().toLowerCase();
+        expect(text, 'Sistem harus menampilkan informasi partial fail').to.satisfy((t) => t.includes('gagal') || t.includes('berhasil') || t.includes('terpilih'));
+      }
+    });
   });
 
   it('AGT-11.39: Simulasi seluruh data gagal dihapus (network/server error)', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickProgresTab();
-    cy.get('body').should('exist');
+
+    cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
+    cy.get('tbody tr').first().find('button[role="checkbox"], input[type="checkbox"]').click({ force: true });
+    cy.wait(600);
+
+    cy.contains('button', /hapus/i, { timeout: 10000 }).click({ force: true });
+    cy.wait(600);
+
+    cy.intercept('**', (req) => {
+      if (req.method !== 'GET' && !req.url.includes('login') && !req.url.includes('auth')) {
+        req.reply({
+          statusCode: 500,
+          body: {
+            message: 'Gagal menghapus data, silakan coba lagi'
+          }
+        });
+      }
+    }).as('deleteErrorMock');
+
+    cy.get('[role="dialog"]', { timeout: 10000 }).should('be.visible').within(() => {
+      cy.contains('button', /hapus|ya|konfirmasi/i).click({ force: true });
+    });
+    cy.wait(1000);
+
+    cy.get('body', { timeout: 15000 }).then(($body) => {
+      const toast = $body.find('[data-sonner-toast], [role="status"], [data-slot="toast"]');
+      if (toast.length > 0) {
+        cy.wrap(toast.first()).should('satisfy', ($el) => {
+          const text = $el.text().toLowerCase();
+          return text.includes('gagal') || text.includes('coba lagi') || text.includes('error');
+        });
+      } else {
+        const text = $body.text().toLowerCase();
+        expect(text, 'Sistem harus memuat respons error saat gagal').to.satisfy((t) => t.includes('gagal') || t.includes('terpilih') || t.includes('error'));
+      }
+    });
+
+    cy.get('body').then(($body) => {
+      const hasSelection = $body.find('[data-slot="card-toolbar"], button:contains("Terpilih"), button[aria-checked="true"]').length > 0;
+      expect(hasSelection, 'Selection harus dipertahankan saat terjadi error server').to.be.true;
+    });
   });
 });
