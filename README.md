@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # QA Cazh Automation Testing
 
 Framework: **Cypress** (E2E).

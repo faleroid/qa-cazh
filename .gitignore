@@ -1,39 +1,8 @@
-# Dependency directories
 node_modules/
-jspm_packages/
-web_reach/
-
-# Cypress directories
-cypress/screens/
 cypress/screenshots/
 cypress/videos/
 cypress/downloads/
+tmp/
 
-# Log files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-# Environment and secrets
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.*.local
-
-# Editor/IDE directories and files
-.vscode/
-!.vscode/extensions.json
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# OS metadata
-.DS_Store
-Thumbs.db
+*.env
+*.env.copy

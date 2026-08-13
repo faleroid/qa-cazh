@@ -1,24 +1,38 @@
-Cypress.Commands.add(
-  "login",
-  (
-    email = Cypress.env("AUTH_EMAIL"),
-    password = Cypress.env("PASSWORD_EMAIL"),
-  ) => {
-    cy.session([email, password], () => {
-      cy.visit("/auth/login");
-      cy.contains("label", "Email").click().type(email);
-      cy.get("input[type='password']").click().type(password);
-      cy.contains("button", "Masuk").click();
+// Custom command untuk login dengan cy.session
+Cypress.Commands.add('login', (email = 'androidtesting117@gmail.com', password = 'f7ki6b2u') => {
+  cy.session(
+    [email, password],
+    () => {
+      // 1. Buka halaman login
+      cy.visit('https://v3.cazh.id/auth/login');
 
-      cy.url().should("include", "/dashboard");
-    });
-  },
-);
+      // 2. Tunggu form login muncul
+      cy.get('input[type="email"], input[name="email"], input[name="username"], input[type="text"]', { timeout: 10000 })
+        .first()
+        .should('be.visible')
+        .clear()
+        .type(email);
 
-Cypress.on("uncaught:exception", (err, runnable) => {
-  if (err.message.includes("Failed to execute 'removeChild' on 'Node'")) {
-    return false;
-  }
+      // 3. Isi password
+      cy.get('input[type="password"], input[name="password"]')
+        .first()
+        .should('be.visible')
+        .clear()
+        .type(password);
 
-  return true;
+      // 4. Klik tombol submit / login
+      cy.contains('button', /masuk|login/i, { timeout: 5000 })
+        .should('be.visible')
+        .click({ force: true });
+
+      // 5. Berikan waktu untuk penyimpanan token/cookie autentikasi
+      cy.wait(3000);
+    },
+    {
+      validate() {
+        cy.visit('https://v3.cazh.id/dashboard', { failOnStatusCode: false });
+        cy.get('body', { timeout: 15000 }).should('not.contain.text', 'Peran Belum Ditetapkan');
+      }
+    }
+  );
 });

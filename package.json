@@ -1,14 +1,17 @@
 {
-  "name": "cazh-test-cy",
+  "name": "qa-cazh",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
-  "license": "MIT",
   "scripts": {
     "engine:startup": "DEBUG= cypress open --e2e --browser chromium --config-file cypress.original.config.js",
     "git:add:all": "git add .",
     "git:commit": "git commit -m ",
-    "git:push:all": "git push origin main && git push collab main:feature-others"
+    "git:push:all": "git push origin main && git push collab main:feature-others",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [],
+  "type": "commonjs",
   "devDependencies": {
     "@bahmutov/cypress-esbuild-preprocessor": "^2.2.8",
     "cypress": "^15.18.1",

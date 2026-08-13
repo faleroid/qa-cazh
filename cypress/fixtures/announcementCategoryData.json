@@ -1,0 +1,48 @@
+{
+  "urls": {
+    "announcementCategoryPage": "/setting/administration/announcement-category",
+    "announcementCategoryAddPage": "/setting/administration/announcement-category/create",
+    "announcementFormPage": "/administration/announcement/list/create"
+  },
+  "pageTitles": {
+    "listPage": "Kategori Pengumuman",
+    "addPage": "Tambah Kategori",
+    "editPage": "Edit Kategori"
+  },
+  "validData": {
+    "validNama": "Informasi Kegiatan Sekolah",
+    "validNamaAllowedChar": "Info & Update.",
+    "validNamaAlphanumeric": "Info 2026",
+    "validNamaUpdated": "Informasi & Pengumuman 2026",
+    "validNamaKategori2": "Kegiatan Ekstrakurikuler",
+    "existingActiveCategory": "Pengumuman Umum",
+    "existingInactiveCategory": "Pengumuman Akademik Nonaktif",
+    "categoryUsedInAnnouncement": "Pengumuman Resmi"
+  },
+  "invalidData": {
+    "singleChar": "A",
+    "maxLengthOver": "Nama Kategori Sangat Panjang Sekali Lebih Dari 100 Karakter Untuk Menguji Validasi Maksimal Karakter Pada Input Nama Kategori Pengumuman Web CAZH V3 PRD Test Case",
+    "whitespaceOnly": "   ",
+    "disallowedChars": "@#$%"
+  },
+  "validationMessages": {
+    "nameRequired": "Nama kategori harus diisi.",
+    "nameMinLength": "Nama kategori minimal 2 karakter.",
+    "nameMaxLength": "Nama kategori maksimal 100 karakter.",
+    "whitespaceError": "Nama kategori harus diisi.",
+    "disallowedCharsError": "Nama kategori hanya boleh berisi huruf, angka, spasi, dan karakter - _ & .",
+    "nameAlreadyUsed": "Nama kategori sudah digunakan.",
+    "serverSaveError": "Gagal menyimpan kategori. Silakan coba lagi.",
+    "deleteInUseError": "Kategori tidak dapat dihapus karena masih digunakan oleh pengumuman lain."
+  },
+  "toastMessages": {
+    "addSuccess": "Kategori berhasil ditambahkan",
+    "editSuccess": "Kategori berhasil diperbarui",
+    "deleteSuccess": "Kategori berhasil dihapus"
+  },
+  "search": {
+    "partialMatchKeyword": "inf",
+    "noMatchKeyword": "xyz123abc"
+  },
+  "emptyStateText": "Kategori tidak ditemukan."
+}
