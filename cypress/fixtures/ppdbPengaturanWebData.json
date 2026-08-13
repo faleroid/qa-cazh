@@ -1,0 +1,23 @@
+{
+  "url": "member/admission/setting",
+  "pageTitle": "Pengaturan Web",
+  "pageSubtitle": "Ringkasan Data Pengaturan Web",
+  "instansiName": "Academy Cazh",
+  "tabs": [
+    "Profil",
+    "Beranda",
+    "Jadwal",
+    "Status Kustom",
+    "Formulir Standar",
+    "Formulir Kustom",
+    "Program Khusus"
+  ],
+  "sampleData": {
+    "webTitle": "PPDB SMA Digital Indonesia 2025/2026",
+    "phone": "082138443788",
+    "address": "Jalan Pendidikan No 10",
+    "email": "ppdb@cazh.id",
+    "picName": "Sholahuddin R.",
+    "picWhatsapp": "081234567890"
+  }
+}

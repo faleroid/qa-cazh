@@ -1,0 +1,22 @@
+{
+  "url": "member/alumni/activation-log",
+  "studentUrl": "member/alumni/student",
+  "teacherUrl": "member/alumni/teacher",
+  "pageTitle": "Log Aktivasi Alumni",
+  "pageSubtitle": "Riwayat pengajuan aktivasi alumni dan keputusannya",
+  "tabs": {
+    "pending": "Menunggu",
+    "approved": "Disetujui",
+    "rejected": "Ditolak"
+  },
+  "columns": [
+    "Tanggal",
+    "Pengaju",
+    "Tipe Anggota",
+    "Jumlah",
+    "Catatan",
+    "Status",
+    "Keputusan",
+    "Aksi"
+  ]
+}
