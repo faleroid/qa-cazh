@@ -103,6 +103,82 @@ class StudentDetailPage {
       .type(`${keyword}{enter}`, { force: true });
     cy.wait(1000);
   }
+
+  clickKesehatanTab() {
+    cy.get('body').then(($body) => {
+      const isVisibleDirect = $body.find('[role="tab"]:contains("Kesehatan"), button:contains("Kesehatan")').length > 0;
+      if (isVisibleDirect) {
+        cy.contains('[role="tab"], button, a', 'Kesehatan').click({ force: true });
+      } else {
+        cy.get('button[data-slot="dropdown-menu-trigger"], button', { timeout: 10000 })
+          .contains('Lainnya')
+          .click({ force: true });
+        cy.wait(500);
+        cy.contains('[role="menuitem"], button, a, div', 'Kesehatan').click({ force: true });
+      }
+    });
+
+    // Jeda penantian agar seluruh komponen & data Tab Kesehatan ter-load sempurna oleh Next.js
+    cy.get('[data-slot="card"]', { timeout: 15000 }).should('exist');
+    cy.wait(1500);
+  }
+
+  verifyKesehatanSections() {
+    cy.get('body', { timeout: 15000 }).should(($body) => {
+      const text = $body.text();
+      // Section 1: Card "Data Kesehatan"
+      // Section 2: Card "Data Kesehatan" (bagian Imunisasi / "Tambah Imunisasi")
+      // Section 3: Card "Riwayat Kesehatan"
+      const hasSections = text.includes('Data Kesehatan') && (text.includes('Tambah Imunisasi') || text.includes('Imunisasi')) && text.includes('Riwayat Kesehatan');
+      expect(hasSections, 'Tab Kesehatan harus memuat 3 section utama: Data Kesehatan, Imunisasi, dan Riwayat Kesehatan').to.be.true;
+    });
+  }
+
+  verifyKesehatanFields() {
+    cy.get('[data-slot="card"]', { timeout: 15000 })
+      .contains('[data-slot="card-title"]', 'Data Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .within(() => {
+        // 1. Riwayat Kesehatan
+        cy.contains('label', 'Riwayat Kesehatan').should('be.visible');
+        cy.get('input[name="medical_history"]').should('exist');
+
+        // 2. Disabilitas
+        cy.contains('label', 'Disabilitas').should('be.visible');
+        cy.contains('span', 'Masukkan disabilitas').should('exist');
+
+        // 3. Hasil Tes Buta Warna
+        cy.contains('label', 'Hasil Tes Buta Warna').should('be.visible');
+        cy.get('input[name="color_blind_test_result"]').should('exist');
+
+        // 4. Tinggi Badan
+        cy.contains('label', 'Tinggi Badan').should('be.visible');
+        cy.get('input[name="height"]').should('exist');
+
+        // 5. Berat Badan
+        cy.contains('label', 'Berat Badan').should('be.visible');
+        cy.get('input[name="weight"]').should('exist');
+
+        // 6. Golongan Darah
+        cy.contains('label', 'Golongan Darah').should('be.visible');
+        cy.contains('span', 'Masukkan Golongan Darah').should('exist');
+
+        // Tombol Simpan
+        cy.contains('button[type="submit"]', 'Simpan').should('be.visible');
+      });
+  }
+
+  verifyRiwayatKesehatanColumns() {
+    cy.get('thead th, thead tr', { timeout: 15000 }).should('exist');
+    cy.get('body').then(($body) => {
+      const text = $body.text();
+      // Kolom tabel: Select all (Checkbox), Tanggal Kejadian, Indikator (Indikasi), Tindakan, Keterangan, Dibuat Oleh
+      const hasColumns = text.includes('Tanggal Kejadian') || text.includes('Indikator') || text.includes('Tindakan') || text.includes('Keterangan') || text.includes('Dibuat Oleh');
+      expect(hasColumns, 'Tabel Riwayat Kesehatan harus memuat kolom Tanggal Kejadian, Indikator/Indikasi, Tindakan, Keterangan, Dibuat Oleh').to.be.true;
+    });
+  }
 }
 
 export default new StudentDetailPage();

@@ -5,7 +5,10 @@
   "search": {
     "validKeyword": "Pentas Seni",
     "descKeyword": "Kegiatan Seni dan Budaya",
-    "invalidKeyword": "KeywordRandom99999"
+    "invalidKeyword": "KeywordRandom99999",
+    "indikasiKeyword": "Demam",
+    "tindakanKeyword": "UKS",
+    "keteranganKeyword": "Kondisi"
   },
   "newActivity": {
     "name": "Pentas Seni Tahunan",
@@ -17,5 +20,28 @@
   "editActivity": {
     "name": "Pentas Seni & Musik",
     "description": "Perubahan deskripsi kegiatan pentas seni dan musik"
+  },
+  "healthData": {
+    "riwayatKesehatan": "Sehat Tanpa Keluhan",
+    "disabilitas": "Tidak Ada",
+    "butaWarna": "Tidak",
+    "tinggiBadan": "170",
+    "beratBadan": "65",
+    "golonganDarah": "O"
+  },
+  "imunisasiData": {
+    "tanggal": "2026-08-10",
+    "nama": "Imunisasi COVID-19 Booster"
+  },
+  "riwayatData": {
+    "tanggal": "2026-08-12",
+    "indikasi": "Demam Ringan",
+    "tindakan": "Istirahat di UKS dan Minum Paracetamol",
+    "keterangan": "Kondisi membaik setelah istirahat 2 jam"
+  },
+  "editRiwayatData": {
+    "indikasi": "Demam & Flu",
+    "tindakan": "Istirahat dan Diberikan Obat Flu",
+    "keterangan": "Disarankan istirahat di rumah"
   }
 }
