@@ -72,57 +72,18 @@ Framework Otomatisasi User Acceptance Testing (UAT) untuk aplikasi web **School 
 
 ---
 
-## 🚀 Tech Stack & Arsitektur
+## ðŸš€ Tech Stack & Arsitektur
 
 * **Testing Framework**: Cypress (v15+)
 * **Language & Runtime**: JavaScript / Node.js
 * **Design Pattern**: Page Object Model (POM) Strictly Enforced
 * **UI Component Support**: Radix UI / shadcn UI (Dialog Modals, Combobox Selects, Accordion Menus, Switch Toggles, React Aria DateFields, Sonner Toasts)
-* **Test Data**: Cypress Fixtures (`JSON` files) — *Tidak ada hardcoded data pada file spec*
+* **Test Data**: Cypress Fixtures (`JSON` files) â€” *Tidak ada hardcoded data pada file spec*
 * **Authentication**: `cy.session()` custom command untuk efisiensi login
 
 ---
 
-## 📁 Struktur Direktori Project
-
-```text
-qa-cazh/
-├── cypress/
-│   ├── e2e/
-│   │   ├── PGT-16/                          # Test case modular PGT-16.1 s/d PGT-16.22
-│   │   ├── PGT-16_legalitas_bukti_bayar_pom.cy.js  # Full Combined Suite PGT-16
-│   │   ├── PGT-17/                          # Test case modular PGT-17.1 s/d PGT-17.42
-│   │   ├── PGT-17_kategori_inventaris.cy.js # Full Combined Suite PGT-17
-│   │   ├── PGT-18/                          # Test case modular PGT-18.1 s/d PGT-18.57
-�│   │   ├── PGT-19/                          # Test case modular PGT-19.1 s/d PGT-19.17
-│   │   ├── PGT-19_waktu_perizinan.cy.js     # Full Combined Suite PGT-19
-│   │   ├── PGT-20/                          # Test case modular PGT-20.1 s/d PGT-20.49
-│   │   └── PGT-20_kategori_pengumuman.cy.js # Full Combined Suite PGT-20
-│   ├── fixtures/                            # Data uji JSON & File media upload
-│   │   ├── legalityData.json
-│   │   ├── inventoryCategoryData.json
-│   │   ├── violationTypeData.json
-│   │   ├── permissionTimeData.json
-│   │   ├── announcementCategoryData.json
-│   │   ├── signature.png / .jpg / .jpeg / large_signature.png
-│   │   └── document.pdf
-│   ├── pages/                               # Page Object Model Classes
-│   │   ├── LegalityPage.js
-│   │   ├── InventoryCategoryPage.js
-│   │   ├── ViolationTypePage.js
-│   │   ├── PermissionTimePage.js
-│   │   └── AnnouncementCategoryPage.js
-│   └── support/                             # Custom Commands & Config
-│       ├── commands.js                      # Custom command cy.login()
-│       └── e2e.js
-├── cypress.config.js                        # Konfigurasi Cypress (baseUrl, timeouts, viewport)
-├── package.json
-└── README.md
-```
-
----
-
-## 🧪 Modul Pengujian (Test Suites)
+## ðŸ§ª Modul Pengujian (Test Suites)
 
 ### 1. PGT-16: Legalitas Bukti Bayar (Modal Dialog UI)
 Modul pengaturan legalitas dan tanda tangan digital pada bukti pembayaran/invoice instansi.
@@ -180,7 +141,7 @@ Modul pengelolaan kategori pengumuman administrasi (Pengaturan - Administrasi - 
 
 ---
 
-## 🛠️ Persyaratan & Instalasi
+## ðŸ› ï¸ Persyaratan & Instalasi
 
 ### Prasyarat
 * **Node.js**: v16.x atau versi lebih baru
@@ -198,7 +159,7 @@ Modul pengelolaan kategori pengumuman administrasi (Pengaturan - Administrasi - 
 
 ---
 
-## 🏃 Menjalankan Pengujian
+## ðŸƒ Menjalankan Pengujian
 
 ### 1. Menjalankan via Cypress Interactive Runner (GUI)
 Buka Cypress Test Runner berbasis antarmuka grafis:
@@ -256,17 +217,3 @@ Pilih **E2E Testing** -> Pilih Browser (Chrome/Electron/Edge) -> Klik file test 
   ```
 
 ---
-
-## 💡 Best Practices & Standard Penulisan Script
-
-1. **Page Object Model (POM)**:
-   * **Element Selectors**: Semua query DOM (`cy.get()`, `cy.contains()`) ditempatkan dalam objek `elements` pada Class Page (`cypress/pages/`).
-   * **Business Logic & Actions**: Fungsi navigasi, pengisian form, dan verifikasi dibuat dalam metode Class Page.
-2. **Penanganan Radix UI / shadcn UI**:
-   * Menggunakan `{ force: true }` pada tombol action jika terlindungi animasi/state collapsed Radix UI.
-   * Seleksi dropdown portal (`[role="option"]`, `[data-slot="select-item"]`) yang di-render di luar container dialog.
-   * Pencocokan teks exact menggunakan regex `cy.contains(...)` untuk menghindari benturan nama menu serupa (misal: `"Tagihan F"` vs `"Jenis Tagihan F"`).
-   * Penanganan elemen asinkron / Sonner Toast dengan kueri dinamis `cy.contains(...).should('exist')` yang kebal terhadap *detached DOM element*.
-3. **Pembersihan Data Test & Isolasi Test**:
-   * Setiap skenario uji mandiri membuat atau membersihkan datanya sendiri secara otomatis untuk mencegah ketergantungan antar test case.
->>>>>>> 7d4706d4575e045cf7b504b4b38f40c22df986b3
