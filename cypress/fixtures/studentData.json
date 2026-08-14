@@ -39,6 +39,12 @@
     "tindakan": "Istirahat di UKS dan Minum Paracetamol",
     "keterangan": "Kondisi membaik setelah istirahat 2 jam"
   },
+  "tambahRiwayatData": {
+    "tanggal": "2026-08-13",
+    "indikasi": "Cidera Engkel Kaki",
+    "tindakan": "Kompres Es & Perban Elastis di UKS",
+    "keterangan": "Diberikan pertolongan pertama oleh petugas UKS"
+  },
   "editRiwayatData": {
     "indikasi": "Demam & Flu",
     "tindakan": "Istirahat dan Diberikan Obat Flu",

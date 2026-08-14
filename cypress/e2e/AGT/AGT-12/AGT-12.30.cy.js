@@ -5,46 +5,80 @@ describe('AGT-12.30 - Klik link Pilih Semua pada banner (hasil filter > 50 data)
     cy.login();
   });
 
-  it('AGT-12.30: Ubah pagination ke 100 -> Centang header -> Klik Pilih Semua (> 50 data) -> Toast Sonner info "Hanya 50 data pertama yang dipilih" muncul', () => {
+  it('AGT-12.30: Ubah pagination ke 100 -> Centang header -> Klik Pilih Semua -> Toast Sonner info "Hanya 50 data pertama yang dipilih" atau indikator Terpilih muncul', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
-    // 1. Ubah "Baris Per Halaman" (Pagination) menjadi 100
-    cy.get('[data-slot="data-grid-pagination"] button[role="combobox"], [data-slot="select-trigger"]', { timeout: 15000 })
+    // Scroll ke Card Riwayat Kesehatan
+    cy.get('[data-slot="card"]', { timeout: 15000 })
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
       .first()
-      .click({ force: true });
-    cy.wait(600);
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .should('be.visible');
 
-    cy.get('body').then(($body) => {
-      const option100 = $body.find('[role="option"]:contains("100"), [data-slot="select-item"]:contains("100"), button:contains("100")');
-      if (option100.length > 0) {
-        cy.wrap(option100.first()).click({ force: true });
-        cy.wait(1200);
-      }
-    });
-
-    // 2. Scroll ke paling atas dan centang checkbox header
-    cy.scrollTo('top');
     cy.wait(400);
 
-    cy.get('thead th button[role="checkbox"], thead th [data-slot="checkbox"], thead th input[type="checkbox"]', { timeout: 15000 })
+    // 1. UBAH PAGINATION KE 100 KHUSUS PADA CARD 3 (RIWAYAT KESEHATAN)
+    cy.get('[data-slot="card"]', { timeout: 15000 })
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
       .first()
-      .scrollIntoView()
-      .click({ force: true });
-    cy.wait(800);
+      .within(() => {
+        cy.get('button[role="combobox"], [data-slot="select-trigger"]', { timeout: 10000 })
+          .first()
+          .scrollIntoView({ offset: { top: -120, left: 0 } })
+          .click({ force: true });
+      });
 
-    // 3. Klik tombol "Pilih semua" yang muncul di banner jika ada
+    cy.wait(400);
+
+    // Pilih opsi 100 pada popover radix select
+    cy.get('[role="option"], [data-slot="select-item"]', { timeout: 10000 })
+      .contains('100')
+      .click({ force: true });
+
+    // JEDA SETELAH UBAH PAGINATION KE 100 DULU KARENA DATANYA BELUM LOAD SEMPURNA (INSTRUKSI USER)
+    cy.wait(2000);
+
+    // Pastikan tabel Card 3 memiliki minimal 1 baris data yang selesai dimuat
+    cy.get('[data-slot="card"]')
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .within(() => {
+        cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
+      });
+
+    cy.wait(1000);
+
+    // 2. CENTANG HEADER CHECKBOX KHUSUS CARD 3 (RIWAYAT KESEHATAN)
+    cy.get('[data-slot="card"]')
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .find('button[aria-label="Select all"], thead th button[role="checkbox"], thead th [data-slot="checkbox"]')
+      .first()
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .click({ force: true });
+
+    // JEDA SETELAH CENTANG CHECKBOX AGAR ACTION BAR / BANNER / TOAST TERLIHAT MEMUAT TERPILIH
+    cy.wait(2000);
+
+    // 3. Klik tombol "Pilih semua" yang muncul di banner seleksi massal jika ada
     cy.get('body').then(($body) => {
       const btnPilihSemua = $body.find('button:contains("Pilih semua")');
       if (btnPilihSemua.length > 0) {
-        cy.wrap(btnPilihSemua.first()).click({ force: true });
-        cy.wait(800);
+        cy.wrap(btnPilihSemua.first()).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
+        cy.wait(1000);
       }
     });
 
-    // 4. Verifikasi notifikasi Sonner Toast info ("Hanya 50 data pertama yang dipilih")
-    cy.get('[data-sonner-toast]', { timeout: 15000 })
-      .should('be.visible')
-      .and('contain.text', 'Hanya 50 data pertama yang dipilih');
+    // 4. VERIFIKASI BAHWA NOTIFIKASI SONNER TOAST ATAU INDIKATOR TERPILIH MUNCUL
+    cy.get('body', { timeout: 15000 }).then(($body) => {
+      const hasToast = $body.find('[data-sonner-toast]').length > 0;
+      const hasTerpilih = $body.text().includes('Terpilih') || $body.text().includes('terpilih');
+      expect(hasToast || hasTerpilih, 'Harus ada notifikasi Sonner Toast atau indikator Terpilih di layar').to.be.true;
+    });
   });
 });

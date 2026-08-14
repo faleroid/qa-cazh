@@ -6,7 +6,7 @@ describe('AGT-12.18 - Isi semua field required, klik Simpan', () => {
     cy.login();
   });
 
-  it('AGT-12.18: Isi semua field required, klik Simpan -> Riwayat tersimpan; pesan success muncul', () => {
+  it('AGT-12.18: Isi semua field required, klik Simpan -> Riwayat tersimpan; pesan success "Berhasil menambahkan Riwayat Kesehatan" muncul', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
@@ -30,27 +30,27 @@ describe('AGT-12.18 - Isi semua field required, klik Simpan', () => {
     cy.get('[data-slot="dialog-title"]').click({ force: true });
     cy.wait(300);
 
-    // 4. Isi sisa field required (Indikator, Tindakan, Deskripsi) & Simpan
+    // 4. Isi sisa field required (Indikator, Tindakan, Deskripsi) dengan data khusus AGT-12.18 & Simpan
     cy.get('[role="dialog"]', { timeout: 10000 }).should('be.visible').within(() => {
-      // Indikator
+      // Indikator ("Cidera Engkel Kaki")
       cy.get('input[name="indicator"], input[placeholder*="Indikator"]').first()
         .should('be.visible')
         .clear({ force: true })
-        .type(testData.riwayatData.indikasi, { force: true });
+        .type(testData.tambahRiwayatData.indikasi, { force: true });
       cy.wait(200);
 
-      // Tindakan
+      // Tindakan ("Kompres Es & Perban Elastis di UKS")
       cy.get('input[name="action"], input[placeholder*="Tindakan"]').first()
         .should('be.visible')
         .clear({ force: true })
-        .type(testData.riwayatData.tindakan, { force: true });
+        .type(testData.tambahRiwayatData.tindakan, { force: true });
       cy.wait(200);
 
-      // Deskripsi
+      // Deskripsi ("Diberikan pertolongan pertama oleh petugas UKS")
       cy.get('input[name="description"], input[placeholder*="Deskripsi"]').first()
         .should('be.visible')
         .clear({ force: true })
-        .type(testData.riwayatData.keterangan, { force: true });
+        .type(testData.tambahRiwayatData.keterangan, { force: true });
       cy.wait(200);
 
       // Simpan
@@ -59,7 +59,11 @@ describe('AGT-12.18 - Isi semua field required, klik Simpan', () => {
         .click({ force: true });
     });
 
-    cy.wait(1000);
-    cy.get('body').should('contain.text', testData.riwayatData.indikasi);
+    // Assert Sonner Toast Notifikasi Success: 'Berhasil menambahkan Riwayat Kesehatan'
+    cy.get('[data-sonner-toast]', { timeout: 10000 })
+      .should('be.visible')
+      .and('contain.text', 'Berhasil menambahkan Riwayat Kesehatan');
+
+    cy.get('body').should('contain.text', testData.tambahRiwayatData.indikasi);
   });
 });

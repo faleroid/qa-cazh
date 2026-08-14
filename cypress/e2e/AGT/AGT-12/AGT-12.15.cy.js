@@ -5,7 +5,7 @@ describe('AGT-12.15 - Klik tombol Tambah Riwayat', () => {
     cy.login();
   });
 
-  it('AGT-12.15: Klik tombol Tambah Riwayat -> Sistem menampilkan form Tambah Riwayat Kesehatan', () => {
+  it('AGT-12.15: Klik tombol Tambah Riwayat -> Sistem menampilkan dialog modal Tambah Riwayat Kesehatan', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
@@ -15,10 +15,9 @@ describe('AGT-12.15 - Klik tombol Tambah Riwayat', () => {
       .click({ force: true });
     cy.wait(600);
 
-    cy.get('body').should(($body) => {
-      expect($body.text(), 'Form Tambah Riwayat Kesehatan harus terbuka').to.satisfy((t) =>
-        t.includes('Riwayat') || $body.find('[role="dialog"]').length > 0
-      );
+    // Assert dialog modal terbuka dengan title 'Tambah Riwayat Kesehatan'
+    cy.get('[role="dialog"]', { timeout: 10000 }).should('be.visible').within(() => {
+      cy.get('[data-slot="dialog-title"]').should('contain.text', 'Tambah Riwayat Kesehatan');
     });
   });
 });

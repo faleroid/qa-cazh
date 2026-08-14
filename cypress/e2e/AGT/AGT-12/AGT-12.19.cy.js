@@ -5,24 +5,23 @@ describe('AGT-12.19 - Klik tombol Batal pada form Tambah Riwayat', () => {
     cy.login();
   });
 
-  it('AGT-12.19: Klik tombol Batal pada form Tambah Riwayat -> Sistem menutup form tanpa menyimpan', () => {
+  it('AGT-12.19: Klik tombol Batal pada form Tambah Riwayat -> Menutup dialog modal tanpa menyimpan data', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
-    cy.contains('button', /tambah riwayat|tambah kesehatan/i, { timeout: 15000 }).click({ force: true });
+    cy.contains('button', /tambah riwayat/i, { timeout: 15000 })
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .should('be.visible')
+      .click({ force: true });
     cy.wait(600);
 
-    cy.get('body').then(($body) => {
-      if ($body.find('[role="dialog"]').length > 0) {
-        cy.get('[role="dialog"]').within(() => {
-          cy.contains('button', /batal|cancel/i).click({ force: true });
-        });
-      } else {
-        cy.contains('button', /batal|cancel/i).click({ force: true });
-      }
+    cy.get('[role="dialog"]', { timeout: 10000 }).should('be.visible').within(() => {
+      cy.get('input[name="indicator"]').type('Demam Sementara', { force: true });
+      cy.wait(200);
+      cy.contains('button', /batal/i).click({ force: true });
     });
 
-    cy.wait(800);
+    cy.wait(600);
     cy.get('[role="dialog"]').should('not.exist');
   });
 });

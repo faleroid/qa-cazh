@@ -47,6 +47,8 @@ describe('AGT-12.13 - Cari riwayat kesehatan dengan keyword Keterangan', () => {
           cy.wait(200);
           cy.get('input[name="action"], input[placeholder*="Tindakan"]').first().clear({ force: true }).type(testData.riwayatData.tindakan, { force: true });
           cy.wait(200);
+          cy.get('input[name="description"], input[placeholder*="Deskripsi"]').first().clear({ force: true }).type(testData.riwayatData.keterangan, { force: true });
+          cy.wait(200);
           cy.contains('button[type="submit"], button', 'Simpan').click({ force: true });
         });
         cy.wait(1200);

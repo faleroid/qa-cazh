@@ -38,9 +38,9 @@ describe('AGT-12.07 - Isi Tanggal + Nama Imunisasi, klik Simpan', () => {
       if (toast.length > 0) {
         cy.wrap(toast.first()).should('contain.text', 'Berhasil memperbarui data kesehatan');
       } else {
-        const text = $body.text();
+        const text = $body.text().toLowerCase();
         expect(text).to.satisfy((t) =>
-          t.includes('Berhasil') || t.includes('kesehatan') || t.includes(testData.imunisasiData.nama)
+          t.includes('berhasil') || t.includes('kesehatan') || t.includes(testData.imunisasiData.nama.toLowerCase())
         );
       }
     });

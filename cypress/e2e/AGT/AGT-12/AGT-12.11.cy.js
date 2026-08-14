@@ -43,11 +43,13 @@ describe('AGT-12.11 - Cari riwayat kesehatan dengan keyword Indikasi', () => {
         cy.get('[data-slot="dialog-title"]').click({ force: true });
         cy.wait(300);
 
-        // 4. Isi Indikator & Tindakan pada Modal lalu Klik Simpan
+        // 4. Isi Indikator, Tindakan, & Deskripsi pada Modal lalu Klik Simpan
         cy.get('[role="dialog"]', { timeout: 10000 }).within(() => {
           cy.get('input[name="indicator"], input[placeholder*="Indikator"], input[placeholder*="Indikasi"]').first().clear({ force: true }).type(testData.riwayatData.indikasi, { force: true });
           cy.wait(200);
           cy.get('input[name="action"], input[placeholder*="Tindakan"]').first().clear({ force: true }).type(testData.riwayatData.tindakan, { force: true });
+          cy.wait(200);
+          cy.get('input[name="description"], input[placeholder*="Deskripsi"]').first().clear({ force: true }).type(testData.riwayatData.keterangan, { force: true });
           cy.wait(200);
           cy.contains('button[type="submit"], button', 'Simpan').click({ force: true });
         });
