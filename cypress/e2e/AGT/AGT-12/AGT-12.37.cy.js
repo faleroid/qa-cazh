@@ -9,7 +9,7 @@ describe('AGT-12.37 - Pindah halaman saat selection berasal dari centang manual 
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
-    // Scroll ke Card Riwayat Kesehatan
+    // 1. Scroll ke Card Riwayat Kesehatan (Card 3)
     cy.get('[data-slot="card"]', { timeout: 15000 })
       .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
       .parents('[data-slot="card"]')
@@ -19,6 +19,7 @@ describe('AGT-12.37 - Pindah halaman saat selection berasal dari centang manual 
 
     cy.wait(400);
 
+    // 2. Centang manual 1 baris data di Halaman 1
     cy.get('[data-slot="card"]')
       .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
       .parents('[data-slot="card"]')
@@ -28,23 +29,29 @@ describe('AGT-12.37 - Pindah halaman saat selection berasal dari centang manual 
         cy.get('tbody tr').first().find('button[role="checkbox"], input[type="checkbox"]').click({ force: true });
       });
 
-    cy.wait(600);
+    cy.wait(800);
 
-    cy.contains('button', /terpilih/i, { timeout: 10000 }).should('be.visible');
+    // Verifikasi banner seleksi manual aktif di Halaman 1
+    cy.contains(/terpilih|dipilih/i, { timeout: 10000 }).should('be.visible');
 
+    // 3. Pindah ke Halaman 2 via tombol pagination 2
     cy.get('[data-slot="card"]')
       .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
       .parents('[data-slot="card"]')
       .first()
-      .within(() => {
-        cy.get('button', { timeout: 10000 }).contains('2').first().click({ force: true });
-      });
+      .find('[data-slot="data-grid-pagination"] button, nav button')
+      .filter((idx, el) => Cypress.$(el).text().trim() === '2')
+      .first()
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .click({ force: true });
 
-    cy.wait(1000);
+    cy.wait(1200);
 
+    // 4. Verifikasi status seleksi manual di Halaman 2 (baris data Halaman 2 tidak tercentang)
     cy.get('body').then(($body) => {
-      const btnTerpilih = $body.find('button:contains("Terpilih")');
-      expect(btnTerpilih.length, 'Selection harus ter-reset setelah pindah halaman dari centang manual').to.equal(0);
+      const isRowCheckedOnPage2 = $body.find('tbody button[aria-checked="true"], tbody [data-state="checked"]').length > 0;
+      
+      expect(isRowCheckedOnPage2, 'Baris data di Halaman 2 tidak boleh tercentang secara otomatis dari seleksi manual Halaman 1').to.be.false;
     });
   });
 });

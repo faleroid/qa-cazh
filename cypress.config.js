@@ -13,8 +13,9 @@ module.exports = defineConfig({
   video: true,
   videoCompression: 32,
   videosFolder: "cypress/videos",
-  screenshotOnRunFailure: true,
   screenshotsFolder: "cypress/screenshots",
+  downloadsFolder: "cypress/downloads",
+  screenshotOnRunFailure: true,
   experimentalStudio: true,
 
   e2e: {
@@ -28,13 +29,15 @@ module.exports = defineConfig({
           if (fs.existsSync(downloadsFolder)) {
             const files = fs.readdirSync(downloadsFolder);
             for (const file of files) {
-              fs.unlinkSync(path.join(downloadsFolder, file));
+              try {
+                fs.unlinkSync(path.join(downloadsFolder, file));
+              } catch (e) {}
             }
           }
           return null;
         },
 
-        // 2. Task Mencari File Hasil Download Terbaru
+        // 2. Task Mencari File Hasil Download Terbaru (dengan polling/penungguan file selesai diunduh)
         findDownloadedFile(params = {}) {
           const downloadsFolder = params.folderPath || path.join(__dirname, 'cypress', 'downloads');
           const ext = params.fileExtension || 'xlsx';
@@ -42,11 +45,14 @@ module.exports = defineConfig({
             return null;
           }
           const files = fs.readdirSync(downloadsFolder);
-          const matchingFiles = files.filter(f => f.toLowerCase().includes(ext.toLowerCase()));
+          // Abaikan file sementara .crdownload atau .tmp
+          const matchingFiles = files.filter(f => {
+            const lower = f.toLowerCase();
+            return lower.endsWith('.' + ext.toLowerCase()) && !lower.endsWith('.crdownload') && !lower.endsWith('.tmp');
+          });
           if (matchingFiles.length === 0) {
             return null;
           }
-          // Sort berdasarkan waktu dibuat/modifikasi terbaru
           matchingFiles.sort((a, b) => {
             const statA = fs.statSync(path.join(downloadsFolder, a));
             const statB = fs.statSync(path.join(downloadsFolder, b));

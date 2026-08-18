@@ -9,14 +9,34 @@ describe('AGT-12.08 - Klik icon Hapus pada baris Imunisasi', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
-    cy.get('button svg.lucide-trash, button[aria-label*="Hapus"], button[title*="Hapus"]', { timeout: 15000 })
+    // Target Card 2 (Data Imunisasi)
+    cy.get('[data-slot="card"]', { timeout: 15000 })
+      .contains('button, span, label', /tambah imunisasi|imunisasi/i)
+      .parents('[data-slot="card"]')
       .first()
-      .parents('button')
       .scrollIntoView({ offset: { top: -120, left: 0 } })
-      .should('be.visible')
-      .click({ force: true });
+      .then(($card) => {
+        // Jika belum ada row imunisasi, klik Tambah Imunisasi terlebih dahulu agar trash button tersedia
+        if ($card.find('button.text-destructive, button svg.lucide-trash, button:has(svg.lucide-trash)').length === 0) {
+          cy.wrap($card).contains('button, span', /tambah imunisasi/i).click({ force: true });
+          cy.wait(500);
+        }
+
+        cy.wrap($card).within(() => {
+          cy.get('button.text-destructive, button svg.lucide-trash, button:has(svg.lucide-trash)')
+            .first()
+            .scrollIntoView({ offset: { top: -120, left: 0 } })
+            .should('be.visible')
+            .click({ force: true });
+        });
+      });
 
     cy.wait(800);
-    cy.get('[role="dialog"]').should('not.exist');
+
+    // Verifikasi bahwa TIDAK ADA popup konfirmasi dialog yang terbuka (langsung terhapus TANPA popup)
+    cy.get('body').then(($body) => {
+      const dialogs = $body.find('[role="dialog"], [data-slot="dialog-content"]');
+      expect(dialogs.length, 'Penghapusan baris imunisasi harus terjadi secara langsung TANPA popup konfirmasi').to.equal(0);
+    });
   });
 });

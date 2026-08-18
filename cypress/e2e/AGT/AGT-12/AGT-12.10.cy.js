@@ -9,7 +9,7 @@ describe('AGT-12.10 - Buka tab Kesehatan saat belum ada riwayat', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
-    // Scroll ke Card Riwayat Kesehatan agar empty state tampil di layar
+    // Scroll ke Card Riwayat Kesehatan (Card 3)
     cy.get('[data-slot="card"]', { timeout: 15000 })
       .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
       .parents('[data-slot="card"]')
@@ -19,11 +19,19 @@ describe('AGT-12.10 - Buka tab Kesehatan saat belum ada riwayat', () => {
 
     cy.wait(500);
 
-    // Verifikasi tampilan Empty State pada tabel Riwayat Kesehatan
-    cy.get('tbody', { timeout: 15000 }).should(($tbody) => {
-      const text = $tbody.text().toLowerCase();
-      const hasEmptyState = text.includes('tidak ditemukan') || text.includes('belum tersedia') || text.includes('kosong') || $tbody.find('svg').length > 0;
-      expect(hasEmptyState, 'Tabel Riwayat Kesehatan harus menampilkan komponen empty state (ilustrasi & pesan tidak ada data)').to.be.true;
-    });
+    // Verifikasi ketat bahwa Card 3 Riwayat Kesehatan menampilkan empty state dan TIDAK memuat baris data riil
+    cy.get('[data-slot="card"]')
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .within(() => {
+        cy.get('tbody tr').then(($rows) => {
+          const text = $rows.text().toLowerCase();
+          const hasDataRows = $rows.length > 0 && !text.includes('tidak ditemukan') && !text.includes('belum') && !text.includes('kosong');
+          
+          // Jika ada data baris riil di tabel, test case ini harus ERROR/GAGAL sesuai ekspektasi skenario
+          expect(hasDataRows, 'Tabel Riwayat Kesehatan harus kosong (empty state), tidak boleh memuat baris data').to.be.false;
+        });
+      });
   });
 });

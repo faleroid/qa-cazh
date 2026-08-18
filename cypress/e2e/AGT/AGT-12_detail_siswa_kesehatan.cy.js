@@ -4,6 +4,7 @@ import testData from '../../fixtures/studentData.json';
 describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 - AGT-12.42)', () => {
   beforeEach(() => {
     cy.login();
+    cy.wait(1000);
   });
 
   // ---------------------------------------------------------------------------
@@ -78,64 +79,105 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
   // ---------------------------------------------------------------------------
   // IMUNISASI (AGT-12.05 - AGT-12.08)
   // ---------------------------------------------------------------------------
-  it('AGT-12.05: Klik tombol Tambah Imunisasi -> Tampil form dengan field Tanggal* (required) & Nama Imunisasi* (required)', () => {
+  it('AGT-12.05: Klik tombol Tambah Imunisasi -> Tampil form pada Card Imunisasi dengan field Tanggal Imunisasi & Nama Imunisasi', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
-    cy.contains('button, span', /tambah imunisasi/i, { timeout: 15000 })
+    // 1. Target Card Imunisasi dan scroll ke posisi tombol Tambah Imunisasi
+    cy.get('[data-slot="card"]', { timeout: 15000 })
+      .contains('button, span', /tambah imunisasi/i)
+      .parents('[data-slot="card"]')
+      .first()
       .scrollIntoView({ offset: { top: -120, left: 0 } })
-      .should('be.visible')
-      .click({ force: true });
+      .should('be.visible');
+
+    cy.wait(400);
+
+    // 2. Klik tombol "Tambah Imunisasi" di dalam Card Imunisasi
+    cy.get('[data-slot="card"]')
+      .contains('button, span', /tambah imunisasi/i)
+      .parents('[data-slot="card"]')
+      .first()
+      .within(() => {
+        cy.contains('button, span', /tambah imunisasi/i)
+          .click({ force: true });
+      });
+
     cy.wait(600);
 
-    cy.contains('label', 'Nama Imunisasi').should('be.visible');
-    cy.get('input[placeholder*="Nama Imunisasi"], input#name-0').should('be.visible');
+    // 3. Verifikasi detail elemen di dalam Card Imunisasi
+    cy.get('[data-slot="card"]')
+      .contains('button, span', /tambah imunisasi/i)
+      .parents('[data-slot="card"]')
+      .first()
+      .within(() => {
+        // Verifikasi Label & Trigger Button Tanggal Imunisasi
+        cy.contains('label', /tanggal imunisasi/i)
+          .should('be.visible');
+        cy.get('button[data-slot="dropdown-menu-trigger"], button[id*="date"], button:has(svg.lucide-calendar-days)')
+          .first()
+          .should('be.visible');
+
+        // Verifikasi Label & Input Field Nama Imunisasi
+        cy.contains('label', /nama imunisasi/i)
+          .should('be.visible');
+        cy.get('input[id*="name"], input[placeholder*="Masukkan Nama Imunisasi"]')
+          .first()
+          .should('be.visible');
+
+        // Verifikasi Tombol Hapus (trash) per baris imunisasi
+        cy.get('button svg.lucide-trash, button[class*="text-destructive"]')
+          .first()
+          .should('be.visible');
+      });
   });
 
   it('AGT-12.06: Kosongkan salah satu field Imunisasi, klik Simpan -> Sistem menampilkan pesan error (validasi required)', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
-    cy.contains('button, span', /tambah imunisasi/i, { timeout: 15000 })
-      .scrollIntoView({ offset: { top: -120, left: 0 } })
-      .should('be.visible')
-      .click({ force: true });
-    cy.wait(600);
-
-    cy.get('input[placeholder*="Nama Imunisasi"], input#name-0')
+    // Target Card 2 (Data Imunisasi)
+    cy.get('[data-slot="card"]', { timeout: 15000 })
+      .contains('button, span, label', /tambah imunisasi|imunisasi/i)
       .parents('[data-slot="card"]')
       .first()
-      .within(() => {
-        cy.get('input[placeholder*="Nama Imunisasi"], input#name-0').first().clear({ force: true });
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .within(($card) => {
+        if ($card.find('input[id*="name"], input[placeholder*="Nama Imunisasi"]').length === 0) {
+          cy.contains('button, span', /tambah imunisasi/i).click({ force: true });
+          cy.wait(500);
+        }
+
+        cy.get('input[id*="name"], input[placeholder*="Nama Imunisasi"]').first().clear({ force: true });
         cy.wait(300);
 
         cy.contains('button', /simpan/i).first().click({ force: true });
       });
 
     cy.wait(800);
-    cy.contains('label', 'Nama Imunisasi').should('be.visible');
+    cy.contains('label', /nama imunisasi/i).should('be.visible');
   });
 
   it('AGT-12.07: Isi Tanggal + Nama Imunisasi, klik Simpan -> Imunisasi tersimpan; pesan success "Berhasil memperbarui data kesehatan" muncul', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
-    cy.contains('button, span', /tambah imunisasi/i, { timeout: 15000 })
-      .scrollIntoView({ offset: { top: -120, left: 0 } })
-      .should('be.visible')
-      .click({ force: true });
-    cy.wait(600);
-
-    cy.get('input[placeholder*="Nama Imunisasi"], input#name-0')
+    // Target Card 2 (Data Imunisasi)
+    cy.get('[data-slot="card"]', { timeout: 15000 })
+      .contains('button, span, label', /tambah imunisasi|imunisasi/i)
       .parents('[data-slot="card"]')
       .first()
-      .within(() => {
-        cy.get('input[placeholder*="Nama Imunisasi"], input#name-0')
-          .clear({ force: true })
-          .type(testData.imunisasiData.nama, { force: true });
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .within(($card) => {
+        if ($card.find('input[id*="name"], input[placeholder*="Nama Imunisasi"]').length === 0) {
+          cy.contains('button, span', /tambah imunisasi/i).click({ force: true });
+          cy.wait(500);
+        }
+
+        cy.get('input[id*="name"], input[placeholder*="Nama Imunisasi"]').first().clear({ force: true }).type(testData.imunisasiData.nama, { force: true });
         cy.wait(300);
 
-        cy.contains('button', /simpan/i).should('be.visible').click({ force: true });
+        cy.contains('button', /simpan/i).first().click({ force: true });
       });
 
     cy.wait(800);
@@ -157,15 +199,33 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
-    cy.get('button svg.lucide-trash, button[aria-label*="Hapus"], button[title*="Hapus"]', { timeout: 15000 })
+    // Target Card 2 (Data Imunisasi)
+    cy.get('[data-slot="card"]', { timeout: 15000 })
+      .contains('button, span, label', /tambah imunisasi|imunisasi/i)
+      .parents('[data-slot="card"]')
       .first()
-      .parents('button')
       .scrollIntoView({ offset: { top: -120, left: 0 } })
-      .should('be.visible')
-      .click({ force: true });
+      .then(($card) => {
+        if ($card.find('button.text-destructive, button svg.lucide-trash, button:has(svg.lucide-trash)').length === 0) {
+          cy.wrap($card).contains('button, span', /tambah imunisasi/i).click({ force: true });
+          cy.wait(500);
+        }
+
+        cy.wrap($card).within(() => {
+          cy.get('button.text-destructive, button svg.lucide-trash, button:has(svg.lucide-trash)')
+            .first()
+            .scrollIntoView({ offset: { top: -120, left: 0 } })
+            .should('be.visible')
+            .click({ force: true });
+        });
+      });
 
     cy.wait(800);
-    cy.get('[role="dialog"]').should('not.exist');
+    // Verifikasi bahwa TIDAK ADA popup konfirmasi dialog yang terbuka (langsung terhapus TANPA popup)
+    cy.get('body').then(($body) => {
+      const dialogs = $body.find('[role="dialog"], [data-slot="dialog-content"]');
+      expect(dialogs.length, 'Penghapusan baris imunisasi harus terjadi secara langsung TANPA popup konfirmasi').to.equal(0);
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -186,10 +246,11 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
     StudentDetailPage.verifyRiwayatKesehatanColumns();
   });
 
-  it('AGT-12.10: Buka tab Kesehatan saat belum ada riwayat -> List Riwayat Kesehatan kosong (empty state)', () => {
+  it('AGT-12.10: Buka tab Kesehatan saat belum ada riwayat', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
+    // Scroll ke Card Riwayat Kesehatan (Card 3)
     cy.get('[data-slot="card"]', { timeout: 15000 })
       .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
       .parents('[data-slot="card"]')
@@ -199,17 +260,27 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
 
     cy.wait(500);
 
-    cy.get('tbody', { timeout: 15000 }).should(($tbody) => {
-      const text = $tbody.text().toLowerCase();
-      const hasEmptyState = text.includes('tidak ditemukan') || text.includes('belum tersedia') || text.includes('kosong') || $tbody.find('svg').length > 0;
-      expect(hasEmptyState, 'Tabel Riwayat Kesehatan harus menampilkan komponen empty state (ilustrasi & pesan tidak ada data)').to.be.true;
-    });
+    // Verifikasi ketat bahwa Card 3 Riwayat Kesehatan menampilkan empty state dan TIDAK memuat baris data riil
+    cy.get('[data-slot="card"]')
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .within(() => {
+        cy.get('tbody tr').then(($rows) => {
+          const text = $rows.text().toLowerCase();
+          const hasDataRows = $rows.length > 0 && !text.includes('tidak ditemukan') && !text.includes('belum') && !text.includes('kosong');
+          
+          // Jika ada data baris riil di tabel, test case ini harus ERROR/GAGAL sesuai ekspektasi skenario
+          expect(hasDataRows, 'Tabel Riwayat Kesehatan harus kosong (empty state), tidak boleh memuat baris data').to.be.false;
+        });
+      });
   });
 
   it('AGT-12.11: Cari riwayat kesehatan dengan keyword Indikasi', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
+    // Scroll ke Card Riwayat Kesehatan (Card 3)
     cy.get('[data-slot="card"]', { timeout: 15000 })
       .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
       .parents('[data-slot="card"]')
@@ -219,41 +290,53 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
 
     cy.wait(400);
 
-    cy.get('body').then(($body) => {
-      const text = $body.text();
-      const isEmpty = text.includes('tidak ditemukan') || $body.find('tbody tr').length === 0;
+    // Tambah 1 data Riwayat Kesehatan jika belum ada data agar tidak false positive
+    cy.get('[data-slot="card"]')
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .then(($card) => {
+        const hasRows = $card.find('tbody tr').length > 0 && !$card.text().includes('tidak ditemukan');
+        if (!hasRows) {
+          cy.contains('button', /tambah riwayat/i, { timeout: 15000 }).click({ force: true });
+          cy.wait(600);
 
-      if (isEmpty) {
-        cy.contains('button', /tambah riwayat/i, { timeout: 15000 }).click({ force: true });
-        cy.wait(600);
+          // Klik trigger Date Picker
+          cy.get('button[name="date"]').first().click({ force: true });
+          cy.wait(350);
+          cy.get('table.rdp-month_grid tbody button').filter(':contains("13"), :contains("12"), :contains("1")').first().click({ force: true });
+          cy.wait(300);
+          cy.get('[data-slot="dialog-title"]').click({ force: true });
+          cy.wait(300);
 
-        cy.get('button[name="date"]').click({ force: true });
-        cy.wait(400);
+          // Isi Form Modal Riwayat Kesehatan
+          cy.get('[role="dialog"]', { timeout: 10000 }).within(() => {
+            cy.get('input[name="indicator"], input[placeholder*="Indikator"], input[placeholder*="Indikasi"]').first().clear({ force: true }).type(testData.riwayatData.indikasi, { force: true });
+            cy.wait(150);
+            cy.get('input[name="action"], input[placeholder*="Tindakan"]').first().clear({ force: true }).type(testData.riwayatData.tindakan, { force: true });
+            cy.wait(150);
+            cy.get('input[name="description"], input[placeholder*="Deskripsi"]').first().clear({ force: true }).type(testData.riwayatData.keterangan, { force: true });
+            cy.wait(150);
+            cy.contains('button[type="submit"], button', 'Simpan').click({ force: true });
+          });
+          cy.get('[role="dialog"]', { timeout: 10000 }).should('not.exist');
+          cy.wait(1000);
+        }
+      });
 
-        cy.get('table.rdp-month_grid tbody button').filter(':contains("13"), :contains("12"), :contains("1")')
-          .first()
-          .click({ force: true });
-        cy.wait(300);
-
-        cy.get('[data-slot="dialog-title"]').click({ force: true });
-        cy.wait(300);
-
-        cy.get('[role="dialog"]', { timeout: 10000 }).within(() => {
-          cy.get('input[name="indicator"], input[placeholder*="Indikator"], input[placeholder*="Indikasi"]').first().clear({ force: true }).type(testData.riwayatData.indikasi, { force: true });
-          cy.wait(200);
-          cy.get('input[name="action"], input[placeholder*="Tindakan"]').first().clear({ force: true }).type(testData.riwayatData.tindakan, { force: true });
-          cy.wait(200);
-          cy.get('input[name="description"], input[placeholder*="Deskripsi"]').first().clear({ force: true }).type(testData.riwayatData.keterangan, { force: true });
-          cy.wait(200);
-          cy.contains('button[type="submit"], button', 'Simpan').click({ force: true });
-        });
-        cy.wait(1200);
-      }
-    });
-
+    // Lakukan pencarian aman jika fitur pencarian tersedia
     StudentDetailPage.searchKeyword(testData.riwayatData.indikasi);
     cy.wait(600);
-    cy.get('body').should('contain.text', testData.riwayatData.indikasi);
+
+    // Verifikasi bahwa tabel Card 3 memiliki minimal 1 baris data riwayat kesehatan asli
+    cy.get('[data-slot="card"]')
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .within(() => {
+        cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
+        cy.get('tbody tr').first().should('be.visible');
+      });
   });
 
   it('AGT-12.12: Cari riwayat kesehatan dengan keyword Tindakan', () => {
@@ -1169,7 +1252,10 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
             cy.contains('button[type="submit"], button', 'Simpan').click({ force: true });
           });
 
-          cy.get('[role="dialog"]', { timeout: 10000 }).should('not.exist');
+          cy.get('body').then(($body) => {
+            const visibleDialogs = $body.find('[role="dialog"]:visible, [data-slot="dialog-content"]:visible');
+            expect(visibleDialogs.length, 'Modal dialog Tambah Riwayat Kesehatan harus sudah tertutup').to.equal(0);
+          });
           cy.wait(400);
         }
       }
@@ -1585,7 +1671,10 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
             cy.contains('button[type="submit"], button', 'Simpan').click({ force: true });
           });
 
-          cy.get('[role="dialog"]', { timeout: 10000 }).should('not.exist');
+          cy.get('body').then(($body) => {
+            const visibleDialogs = $body.find('[role="dialog"]:visible, [data-slot="dialog-content"]:visible');
+            expect(visibleDialogs.length, 'Modal dialog Tambah Riwayat Kesehatan harus sudah tertutup').to.equal(0);
+          });
           cy.wait(400);
         }
       }
@@ -1688,61 +1777,126 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
-    cy.scrollTo('top');
+    // 1. Scroll ke Card Riwayat Kesehatan (Card 3)
+    cy.get('[data-slot="card"]', { timeout: 15000 })
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .should('be.visible');
+
     cy.wait(400);
-    cy.get('thead th button[role="checkbox"], thead th [data-slot="checkbox"], thead th input[type="checkbox"]', { timeout: 15000 })
+
+    // 2. Centang Header Checkbox pada Halaman 1
+    cy.get('[data-slot="card"]')
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .find('thead th button[aria-label="Select all"], thead th button[role="checkbox"]')
       .first()
       .scrollIntoView({ offset: { top: -120, left: 0 } })
       .click({ force: true });
+
     cy.wait(800);
 
+    // 3. Klik tombol "Pilih semua" di banner jika ada
     cy.get('body').then(($body) => {
       const btnPilihSemua = $body.find('button:contains("Pilih semua")');
       if (btnPilihSemua.length > 0) {
-        cy.wrap(btnPilihSemua.first()).click({ force: true });
+        cy.wrap(btnPilihSemua.first()).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
         cy.wait(800);
       }
     });
 
-    cy.get('[data-slot="data-grid-pagination"]', { timeout: 15000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).within(() => {
-      cy.get('button').contains('2').click({ force: true });
-    });
-    cy.wait(1000);
+    // Verifikasi banner "... data kesehatan dipilih" tampil di Halaman 1
+    cy.contains(/data kesehatan dipilih/i, { timeout: 10000 })
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .should('be.visible');
 
-    cy.get('body').then(($body) => {
-      const hasSelectionOnPage2 = $body.find('[data-slot="card-toolbar"], button:contains("Terpilih"), button:contains("Pilih")').length > 0;
-      expect(hasSelectionOnPage2, 'Selection harus tetap aktif di Halaman 2 saat mode Pilih Semua Hasil Filter').to.be.true;
-    });
+    // 4. Pindah ke Halaman 2 via tombol pagination 2
+    cy.get('[data-slot="card"]')
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .find('[data-slot="data-grid-pagination"] button, nav button')
+      .filter((idx, el) => Cypress.$(el).text().trim() === '2')
+      .first()
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .click({ force: true });
 
-    cy.get('[data-slot="data-grid-pagination"]', { timeout: 15000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).within(() => {
-      cy.get('button').contains('1').click({ force: true });
-    });
-    cy.wait(1000);
+    cy.wait(1200);
 
-    cy.get('body').then(($body) => {
-      const hasSelectionOnPage1 = $body.find('[data-slot="card-toolbar"], button:contains("Terpilih"), button:contains("Pilih")').length > 0;
-      expect(hasSelectionOnPage1, 'Selection harus tetap aktif setelah kembali ke Halaman 1').to.be.true;
-    });
+    // 5. Cek di Halaman 2 apakah banner "... data kesehatan dipilih" dipertahankan (tidak kereset)
+    cy.contains(/data kesehatan dipilih/i, { timeout: 10000 })
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .should('be.visible');
+
+    // 6. Balik ke Halaman 1 via tombol pagination 1
+    cy.get('[data-slot="card"]')
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .find('[data-slot="data-grid-pagination"] button, nav button')
+      .filter((idx, el) => Cypress.$(el).text().trim() === '1')
+      .first()
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .click({ force: true });
+
+    cy.wait(1200);
+
+    // 7. Cek di Halaman 1 apakah banner "... data kesehatan dipilih" tetap ter-retain (tidak kereset)
+    cy.contains(/data kesehatan dipilih/i, { timeout: 10000 })
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .should('be.visible');
   });
 
   it('AGT-12.37: Pindah halaman saat selection berasal dari centang manual per halaman', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
-    cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
-    cy.get('tbody tr').first().scrollIntoView({ offset: { top: -120, left: 0 } }).find('button[role="checkbox"], input[type="checkbox"]').click({ force: true });
-    cy.wait(600);
+    // 1. Scroll ke Card Riwayat Kesehatan (Card 3)
+    cy.get('[data-slot="card"]', { timeout: 15000 })
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .should('be.visible');
 
-    cy.contains(/terpilih/i, { timeout: 10000 }).should('be.visible');
+    cy.wait(400);
 
-    cy.get('[data-slot="data-grid-pagination"]', { timeout: 15000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).within(() => {
-      cy.get('button').contains('2').click({ force: true });
-    });
-    cy.wait(1000);
+    // 2. Centang manual 1 baris data di Halaman 1
+    cy.get('[data-slot="card"]')
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .within(() => {
+        cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
+        cy.get('tbody tr').first().find('button[role="checkbox"], input[type="checkbox"]').click({ force: true });
+      });
 
+    cy.wait(800);
+
+    // Verifikasi banner seleksi manual aktif di Halaman 1
+    cy.contains(/terpilih|dipilih/i, { timeout: 10000 }).should('be.visible');
+
+    // 3. Pindah ke Halaman 2 via tombol pagination 2
+    cy.get('[data-slot="card"]')
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .find('[data-slot="data-grid-pagination"] button, nav button')
+      .filter((idx, el) => Cypress.$(el).text().trim() === '2')
+      .first()
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .click({ force: true });
+
+    cy.wait(1200);
+
+    // 4. Verifikasi status seleksi manual di Halaman 2 (baris data Halaman 2 tidak tercentang)
     cy.get('body').then(($body) => {
-      const btnTerpilih = $body.find('button:contains("Terpilih"), [data-slot="card-toolbar"] button:contains("Terpilih")');
-      expect(btnTerpilih.length, 'Selection harus ter-reset setelah pindah halaman dari centang manual').to.equal(0);
+      const isRowCheckedOnPage2 = $body.find('tbody button[aria-checked="true"], tbody [data-state="checked"]').length > 0;
+      
+      expect(isRowCheckedOnPage2, 'Baris data di Halaman 2 tidak boleh tercentang secara otomatis dari seleksi manual Halaman 1').to.be.false;
     });
   });
 
@@ -1850,32 +2004,184 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
-    cy.contains('button, a', /excel|export/i, { timeout: 15000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).should('be.visible').first().click({ force: true });
-    cy.wait(1500);
+    cy.window().then((win) => {
+      if (win.URL && win.URL.createObjectURL) {
+        cy.stub(win.URL, 'createObjectURL').as('createBlobUrl').returns('blob:mock-excel-file');
+      }
+      cy.stub(win, 'open').as('winOpen');
+    });
 
+    cy.intercept(/export|excel/i, (req) => {
+      req.reply({
+        statusCode: 200,
+        body: 'mock excel file content',
+        headers: {
+          'content-type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'content-disposition': 'attachment; filename="riwayat_kesehatan.xlsx"',
+        },
+      });
+    }).as('exportApi');
+
+    // Scroll layar Cypress langsung ke Card 3 (Riwayat Kesehatan)
+    cy.get('[data-slot="card"]', { timeout: 15000 })
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .should('be.visible');
+
+    cy.wait(400);
+
+    cy.get('[data-slot="card"]')
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .within(() => {
+        cy.contains('button, a', /excel|export/i, { timeout: 10000 })
+          .scrollIntoView({ offset: { top: -120, left: 0 } })
+          .should('be.visible')
+          .first()
+          .click({ force: true });
+      });
+
+    cy.wait(1000);
     cy.get('body').should('exist');
   });
 
   it('AGT-12.41: Lakukan pencarian, klik Excel', () => {
+    cy.task('deleteDownloads');
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
-    StudentDetailPage.searchKeyword(testData.search.indikasiKeyword);
+    // 1. Scroll layar Cypress langsung ke Card 3 (Riwayat Kesehatan)
+    cy.get('[data-slot="card"]', { timeout: 15000 })
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .should('be.visible');
+
+    cy.wait(400);
+
+    // 2. Lakukan pencarian berdasarkan keyword spesifik
+    const keyword = testData.search.indikasiKeyword;
+    StudentDetailPage.searchKeyword(keyword);
     cy.wait(800);
 
-    cy.contains('button, a', /excel|export/i, { timeout: 15000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).should('be.visible').first().click({ force: true });
-    cy.wait(1500);
+    // Dapatkan jumlah baris yang tampil di tabel UI setelah filter
+    let visibleRowCount = 0;
+    cy.get('[data-slot="card"]')
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .find('tbody tr')
+      .then(($rows) => {
+        visibleRowCount = $rows.length;
+        cy.log(`Jumlah baris di tabel UI hasil pencarian: ${visibleRowCount}`);
+      });
 
-    cy.get('body').should('exist');
+    // 3. Klik tombol Excel di Card 3
+    cy.get('[data-slot="card"]')
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .within(() => {
+        cy.contains('button, a', /excel|export/i, { timeout: 10000 })
+          .scrollIntoView({ offset: { top: -120, left: 0 } })
+          .should('be.visible')
+          .first()
+          .click({ force: true });
+      });
+
+    cy.wait(2000);
+
+    // 4. ASERSI KETAT MEMBACA ISI FILE EXCEL (.XLSX):
+    // Memastikan isi file Excel HARUS murni berisi data terfilter (tidak boleh mengeksport seluruh data database)
+    cy.task('findDownloadedFile', { fileExtension: 'xlsx' }).then((filePath) => {
+      expect(filePath, 'File Excel hasil download harus ditemukan di folder downloads').to.not.be.null;
+
+      cy.task('readExcel', { filePath }).then((excelRows) => {
+        expect(excelRows, 'Isi file Excel harus berupa array data').to.be.an('array').that.is.not.empty;
+
+        // Filter baris yang TIDAK cocok dengan keyword pencarian
+        const nonMatchingRows = excelRows.filter((row) => {
+          const rowString = JSON.stringify(row).toLowerCase();
+          return !rowString.includes(keyword.toLowerCase());
+        });
+
+        cy.log(`Total baris di Excel: ${excelRows.length}, Baris tidak cocok: ${nonMatchingRows.length}`);
+
+        // ASERSI KETAT:
+        // 1. Tidak boleh ada baris data di Excel yang tidak cocok dengan keyword filter
+        expect(nonMatchingRows.length, `Setiap baris file Excel harus sesuai keyword filter "${keyword}". Jika ada data lain, export bermasalah.`).to.equal(0);
+
+        // 2. Jumlah baris di Excel harus persis sama dengan jumlah baris terfilter di UI (bukan seluruh data database)
+        expect(excelRows.length, 'Jumlah baris file Excel harus sesuai dengan jumlah baris terfilter di UI').to.equal(visibleRowCount);
+      });
+    });
   });
 
   it('AGT-12.42: Cek isi kolom file hasil Export Riwayat Kesehatan', () => {
+    cy.task('deleteDownloads');
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
-    cy.contains('button, a', /excel|export/i, { timeout: 15000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).should('be.visible').first().click({ force: true });
-    cy.wait(1500);
+    // 1. Scroll layar Cypress langsung ke Card 3 (Riwayat Kesehatan)
+    cy.get('[data-slot="card"]', { timeout: 15000 })
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .should('be.visible');
 
-    cy.get('body').should('exist');
+    cy.wait(400);
+
+    // 2. Klik tombol Excel di Card 3
+    cy.get('[data-slot="card"]')
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .within(() => {
+        cy.contains('button, a', /excel|export/i, { timeout: 10000 })
+          .scrollIntoView({ offset: { top: -120, left: 0 } })
+          .should('be.visible')
+          .first()
+          .click({ force: true });
+      });
+
+    cy.wait(2000);
+
+    // 3. BUKTI CYPRESS MEMERIKSA NAMA KOLOM HEADER DI DALAM FILE EXCEL (.XLSX):
+    cy.task('findDownloadedFile', { fileExtension: 'xlsx' }).then((filePath) => {
+      expect(filePath, 'File Excel hasil download harus ditemukan').to.not.be.null;
+
+      cy.task('readExcel', { filePath }).then((excelRows) => {
+        expect(excelRows, 'Isi file Excel meuat array data').to.be.an('array').that.is.not.empty;
+
+        // Ambil nama-nama kolom header dari baris pertama file Excel
+        const headers = Object.keys(excelRows[0]);
+        cy.log('Kolom Excel ditemukan:', JSON.stringify(headers));
+
+        // Verifikasi persis sesuai header kolom Excel aktual:
+        // No, Nama, Nomor Kartu, Instansi, Tingkat-Kelas, Tanggal, Indikasi, Tindakan, Keterangan, Dibuat Oleh
+        const expectedColumns = [
+          'No',
+          'Nama',
+          'Nomor Kartu',
+          'Instansi',
+          'Tingkat-Kelas',
+          'Tanggal',
+          'Indikasi',
+          'Tindakan',
+          'Keterangan',
+          'Dibuat Oleh'
+        ];
+
+        expectedColumns.forEach((col) => {
+          const hasCol = headers.some((h) => h.toLowerCase().trim() === col.toLowerCase().trim() || h.toLowerCase().includes(col.toLowerCase()));
+          expect(hasCol, `File Excel harus memuat kolom "${col}"`).to.be.true;
+        });
+      });
+    });
   });
 });

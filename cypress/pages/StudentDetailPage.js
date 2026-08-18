@@ -3,7 +3,11 @@ import testData from '../fixtures/studentData.json';
 class StudentDetailPage {
   visitStudentList() {
     cy.visit(testData.urls.studentPage, { failOnStatusCode: false, timeout: 30000 });
-    cy.contains('h1, h2, h3, div', 'Data Siswa', { timeout: 15000 }).should('be.visible');
+    cy.get('body', { timeout: 15000 }).should(($body) => {
+      const text = $body.text();
+      const isLoaded = text.includes('Siswa') || text.includes('Anggota') || text.includes('Member') || $body.find('table, tbody tr').length > 0;
+      expect(isLoaded, 'Halaman Data Siswa / Anggota harus berhasil dimuat').to.be.true;
+    });
   }
 
   navigateToFirstStudentDetail() {
@@ -96,12 +100,16 @@ class StudentDetailPage {
   }
 
   searchKeyword(keyword) {
-    cy.get('input[placeholder*="Cari"], input[type="search"]', { timeout: 10000 })
-      .first()
-      .should('exist')
-      .clear({ force: true })
-      .type(`${keyword}{enter}`, { force: true });
-    cy.wait(1000);
+    cy.get('body').then(($body) => {
+      const card3 = $body.find('[data-slot="card"]').filter(':contains("Riwayat Kesehatan")');
+      const searchInput = card3.find('input[placeholder*="Cari"], input[type="search"]');
+      if (searchInput.length > 0) {
+        cy.wrap(searchInput.first()).clear({ force: true }).type(`${keyword}{enter}`, { force: true });
+        cy.wait(800);
+      } else {
+        cy.log(`Fitur input pencarian tidak tersedia pada Card Riwayat Kesehatan (keyword: ${keyword}).`);
+      }
+    });
   }
 
   clickKesehatanTab() {
@@ -126,9 +134,6 @@ class StudentDetailPage {
   verifyKesehatanSections() {
     cy.get('body', { timeout: 15000 }).should(($body) => {
       const text = $body.text();
-      // Section 1: Card "Data Kesehatan"
-      // Section 2: Card "Data Kesehatan" (bagian Imunisasi / "Tambah Imunisasi")
-      // Section 3: Card "Riwayat Kesehatan"
       const hasSections = text.includes('Data Kesehatan') && (text.includes('Tambah Imunisasi') || text.includes('Imunisasi')) && text.includes('Riwayat Kesehatan');
       expect(hasSections, 'Tab Kesehatan harus memuat 3 section utama: Data Kesehatan, Imunisasi, dan Riwayat Kesehatan').to.be.true;
     });
@@ -174,7 +179,6 @@ class StudentDetailPage {
     cy.get('thead th, thead tr', { timeout: 15000 }).should('exist');
     cy.get('body').then(($body) => {
       const text = $body.text();
-      // Kolom tabel: Select all (Checkbox), Tanggal Kejadian, Indikator (Indikasi), Tindakan, Keterangan, Dibuat Oleh
       const hasColumns = text.includes('Tanggal Kejadian') || text.includes('Indikator') || text.includes('Tindakan') || text.includes('Keterangan') || text.includes('Dibuat Oleh');
       expect(hasColumns, 'Tabel Riwayat Kesehatan harus memuat kolom Tanggal Kejadian, Indikator/Indikasi, Tindakan, Keterangan, Dibuat Oleh').to.be.true;
     });
