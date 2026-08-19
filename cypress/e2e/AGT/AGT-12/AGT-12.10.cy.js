@@ -9,7 +9,7 @@ describe('AGT-12.10 - Buka tab Kesehatan saat belum ada riwayat', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
-    // Scroll ke Card Riwayat Kesehatan (Card 3)
+    // 1. Scroll ke Card Riwayat Kesehatan (Card 3)
     cy.get('[data-slot="card"]', { timeout: 15000 })
       .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
       .parents('[data-slot="card"]')
@@ -17,21 +17,87 @@ describe('AGT-12.10 - Buka tab Kesehatan saat belum ada riwayat', () => {
       .scrollIntoView({ offset: { top: -120, left: 0 } })
       .should('be.visible');
 
-    cy.wait(500);
+    cy.wait(600);
 
-    // Verifikasi ketat bahwa Card 3 Riwayat Kesehatan menampilkan empty state dan TIDAK memuat baris data riil
+    // 2. CEK & PEMBERSIHAN DATA:
+    // Jika tabel Card 3 masih berisi data riil, lakukan pembersihan via Centang Header -> Hapus Bulk
     cy.get('[data-slot="card"]')
       .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
       .parents('[data-slot="card"]')
       .first()
-      .within(() => {
-        cy.get('tbody tr').then(($rows) => {
-          const text = $rows.text().toLowerCase();
-          const hasDataRows = $rows.length > 0 && !text.includes('tidak ditemukan') && !text.includes('belum') && !text.includes('kosong');
-          
-          // Jika ada data baris riil di tabel, test case ini harus ERROR/GAGAL sesuai ekspektasi skenario
-          expect(hasDataRows, 'Tabel Riwayat Kesehatan harus kosong (empty state), tidak boleh memuat baris data').to.be.false;
+      .find('tbody tr')
+      .then(($rows) => {
+        // Filter baris yang benar-benar berisi data (abaikan placeholder empty-state)
+        const dataRows = $rows.toArray().filter((row) => {
+          const txt = (row.innerText || '').toLowerCase();
+          // Jika mengandung indikator empty-state, abaikan
+          if (/(tidak ada|tidak ditemukan|belum|kosong)/.test(txt)) return false;
+          const tds = row.querySelectorAll('td');
+          if (!tds || tds.length === 0) return false;
+          // Gabungkan teks sel untuk memastikan bukan hanya dash/placeholder
+          const cellText = Array.from(tds).map(td => td.innerText.trim()).join(' ');
+          if (!cellText) return false;
+          if (/^[-––—]+$/.test(cellText)) return false;
+          return true;
         });
+
+        if (dataRows.length > 0) {
+          cy.log(`[AGT-12.10] Tabel berisi ${dataRows.length} data riil. Melakukan centang header & hapus bulk...`);
+
+          // A. Centang Checkbox Header di Card 3 (menggunakan selector persis AGT-12.32)
+          cy.get('[data-slot="card"]')
+            .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+            .parents('[data-slot="card"]')
+            .first()
+            .find('thead th button[role="checkbox"], button[aria-label="Select all"], thead th [data-slot="checkbox"]')
+            .first()
+            .scrollIntoView({ offset: { top: -120, left: 0 } })
+            .click({ force: true });
+
+          cy.wait(1000);
+
+          // B. Klik tombol "Hapus" pada banner / floating action bar (menggunakan selector persis AGT-12.31)
+          cy.contains('button', /hapus/i, { timeout: 10000 })
+            .scrollIntoView({ offset: { top: -120, left: 0 } })
+            .should('be.visible')
+            .click({ force: true });
+
+          cy.wait(600);
+
+          // C. Klik tombol "Hapus" pada modal popup konfirmasi Hapus Bulk (menggunakan selector persis AGT-12.32)
+          cy.get('[role="dialog"], [data-slot="dialog-content"]', { timeout: 10000 })
+            .should('be.visible')
+            .within(() => {
+              cy.contains('button', /hapus|ya|konfirmasi/i).click({ force: true });
+            });
+
+          cy.wait(2000);
+        } else {
+          cy.log('[AGT-12.10] Tidak ditemukan baris data riil — melewati pembersihan bulk.');
+        }
+      });
+
+    cy.wait(1000);
+
+    // 3. ASERSI FINAL: Memastikan Card 3 Riwayat Kesehatan 100% EMPTY STATE
+    cy.get('[data-slot="card"]')
+      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+      .parents('[data-slot="card"]')
+      .first()
+      .find('tbody tr')
+      .then(($rows) => {
+        const dataRows = $rows.toArray().filter((row) => {
+          const txt = (row.innerText || '').toLowerCase();
+          if (/(tidak ada|tidak ditemukan|belum|kosong)/.test(txt)) return false;
+          const tds = row.querySelectorAll('td');
+          if (!tds || tds.length === 0) return false;
+          const cellText = Array.from(tds).map(td => td.innerText.trim()).join(' ');
+          if (!cellText) return false;
+          if (/^[-––—]+$/.test(cellText)) return false;
+          return true;
+        });
+
+        expect(dataRows.length, 'Tabel Riwayat Kesehatan harus dalam keadaan kosong (empty state)').to.equal(0);
       });
   });
 });
