@@ -10,11 +10,23 @@ describe('AGT-12.29 - Klik link Pilih Semua pada banner (hasil filter <= 50 data
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickKesehatanTab();
 
-    // Scroll ke Card Riwayat Kesehatan
-    cy.get('[data-slot="card"]', { timeout: 15000 })
-      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
-      .parents('[data-slot="card"]')
-      .first()
+    // Scroll ke Card Riwayat Kesehatan (gunakan pencarian tahan-robust untuk title yang mungkin tidak ada pada atribut khusus)
+    const findCardByTitle = (title) => {
+      return cy.get('[data-slot="card"]', { timeout: 15000 }).then(($cards) => {
+        const arr = $cards.toArray();
+        const matched = arr.find((el) => {
+          const titleEl = el.querySelector('[data-slot="card-title"]');
+          const txt = (titleEl ? titleEl.innerText : el.innerText || '').toLowerCase();
+          return txt.includes(title.toLowerCase());
+        });
+        if (!matched) {
+          throw new Error(`Card with title "${title}" not found`);
+        }
+        return cy.wrap(matched);
+      });
+    };
+
+    findCardByTitle('Riwayat Kesehatan')
       .scrollIntoView({ offset: { top: -120, left: 0 } })
       .should('be.visible');
 
@@ -117,16 +129,12 @@ describe('AGT-12.29 - Klik link Pilih Semua pada banner (hasil filter <= 50 data
     });
 
     // 1. UBAH PAGINATION KE 100 KHUSUS PADA CARD 3 (RIWAYAT KESEHATAN)
-    cy.get('[data-slot="card"]', { timeout: 15000 })
-      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
-      .parents('[data-slot="card"]')
-      .first()
-      .within(() => {
-        cy.get('button[role="combobox"], [data-slot="select-trigger"]', { timeout: 10000 })
-          .first()
-          .scrollIntoView({ offset: { top: -120, left: 0 } })
-          .click({ force: true });
-      });
+    findCardByTitle('Riwayat Kesehatan').within(() => {
+      cy.get('button[role="combobox"], [data-slot="select-trigger"]', { timeout: 10000 })
+        .first()
+        .scrollIntoView({ offset: { top: -120, left: 0 } })
+        .click({ force: true });
+    });
 
     cy.wait(400);
 
@@ -136,22 +144,16 @@ describe('AGT-12.29 - Klik link Pilih Semua pada banner (hasil filter <= 50 data
       .click({ force: true });
 
     // 2. TUNGGU HINGGA BARIS SELESAI DIMUAT DI TABEL CARD 3
-    cy.get('[data-slot="card"]')
-      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
-      .parents('[data-slot="card"]')
-      .first()
-      .within(() => {
-        cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
-      });
+    findCardByTitle('Riwayat Kesehatan').within(() => {
+      cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
+    });
 
     // JEDA SEBELUM CENTANG HEADER (SEPERTI YANG DIMINTA USER)
     cy.wait(1500);
 
     // 3. CENTANG HEADER CHECKBOX TEPAT SPESIFIK (button[aria-label="Select all"]) KHUSUS CARD 3 (RIWAYAT KESEHATAN)
-    cy.get('[data-slot="card"]')
-      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
-      .parents('[data-slot="card"]')
-      .first()
+    // 3. Centang header checkbox pada Card Riwayat Kesehatan (tahan-robust)
+    findCardByTitle('Riwayat Kesehatan')
       .find('button[aria-label="Select all"], thead th button[role="checkbox"], thead th [data-slot="checkbox"]')
       .first()
       .scrollIntoView({ offset: { top: -120, left: 0 } })
@@ -161,10 +163,7 @@ describe('AGT-12.29 - Klik link Pilih Semua pada banner (hasil filter <= 50 data
     cy.wait(1500);
 
     // 4. ASSERT BAHWA TOMBOL TERPILIH MENAMPILKAN ANGKA TOTAL BARIS DINAMIS
-    cy.get('[data-slot="card"]')
-      .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
-      .parents('[data-slot="card"]')
-      .first()
+    findCardByTitle('Riwayat Kesehatan')
       .find('tbody tr')
       .then(($rows) => {
         const totalRows = $rows.length;
