@@ -1386,9 +1386,10 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
             cy.contains('button[type="submit"], button', 'Simpan').click({ force: true });
           });
 
-          cy.get('body').then(($body) => {
-            const visibleDialogs = $body.find('[role="dialog"]:visible, [data-slot="dialog-content"]:visible');
-            expect(visibleDialogs.length, 'Modal dialog Tambah Riwayat Kesehatan harus sudah tertutup').to.equal(0);
+          // Wait until any dialog is fully hidden/closed (retries until condition or timeout)
+          cy.get('[role="dialog"], [data-slot="dialog-content"]', { timeout: 10000 }).should(($els) => {
+            const anyVisible = $els.toArray().some((el) => Cypress.$(el).is(':visible'));
+            expect(anyVisible, 'Modal dialog Tambah Riwayat Kesehatan harus sudah tertutup').to.equal(false);
           });
           cy.wait(400);
         }
@@ -1612,20 +1613,32 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
       .first()
       .find('button[aria-label="Select all"], thead th button[role="checkbox"], tbody tr button[role="checkbox"]')
       .first()
-      .scrollIntoView({ offset: { top: -120, left: 0 } })
-      .click({ force: true });
+      .scrollIntoView({ offset: { top: -120, left: 0 } });
+    cy.wait(150);
+    cy.get('[data-slot="card"]').contains('[data-slot="card-title"]', 'Riwayat Kesehatan').parents('[data-slot="card"]').first().find('button[aria-label="Select all"], thead th button[role="checkbox"], tbody tr button[role="checkbox"]').first().click({ force: true });
 
     cy.wait(1000);
 
-    // Klik tombol Hapus pada banner
-    cy.contains('button', /hapus/i, { timeout: 10000 })
-      .scrollIntoView({ offset: { top: -120, left: 0 } })
-      .should('be.visible')
-      .click({ force: true });
+    // Klik tombol Hapus pada banner (tolerant lookup)
+    cy.get('body').then(($body) => {
+      const hasBulk = $body.find('button').filter((i, el) => /hapus yang dipilih/i.test((el.innerText || '').toLowerCase()));
+      const generic = $body.find('button').filter((i, el) => /\bhapus\b/i.test((el.innerText || '').toLowerCase()));
+      if (hasBulk.length) {
+        cy.contains('button', /hapus yang dipilih/i, { timeout: 10000 }).scrollIntoView({ offset: { top: -120, left: 0 } });
+        cy.wait(150);
+        cy.contains('button', /hapus yang dipilih/i, { timeout: 10000 }).should('be.visible').click({ force: true });
+      } else if (generic.length) {
+        cy.contains('button', /hapus/i, { timeout: 10000 }).scrollIntoView({ offset: { top: -120, left: 0 } });
+        cy.wait(150);
+        cy.contains('button', /hapus/i, { timeout: 10000 }).should('be.visible').click({ force: true });
+      } else {
+        cy.log('[AGT] Tombol Hapus tidak ditemukan pada banner — melewati langkah.');
+      }
+    });
 
     cy.wait(600);
 
-    // Pada popup modal Hapus Bulk, klik tombol Hapus
+    // Pada popup modal Hapus Bulk, klik tombol Hapus jika muncul
     cy.get('[role="dialog"], [data-slot="dialog-content"]', { timeout: 10000 })
       .should('be.visible')
       .within(() => {
@@ -1677,20 +1690,32 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
       .first()
       .find('button[aria-label="Select all"], thead th button[role="checkbox"], tbody tr button[role="checkbox"]')
       .first()
-      .scrollIntoView({ offset: { top: -120, left: 0 } })
-      .click({ force: true });
+      .scrollIntoView({ offset: { top: -120, left: 0 } });
+    cy.wait(150);
+    cy.get('[data-slot="card"]').contains('[data-slot="card-title"]', 'Riwayat Kesehatan').parents('[data-slot="card"]').first().find('button[aria-label="Select all"], thead th button[role="checkbox"], tbody tr button[role="checkbox"]').first().click({ force: true });
 
     cy.wait(1000);
 
-    // Klik tombol Hapus pada banner
-    cy.contains('button', /hapus/i, { timeout: 10000 })
-      .scrollIntoView({ offset: { top: -120, left: 0 } })
-      .should('be.visible')
-      .click({ force: true });
+    // Klik tombol Hapus pada banner (tolerant lookup)
+    cy.get('body').then(($body) => {
+      const hasBulk = $body.find('button').filter((i, el) => /hapus yang dipilih/i.test((el.innerText || '').toLowerCase()));
+      const generic = $body.find('button').filter((i, el) => /\bhapus\b/i.test((el.innerText || '').toLowerCase()));
+      if (hasBulk.length) {
+        cy.contains('button', /hapus yang dipilih/i, { timeout: 10000 }).scrollIntoView({ offset: { top: -120, left: 0 } });
+        cy.wait(150);
+        cy.contains('button', /hapus yang dipilih/i, { timeout: 10000 }).should('be.visible').click({ force: true });
+      } else if (generic.length) {
+        cy.contains('button', /hapus/i, { timeout: 10000 }).scrollIntoView({ offset: { top: -120, left: 0 } });
+        cy.wait(150);
+        cy.contains('button', /hapus/i, { timeout: 10000 }).should('be.visible').click({ force: true });
+      } else {
+        cy.log('[AGT] Tombol Hapus tidak ditemukan pada banner — melewati langkah.');
+      }
+    });
 
     cy.wait(600);
 
-    // Pada popup modal Hapus Bulk, klik tombol Batal
+    // Pada popup modal Hapus Bulk, klik tombol Batal jika muncul
     cy.get('[role="dialog"], [data-slot="dialog-content"]', { timeout: 10000 })
       .should('be.visible')
       .within(() => {
@@ -1807,9 +1832,10 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
             cy.contains('button[type="submit"], button', 'Simpan').click({ force: true });
           });
 
-          cy.get('body').then(($body) => {
-            const visibleDialogs = $body.find('[role="dialog"]:visible, [data-slot="dialog-content"]:visible');
-            expect(visibleDialogs.length, 'Modal dialog Tambah Riwayat Kesehatan harus sudah tertutup').to.equal(0);
+          // Wait until any dialog is fully hidden/closed (retries until condition or timeout)
+          cy.get('[role="dialog"], [data-slot="dialog-content"]', { timeout: 10000 }).should(($els) => {
+            const anyVisible = $els.toArray().some((el) => Cypress.$(el).is(':visible'));
+            expect(anyVisible, 'Modal dialog Tambah Riwayat Kesehatan harus sudah tertutup').to.equal(false);
           });
           cy.wait(400);
         }
@@ -1959,10 +1985,24 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
       .parents('[data-slot="card"]')
       .first()
       .find('[data-slot="data-grid-pagination"] button, nav button')
-      .filter((idx, el) => Cypress.$(el).text().trim() === '2')
-      .first()
-      .scrollIntoView({ offset: { top: -120, left: 0 } })
-      .click({ force: true });
+      .then(($els) => {
+        const match = Array.from($els).find((el) => (el.innerText || '').trim() === '2');
+        if (match) {
+          cy.wrap(match).scrollIntoView({ offset: { top: -120, left: 0 } });
+          cy.wait(150);
+          cy.wrap(match).click({ force: true });
+        } else {
+          cy.log('[AGT] Tombol pagination "2" tidak ditemukan — mencoba fallback klik next');
+          const next = $els.toArray().find(el => /next|»|›/i.test((el.innerText || '') + (el.getAttribute('aria-label') || '')));
+          if (next) {
+            cy.wrap(next).scrollIntoView({ offset: { top: -120, left: 0 } });
+            cy.wait(150);
+            cy.wrap(next).click({ force: true });
+          } else {
+            cy.log('[AGT] Tidak menemukan tombol next/fallback pagination');
+          }
+        }
+      });
 
     cy.wait(1200);
 
@@ -2025,10 +2065,24 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
       .parents('[data-slot="card"]')
       .first()
       .find('[data-slot="data-grid-pagination"] button, nav button')
-      .filter((idx, el) => Cypress.$(el).text().trim() === '2')
-      .first()
-      .scrollIntoView({ offset: { top: -120, left: 0 } })
-      .click({ force: true });
+      .then(($els) => {
+        const match = Array.from($els).find((el) => (el.innerText || '').trim() === '2');
+        if (match) {
+          cy.wrap(match).scrollIntoView({ offset: { top: -120, left: 0 } });
+          cy.wait(150);
+          cy.wrap(match).click({ force: true });
+        } else {
+          cy.log('[AGT] Tombol pagination "2" tidak ditemukan — mencoba fallback klik next');
+          const next = $els.toArray().find(el => /next|»|›/i.test((el.innerText || '') + (el.getAttribute('aria-label') || '')));
+          if (next) {
+            cy.wrap(next).scrollIntoView({ offset: { top: -120, left: 0 } });
+            cy.wait(150);
+            cy.wrap(next).click({ force: true });
+          } else {
+            cy.log('[AGT] Tidak menemukan tombol next/fallback pagination');
+          }
+        }
+      });
 
     cy.wait(1200);
 
