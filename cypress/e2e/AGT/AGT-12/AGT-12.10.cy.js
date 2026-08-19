@@ -72,6 +72,62 @@ describe('AGT-12.10 - Buka tab Kesehatan saat belum ada riwayat', () => {
             });
 
           cy.wait(2000);
+
+          // D. Jika penghapusan bulk gagal (masih ada data), lakukan fallback: hapus per baris
+          cy.get('[data-slot="card"]')
+            .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
+            .parents('[data-slot="card"]')
+            .first()
+            .find('tbody tr')
+            .then(($after) => {
+              const remaining = $after.toArray().filter((row) => {
+                const txt = (row.innerText || '').toLowerCase();
+                if (/(tidak ada|tidak ditemukan|belum|kosong)/.test(txt)) return false;
+                const tds = row.querySelectorAll('td');
+                if (!tds || tds.length === 0) return false;
+                const cellText = Array.from(tds).map(td => td.innerText.trim()).join(' ');
+                if (!cellText) return false;
+                if (/^[-––—]+$/.test(cellText)) return false;
+                return true;
+              });
+
+              if (remaining.length > 0) {
+                cy.log(`[AGT-12.10] Bulk delete tidak menghapus semua baris. Melakukan delete per-baris (${remaining.length}) sebagai fallback.`);
+
+                // Hapus setiap baris satu per satu
+                cy.wrap(remaining).each((row) => {
+                  const $row = Cypress.$(row);
+                  // Cari tombol hapus di dalam baris
+                  const delBtn = $row.find('button svg.lucide-trash').closest('button');
+                  const altBtn = $row.find('button[class*="text-destructive"], button[aria-label*="hapus"], button[title*="Hapus"]');
+                  if (delBtn && delBtn.length) {
+                    cy.wrap(delBtn).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
+                  } else if (altBtn && altBtn.length) {
+                    cy.wrap(altBtn.first()).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
+                  } else {
+                    // Jika tidak ada tombol hapus, log untuk investigasi
+                    cy.log('Tidak menemukan tombol hapus di baris — abaikan.');
+                  }
+
+                  cy.wait(500);
+
+                  // Jika muncul dialog konfirmasi, klik konfirmasi
+                  cy.get('body').then(($body) => {
+                    const dialogs = $body.find('[role="dialog"], [data-slot="dialog-content"]');
+                    if (dialogs.length > 0) {
+                      cy.get('[role="dialog"], [data-slot="dialog-content"]').within(() => {
+                        cy.contains('button', /hapus|ya|konfirmasi/i).click({ force: true });
+                      });
+                      cy.wait(500);
+                    }
+                  });
+                });
+
+                cy.wait(1000);
+              } else {
+                cy.log('[AGT-12.10] Bulk delete berhasil menghapus semua baris.');
+              }
+            });
         } else {
           cy.log('[AGT-12.10] Tidak ditemukan baris data riil — melewati pembersihan bulk.');
         }
