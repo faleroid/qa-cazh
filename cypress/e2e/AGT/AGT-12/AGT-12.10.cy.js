@@ -49,10 +49,12 @@ describe('AGT-12.10 - Buka tab Kesehatan saat belum ada riwayat', () => {
             .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
             .parents('[data-slot="card"]')
             .first()
-            .find('thead th button[role="checkbox"], button[aria-label="Select all"], thead th [data-slot="checkbox"]')
-            .first()
-            .scrollIntoView({ offset: { top: -120, left: 0 } })
-            .click({ force: true });
+            .as('kesehatanCard');
+
+          // Scroll ke header checkbox lalu click dengan re-query untuk menghindari detached element
+          cy.get('@kesehatanCard').find('thead th button[role="checkbox"], button[aria-label="Select all"], thead th [data-slot="checkbox"]').first().scrollIntoView({ offset: { top: -120, left: 0 } });
+          cy.wait(200);
+          cy.get('@kesehatanCard').find('thead th button[role="checkbox"], button[aria-label="Select all"], thead th [data-slot="checkbox"]').first().click({ force: true });
 
           cy.wait(1000);
 
@@ -60,10 +62,10 @@ describe('AGT-12.10 - Buka tab Kesehatan saat belum ada riwayat', () => {
           cy.get('body').then(($body) => {
             const btn = $body.find('button').filter((i, el) => /hapus/i.test((el.innerText || '').toLowerCase()));
             if (btn.length) {
-              cy.wrap(btn.first())
-                .scrollIntoView({ offset: { top: -120, left: 0 } })
-                .should('be.visible')
-                .click({ force: true });
+              // Use cy.contains to re-query and avoid detached elements
+              cy.contains('button', /hapus/i, { timeout: 10000 }).scrollIntoView({ offset: { top: -120, left: 0 } });
+              cy.wait(200);
+              cy.contains('button', /hapus/i, { timeout: 10000 }).should('be.visible').click({ force: true });
 
               cy.wait(600);
 
@@ -108,9 +110,14 @@ describe('AGT-12.10 - Buka tab Kesehatan saat belum ada riwayat', () => {
                   const delBtn = $row.find('button svg.lucide-trash').closest('button');
                   const altBtn = $row.find('button[class*="text-destructive"], button[aria-label*="hapus"], button[title*="Hapus"]');
                   if (delBtn && delBtn.length) {
-                    cy.wrap(delBtn).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
+                    // Scroll then re-query inside the row to avoid detached elements
+                    cy.wrap($row).find('button svg.lucide-trash').closest('button').scrollIntoView({ offset: { top: -120, left: 0 } });
+                    cy.wait(200);
+                    cy.wrap($row).find('button svg.lucide-trash').closest('button').click({ force: true });
                   } else if (altBtn && altBtn.length) {
-                    cy.wrap(altBtn.first()).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
+                    cy.wrap($row).find('button[class*="text-destructive"], button[aria-label*="hapus"], button[title*="Hapus"]').first().scrollIntoView({ offset: { top: -120, left: 0 } });
+                    cy.wait(200);
+                    cy.wrap($row).find('button[class*="text-destructive"], button[aria-label*="hapus"], button[title*="Hapus"]').first().click({ force: true });
                   } else {
                     // Jika tidak ada tombol hapus, log untuk investigasi
                     cy.log('Tidak menemukan tombol hapus di baris — abaikan.');

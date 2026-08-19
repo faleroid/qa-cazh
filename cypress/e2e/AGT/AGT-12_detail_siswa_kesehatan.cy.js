@@ -212,11 +212,10 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
         }
 
         cy.wrap($card).within(() => {
-          cy.get('button.text-destructive, button svg.lucide-trash, button:has(svg.lucide-trash)')
-            .first()
-            .scrollIntoView({ offset: { top: -120, left: 0 } })
-            .should('be.visible')
-            .click({ force: true });
+          // Scroll then re-query before clicking to avoid detached element
+          cy.get('button.text-destructive, button svg.lucide-trash, button:has(svg.lucide-trash)').first().scrollIntoView({ offset: { top: -120, left: 0 } });
+          cy.wait(200);
+          cy.get('button.text-destructive, button svg.lucide-trash, button:has(svg.lucide-trash)').first().should('be.visible').click({ force: true });
         });
       });
 
@@ -290,8 +289,11 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
             .first()
             .find('thead th button[role="checkbox"], button[aria-label="Select all"], thead th [data-slot="checkbox"]')
             .first()
-            .scrollIntoView({ offset: { top: -120, left: 0 } })
-            .click({ force: true });
+            .as('kesehatanHeaderCheckbox');
+
+          cy.get('@kesehatanHeaderCheckbox').scrollIntoView({ offset: { top: -120, left: 0 } });
+          cy.wait(200);
+          cy.get('@kesehatanHeaderCheckbox').click({ force: true });
 
           cy.wait(1000);
 
@@ -299,10 +301,9 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
           cy.get('body').then(($body) => {
             const btn = $body.find('button').filter((i, el) => /hapus/i.test((el.innerText || '').toLowerCase()));
             if (btn.length) {
-              cy.wrap(btn.first())
-                .scrollIntoView({ offset: { top: -120, left: 0 } })
-                .should('be.visible')
-                .click({ force: true });
+              cy.contains('button', /hapus/i, { timeout: 10000 }).scrollIntoView({ offset: { top: -120, left: 0 } });
+              cy.wait(200);
+              cy.contains('button', /hapus/i, { timeout: 10000 }).should('be.visible').click({ force: true });
 
               cy.wait(600);
 
@@ -347,9 +348,13 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
                   const delBtn = $row.find('button svg.lucide-trash').closest('button');
                   const altBtn = $row.find('button[class*="text-destructive"], button[aria-label*="hapus"], button[title*="Hapus"]');
                   if (delBtn && delBtn.length) {
-                    cy.wrap(delBtn).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
+                    cy.wrap(delBtn).scrollIntoView({ offset: { top: -120, left: 0 } });
+                    cy.wait(150);
+                    cy.wrap(delBtn).click({ force: true });
                   } else if (altBtn && altBtn.length) {
-                    cy.wrap(altBtn.first()).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
+                    cy.wrap(altBtn.first()).scrollIntoView({ offset: { top: -120, left: 0 } });
+                    cy.wait(150);
+                    cy.wrap(altBtn.first()).click({ force: true });
                   } else {
                     // Jika tidak ada tombol hapus, log untuk investigasi
                     cy.log('Tidak menemukan tombol hapus di baris — abaikan.');
@@ -1218,7 +1223,9 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
     cy.get('tbody tr').first().find('button[role="checkbox"], input[type="checkbox"], [data-slot="checkbox"]').first().click({ force: true });
     cy.wait(600);
 
-    cy.contains(/terpilih/i, { timeout: 10000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).should('be.visible');
+    cy.contains(/terpilih/i, { timeout: 10000 }).scrollIntoView({ offset: { top: -120, left: 0 } });
+    cy.wait(200);
+    cy.contains(/terpilih/i, { timeout: 10000 }).should('be.visible');
     cy.contains('button', /hapus/i, { timeout: 10000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).should('be.visible');
   });
 
@@ -1508,7 +1515,9 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
     cy.get('body').then(($body) => {
       const btnPilihSemua = $body.find('button:contains("Pilih semua")');
       if (btnPilihSemua.length > 0) {
-        cy.wrap(btnPilihSemua.first()).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
+        cy.wrap(btnPilihSemua.first()).scrollIntoView({ offset: { top: -120, left: 0 } });
+        cy.wait(150);
+        cy.wrap(btnPilihSemua.first()).click({ force: true });
         cy.wait(1000);
       }
     });
@@ -1889,7 +1898,9 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
     StudentDetailPage.clickKesehatanTab();
     cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
 
-    cy.get('tbody tr').first().scrollIntoView({ offset: { top: -120, left: 0 } }).find('button[role="checkbox"], input[type="checkbox"]').click({ force: true });
+    cy.get('tbody tr').first().scrollIntoView({ offset: { top: -120, left: 0 } });
+    cy.wait(200);
+    cy.get('tbody tr').first().find('button[role="checkbox"], input[type="checkbox"]').click({ force: true });
     cy.wait(600);
 
     StudentDetailPage.searchKeyword(testData.search.indikasiKeyword);
@@ -1930,7 +1941,9 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
     cy.get('body').then(($body) => {
       const btnPilihSemua = $body.find('button:contains("Pilih semua")');
       if (btnPilihSemua.length > 0) {
-        cy.wrap(btnPilihSemua.first()).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
+        cy.wrap(btnPilihSemua.first()).scrollIntoView({ offset: { top: -120, left: 0 } });
+        cy.wait(150);
+        cy.wrap(btnPilihSemua.first()).click({ force: true });
         cy.wait(800);
       }
     });
@@ -2032,18 +2045,24 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
     StudentDetailPage.clickKesehatanTab();
 
     cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
-    cy.get('tbody tr').eq(0).scrollIntoView({ offset: { top: -120, left: 0 } }).find('button[role="checkbox"], input[type="checkbox"]').click({ force: true });
+    cy.get('tbody tr').eq(0).scrollIntoView({ offset: { top: -120, left: 0 } });
+    cy.wait(200);
+    cy.get('tbody tr').eq(0).find('button[role="checkbox"], input[type="checkbox"]').click({ force: true });
     cy.wait(400);
 
     cy.get('body').then(($body) => {
       const rows = $body.find('tbody tr');
       if (rows.length > 1) {
-        cy.wrap(rows).eq(1).scrollIntoView({ offset: { top: -120, left: 0 } }).find('button[role="checkbox"], input[type="checkbox"]').click({ force: true });
+        cy.wrap(rows).eq(1).scrollIntoView({ offset: { top: -120, left: 0 } });
+        cy.wait(200);
+        cy.wrap(rows).eq(1).find('button[role="checkbox"], input[type="checkbox"]').click({ force: true });
         cy.wait(400);
       }
     });
 
-    cy.contains('button', /hapus/i, { timeout: 10000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).should('be.visible').click({ force: true });
+    cy.contains('button', /hapus/i, { timeout: 10000 }).scrollIntoView({ offset: { top: -120, left: 0 } });
+    cy.wait(200);
+    cy.contains('button', /hapus/i, { timeout: 10000 }).should('be.visible').click({ force: true });
     cy.wait(600);
 
     cy.intercept('**', (req) => {
@@ -2060,7 +2079,9 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
     }).as('deletePartialMock');
 
     cy.get('[role="dialog"]', { timeout: 10000 }).should('be.visible').within(() => {
-      cy.contains('button', /hapus|ya|konfirmasi/i).scrollIntoView({ offset: { top: -120, left: 0 } }).should('be.visible').click({ force: true });
+      cy.contains('button', /hapus|ya|konfirmasi/i).scrollIntoView({ offset: { top: -120, left: 0 } });
+      cy.wait(200);
+      cy.contains('button', /hapus|ya|konfirmasi/i).should('be.visible').click({ force: true });
     });
     cy.wait(1000);
 
@@ -2083,10 +2104,14 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
     StudentDetailPage.clickKesehatanTab();
 
     cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
-    cy.get('tbody tr').first().scrollIntoView({ offset: { top: -120, left: 0 } }).find('button[role="checkbox"], input[type="checkbox"]').click({ force: true });
+    cy.get('tbody tr').first().scrollIntoView({ offset: { top: -120, left: 0 } });
+    cy.wait(200);
+    cy.get('tbody tr').first().find('button[role="checkbox"], input[type="checkbox"]').click({ force: true });
     cy.wait(600);
 
-    cy.contains('button', /hapus/i, { timeout: 10000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).should('be.visible').click({ force: true });
+    cy.contains('button', /hapus/i, { timeout: 10000 }).scrollIntoView({ offset: { top: -120, left: 0 } });
+    cy.wait(200);
+    cy.contains('button', /hapus/i, { timeout: 10000 }).should('be.visible').click({ force: true });
     cy.wait(600);
 
     cy.intercept('**', (req) => {
@@ -2101,7 +2126,9 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
     }).as('deleteErrorMock');
 
     cy.get('[role="dialog"]', { timeout: 10000 }).should('be.visible').within(() => {
-      cy.contains('button', /hapus|ya|konfirmasi/i).scrollIntoView({ offset: { top: -120, left: 0 } }).should('be.visible').click({ force: true });
+      cy.contains('button', /hapus|ya|konfirmasi/i).scrollIntoView({ offset: { top: -120, left: 0 } });
+      cy.wait(200);
+      cy.contains('button', /hapus|ya|konfirmasi/i).should('be.visible').click({ force: true });
     });
     cy.wait(1000);
 
