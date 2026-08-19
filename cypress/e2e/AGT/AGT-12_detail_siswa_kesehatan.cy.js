@@ -295,24 +295,31 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
 
           cy.wait(1000);
 
-          // B. Klik tombol "Hapus" pada banner / floating action bar (menggunakan selector persis AGT-12.31)
-          cy.contains('button', /hapus/i, { timeout: 10000 })
-            .scrollIntoView({ offset: { top: -120, left: 0 } })
-            .should('be.visible')
-            .click({ force: true });
+          // B. Coba klik tombol "Hapus" pada banner / floating action bar jika ada
+          cy.get('body').then(($body) => {
+            const btn = $body.find('button').filter((i, el) => /hapus/i.test((el.innerText || '').toLowerCase()));
+            if (btn.length) {
+              cy.wrap(btn.first())
+                .scrollIntoView({ offset: { top: -120, left: 0 } })
+                .should('be.visible')
+                .click({ force: true });
 
-          cy.wait(600);
+              cy.wait(600);
 
-          // C. Klik tombol "Hapus" pada modal popup konfirmasi Hapus Bulk (menggunakan selector persis AGT-12.32)
-          cy.get('[role="dialog"], [data-slot="dialog-content"]', { timeout: 10000 })
-            .should('be.visible')
-            .within(() => {
-              cy.contains('button', /hapus|ya|konfirmasi/i).click({ force: true });
-            });
+              // C. Jika muncul modal konfirmasi Hapus Bulk, klik tombol konfirmasi
+              cy.get('[role="dialog"], [data-slot="dialog-content"]', { timeout: 10000 })
+                .should('be.visible')
+                .within(() => {
+                  cy.contains('button', /hapus|ya|konfirmasi/i).click({ force: true });
+                });
 
-          cy.wait(2000);
+              cy.wait(2000);
+            } else {
+              cy.log('[AGT-12.10] Tombol bulk Hapus tidak ditemukan — melewati langkah bulk delete.');
+            }
+          });
 
-          // D. Jika penghapusan bulk gagal (masih ada data), lakukan fallback: hapus per baris
+          // D. Periksa kembali apakah masih ada baris data riil; jika ada, lakukan fallback per-baris
           cy.get('[data-slot="card"]')
             .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
             .parents('[data-slot="card"]')
