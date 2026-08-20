@@ -49,5 +49,14 @@
     "indikasi": "Demam & Flu",
     "tindakan": "Istirahat dan Diberikan Obat Flu",
     "keterangan": "Disarankan istirahat di rumah"
+  },
+  "pelanggaranData": {
+    "kategori": "Keterlambatan",
+    "poin": "30",
+    "poinBerat": "80",
+    "deskripsi": "Terlambat masuk sekolah 30 menit",
+    "sanksi": "Peringatan Tertulis & Clean Up Area Sekolah",
+    "fotoValid": "signature.png"
   }
 }
+

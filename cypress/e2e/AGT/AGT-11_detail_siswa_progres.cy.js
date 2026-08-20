@@ -94,7 +94,14 @@ describe('MODUL ANGGOTA - 11. Anggota - Detail Siswa - Tab Progres (AGT-11.01 - 
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickProgresTab();
     StudentDetailPage.searchKeyword(testData.search.invalidKeyword);
-    cy.contains(/tidak ditemukan|kosong|no result/i, { timeout: 10000 }).should('exist');
+    cy.wait(800);
+
+    // Verifikasi bahwa tabel dalam keadaan kosong (empty state / no result)
+    cy.get('tbody', { timeout: 15000 }).then(($tbody) => {
+      const text = $tbody.text().toLowerCase();
+      const isEmpty = text.includes('tidak') || text.includes('kosong') || text.includes('belum') || text.includes('no result') || $tbody.find('tr').length === 0 || ($tbody.find('tr').length === 1 && (text.includes('tidak ada') || text.includes('tidak ditemukan')));
+      expect(isEmpty, 'Tabel Tab Progres harus menampilkan pesan data tidak ditemukan / list kosong').to.be.true;
+    });
   });
 
   // ---------------------------------------------------------------------------

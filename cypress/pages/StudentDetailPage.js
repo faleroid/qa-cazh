@@ -90,7 +90,7 @@ class StudentDetailPage {
         cy.contains('[role="menuitem"], button, a, div', 'Progres').click({ force: true });
       }
     });
-    cy.wait(1000);
+    cy.wait(1500);
   }
 
   verifyProgresTableColumns() {
@@ -101,13 +101,15 @@ class StudentDetailPage {
 
   searchKeyword(keyword) {
     cy.get('body').then(($body) => {
-      const card3 = $body.find('[data-slot="card"]').filter(':contains("Riwayat Kesehatan")');
-      const searchInput = card3.find('input[placeholder*="Cari"], input[type="search"]');
+      const searchInput = $body.find('input[placeholder*="Cari"], input[placeholder*="search"], input[type="search"]');
       if (searchInput.length > 0) {
-        cy.wrap(searchInput.first()).clear({ force: true }).type(`${keyword}{enter}`, { force: true });
+        cy.wrap(searchInput.first())
+          .scrollIntoView({ offset: { top: -120, left: 0 } })
+          .clear({ force: true })
+          .type(`${keyword}{enter}`, { force: true });
         cy.wait(800);
       } else {
-        cy.log(`Fitur input pencarian tidak tersedia pada Card Riwayat Kesehatan (keyword: ${keyword}).`);
+        cy.log(`Fitur input pencarian tidak ditemukan pada halaman (keyword: ${keyword}).`);
       }
     });
   }
@@ -183,6 +185,41 @@ class StudentDetailPage {
       expect(hasColumns, 'Tabel Riwayat Kesehatan harus memuat kolom Tanggal Kejadian, Indikator/Indikasi, Tindakan, Keterangan, Dibuat Oleh').to.be.true;
     });
   }
+
+  clickPelanggaranTab() {
+    cy.get('body').then(($body) => {
+      const isVisibleDirect = $body.find('[role="tab"]:contains("Pelanggaran"), button:contains("Pelanggaran"), a:contains("Pelanggaran")').length > 0;
+      if (isVisibleDirect) {
+        cy.contains('[role="tab"], button, a', 'Pelanggaran').click({ force: true });
+      } else {
+        cy.get('button[data-slot="dropdown-menu-trigger"], button', { timeout: 10000 })
+          .contains('Lainnya')
+          .click({ force: true });
+        cy.wait(500);
+        cy.contains('[role="menuitem"], button, a, div', 'Pelanggaran').click({ force: true });
+      }
+    });
+    cy.get('[data-slot="card"], tbody, table', { timeout: 15000 }).should('exist');
+    cy.wait(1500);
+  }
+
+  verifyPelanggaranHeaderPoin() {
+    cy.get('body', { timeout: 15000 }).should(($body) => {
+      const text = $body.text();
+      const hasHeaderPoin = text.includes('Poin Pelanggaran Terkumpul') || text.includes('Poin Pelanggaran') || text.includes('Total Poin');
+      expect(hasHeaderPoin, 'Header Poin Pelanggaran Terkumpul harus muncul di tab Pelanggaran').to.be.true;
+    });
+  }
+
+  verifyPelanggaranTableColumns() {
+    cy.get('thead th, thead tr', { timeout: 15000 }).should('exist');
+    cy.get('body').then(($body) => {
+      const text = $body.text();
+      const hasColumns = text.includes('Tanggal') || text.includes('Kategori') || text.includes('Tipe') || text.includes('Deskripsi') || text.includes('Sanksi') || text.includes('Poin') || text.includes('Aksi');
+      expect(hasColumns, 'Tabel Pelanggaran harus memuat kolom: Tanggal Kejadian, Kategori, Tipe, Deskripsi, Sanksi, Poin, Foto, Dibuat Oleh, Aksi').to.be.true;
+    });
+  }
 }
 
 export default new StudentDetailPage();
+

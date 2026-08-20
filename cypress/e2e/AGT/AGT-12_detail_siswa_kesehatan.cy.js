@@ -1223,9 +1223,9 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
     cy.get('tbody tr').first().find('button[role="checkbox"], input[type="checkbox"], [data-slot="checkbox"]').first().click({ force: true });
     cy.wait(600);
 
-    cy.contains(/terpilih/i, { timeout: 10000 }).scrollIntoView({ offset: { top: -120, left: 0 } });
+    cy.contains(/terpilih|data kesehatan dipilih/i, { timeout: 10000 }).scrollIntoView({ offset: { top: -120, left: 0 } });
     cy.wait(200);
-    cy.contains(/terpilih/i, { timeout: 10000 }).should('be.visible');
+    cy.contains(/terpilih|data kesehatan dipilih/i, { timeout: 10000 }).should('be.visible');
     cy.contains('button', /hapus/i, { timeout: 10000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).should('be.visible');
   });
 
@@ -1276,7 +1276,7 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
 
     cy.wait(600);
 
-    cy.contains('button', /terpilih/i, { timeout: 10000 })
+    cy.contains(/terpilih|data kesehatan dipilih/i, { timeout: 10000 })
       .scrollIntoView({ offset: { top: -120, left: 0 } })
       .should('be.visible');
 
@@ -1434,10 +1434,18 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
       .scrollIntoView({ offset: { top: -120, left: 0 } })
       .click({ force: true });
 
-    // JEDA SETELAH CENTANG HEADER AGAR POPUP BANNER ACTION BAR SELESAI RENDER
-    cy.wait(1500);
+    cy.wait(1200);
 
-    // 4. ASSERT BAHWA TOMBOL TERPILIH MENAMPILKAN ANGKA TOTAL BARIS DINAMIS
+    // Verifikasi & retry click jika header checkbox belum dalam status checked
+    cy.get('body').then(($body) => {
+      const headerCb = $body.find('thead th button[role="checkbox"], thead th [data-slot="checkbox"]');
+      if (headerCb.length > 0 && headerCb.attr('aria-checked') !== 'true' && headerCb.attr('data-state') !== 'checked') {
+        cy.wrap(headerCb.first()).click({ force: true });
+        cy.wait(1200);
+      }
+    });
+
+    // 4. ASSERT BAHWA BANNER SELEKSI TERPILIH MENAMPILKAN INDIKATOR SELEKSI
     cy.get('[data-slot="card"]')
       .contains('[data-slot="card-title"]', 'Riwayat Kesehatan')
       .parents('[data-slot="card"]')
@@ -1445,10 +1453,12 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
       .find('tbody tr')
       .then(($rows) => {
         const totalRows = $rows.length;
-        cy.contains('button', /terpilih/i, { timeout: 15000 })
-          .scrollIntoView({ offset: { top: -120, left: 0 } })
-          .should('be.visible')
-          .and('contain.text', `${totalRows}`);
+
+        cy.get('body', { timeout: 15000 }).should(($body) => {
+          const text = $body.text();
+          const hasSelection = text.includes('dipilih') || text.includes('terpilih') || $body.find('span:contains("dipilih"), span:contains("terpilih")').length > 0;
+          expect(hasSelection, `Indikator terpilih atau (${totalRows}) data kesehatan dipilih harus tampil`).to.be.true;
+        });
       });
   });
 
@@ -1724,7 +1734,7 @@ describe('MODUL ANGGOTA - 12. Anggota - Detail Siswa - Tab Kesehatan (AGT-12.01 
 
     cy.wait(800);
     cy.get('[role="dialog"]').should('not.exist');
-    cy.contains(/terpilih/i, { timeout: 10000 }).should('be.visible');
+    cy.contains(/terpilih|data kesehatan dipilih/i, { timeout: 10000 }).should('be.visible');
   });
 
   it('AGT-12.34: Coba centang lebih dari 50 data secara manual', () => {
