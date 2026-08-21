@@ -8,6 +8,15 @@ describe("AGT-13.05 - Cari pelanggaran dengan keyword Kategori", () => {
 
   it("AGT-13.05: Cari pelanggaran dengan keyword Kategori -> Sistem menampilkan hasil sesuai pencarian", () => {
     StudentDetailPage.navigateToFirstStudentDetail();
-    StudentDetailPage.clickPelanggaranTab(); StudentDetailPage.searchKeyword(testData.pelanggaranData.kategori); cy.wait(800); cy.get("body").should("exist");
+    StudentDetailPage.clickPelanggaranTab();
+    
+    // Pastikan data pelanggaran tersedia terlebih dahulu sebelum melakukan pencarian
+    StudentDetailPage.ensurePelanggaranDataExists();
+    
+    StudentDetailPage.searchKeyword(testData.pelanggaranData.kategori);
+    cy.wait(800);
+    cy.get("tbody tr", { timeout: 15000 }).should("have.length.at.least", 1);
+    cy.get("body").should("contain.text", testData.pelanggaranData.kategori);
   });
 });
+

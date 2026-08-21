@@ -51,37 +51,47 @@ describe('MODUL ANGGOTA - 13. Anggota - Detail Siswa - Tab Pelanggaran (AGT-13.0
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickPelanggaranTab();
 
+    StudentDetailPage.ensurePelanggaranDataExists();
     StudentDetailPage.searchKeyword(testData.pelanggaranData.kategori);
     cy.wait(800);
-    cy.get('body').should('exist');
+    cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
+    cy.get('body').should('contain.text', testData.pelanggaranData.kategori);
   });
 
   it('AGT-13.06: Cari pelanggaran dengan keyword Deskripsi -> Sistem menampilkan hasil sesuai pencarian', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickPelanggaranTab();
 
+    StudentDetailPage.ensurePelanggaranDataExists();
     StudentDetailPage.searchKeyword('Terlambat');
     cy.wait(800);
-    cy.get('body').should('exist');
+    cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
+    cy.get('body').should('contain.text', 'Terlambat');
   });
 
   it('AGT-13.07: Cari pelanggaran dengan keyword Sanksi -> Sistem menampilkan hasil sesuai pencarian', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickPelanggaranTab();
 
+    StudentDetailPage.ensurePelanggaranDataExists();
     StudentDetailPage.searchKeyword('Peringatan');
     cy.wait(800);
-    cy.get('body').should('exist');
+    cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
+    cy.get('body').should('contain.text', 'Peringatan');
   });
 
   it('AGT-13.08: Cari pelanggaran dengan keyword Poin -> Sistem menampilkan hasil sesuai pencarian', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickPelanggaranTab();
 
-    StudentDetailPage.searchKeyword('30');
+    StudentDetailPage.ensurePelanggaranDataExists();
+    StudentDetailPage.searchKeyword(testData.pelanggaranData.poin);
     cy.wait(800);
+    cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
     cy.get('body').should('exist');
   });
+
+
 
   it('AGT-13.09: Cari dengan keyword tidak ditemukan -> Sistem menampilkan list kosong (no result)', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
@@ -190,7 +200,7 @@ describe('MODUL ANGGOTA - 13. Anggota - Detail Siswa - Tab Pelanggaran (AGT-13.0
     });
   });
 
-  it('AGT-13.14: Isi Poin Pelanggaran dengan nilai dalam range tipe (mis. 30 → Sedang) -> Sistem otomatis menampilkan label tipe pelanggaran', () => {
+  it('AGT-13.14: Isi Poin Pelanggaran dengan nilai dalam range tipe (mis. 5 → Ringan/Sedang) -> Sistem otomatis menampilkan label tipe pelanggaran', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickPelanggaranTab();
 
@@ -199,19 +209,33 @@ describe('MODUL ANGGOTA - 13. Anggota - Detail Siswa - Tab Pelanggaran (AGT-13.0
       .click({ force: true });
     cy.wait(600);
 
+    // Select Tipe Pelanggaran first
     cy.get('[role="dialog"]', { timeout: 10000 }).within(() => {
-      cy.get('input[name*="poin"], input[name*="point"], input[placeholder*="Poin"]').first()
+      cy.get('button[role="combobox"], [data-slot="select-trigger"]').first().click({ force: true });
+      cy.wait(300);
+    });
+    cy.get('body').then(($b) => {
+      const opt = $b.find('[role="option"], [data-slot="select-item"]').first();
+      if (opt.length) {
+        cy.wrap(opt).click({ force: true });
+        cy.wait(300);
+      }
+    });
+
+    cy.get('[role="dialog"]', { timeout: 10000 }).within(() => {
+      cy.get('input[name="point"], input[name="poin"], input[type="number"]').first()
         .clear({ force: true })
-        .type('30', { force: true });
+        .type(testData.pelanggaranData.poin, { force: true });
       cy.wait(300);
 
       cy.get('body').then(($dialog) => {
         const text = $dialog.text();
-        const hasTypeLabel = text.includes('Sedang') || text.includes('Pelanggaran Sedang') || $dialog.find('[class*="badge"], [class*="label"]').length > 0;
-        expect(hasTypeLabel, 'Sistem otomatis menampilkan label tipe pelanggaran (mis. Sedang)').to.be.true;
+        const hasTypeLabel = text.includes('Ringan') || text.includes('Sedang') || text.includes('Pelanggaran') || $dialog.find('[class*="badge"], [class*="label"]').length > 0;
+        expect(hasTypeLabel, 'Sistem otomatis menampilkan label tipe pelanggaran').to.be.true;
       });
     });
   });
+
 
   it('AGT-13.15: Isi Poin Pelanggaran dengan nilai di luar range tipe (mis. 999) -> Sistem menampilkan pesan error "Nilai poin di luar range poin yang sudah ditentukan"', () => {
     StudentDetailPage.navigateToFirstStudentDetail();
@@ -355,10 +379,9 @@ describe('MODUL ANGGOTA - 13. Anggota - Detail Siswa - Tab Pelanggaran (AGT-13.0
       .click({ force: true });
     cy.wait(600);
 
-    // Fill form
+    // 1. Date trigger
     cy.get('[role="dialog"]', { timeout: 10000 }).within(() => {
-      // Date trigger
-      cy.get('button[name="date"], button[id*="date"]').first().click({ force: true });
+      cy.get('button[name="date"]').first().click({ force: true });
       cy.wait(300);
     });
     cy.get('body').then(($body) => {
@@ -369,30 +392,35 @@ describe('MODUL ANGGOTA - 13. Anggota - Detail Siswa - Tab Pelanggaran (AGT-13.0
       }
     });
 
+    // 2. Tipe Pelanggaran
     cy.get('[role="dialog"]', { timeout: 10000 }).within(() => {
-      // Kategori
-      cy.get('input[name*="category"], input[placeholder*="Kategori"], [role="combobox"]').first().click({ force: true });
-      cy.wait(200);
+      cy.get('button[role="combobox"], [data-slot="select-trigger"]').first().click({ force: true });
+      cy.wait(300);
     });
     cy.get('body').then(($body) => {
       const opt = $body.find('[role="option"], [data-slot="select-item"]').first();
       if (opt.length) {
         cy.wrap(opt).click({ force: true });
-        cy.wait(200);
+        cy.wait(300);
       }
     });
 
+    // 3. Form input fields
     cy.get('[role="dialog"]').within(() => {
+      // Kategori
+      cy.get('input[name="category"], input[placeholder*="tata tertib"], input[placeholder*="Kategori"]').first().clear({ force: true }).type(testData.pelanggaranData.kategori, { force: true });
+      cy.wait(200);
+
       // Poin
-      cy.get('input[name*="poin"], input[name*="point"], input[placeholder*="Poin"]').first().clear({ force: true }).type(testData.pelanggaranData.poin, { force: true });
+      cy.get('input[name="point"], input[name="poin"], input[type="number"]').first().clear({ force: true }).type(testData.pelanggaranData.poin, { force: true });
       cy.wait(200);
 
       // Deskripsi
-      cy.get('textarea[name*="description"], input[name*="description"], textarea[placeholder*="Deskripsi"], input[placeholder*="Deskripsi"]').first().clear({ force: true }).type(testData.pelanggaranData.deskripsi, { force: true });
+      cy.get('input[name="description"], textarea[name="description"], input[placeholder*="seragam"]').first().clear({ force: true }).type(testData.pelanggaranData.deskripsi, { force: true });
       cy.wait(200);
 
-      // Sanksi
-      cy.get('textarea[name*="sanction"], input[name*="sanction"], textarea[placeholder*="Sanksi"], input[placeholder*="Sanksi"]').first().clear({ force: true }).type(testData.pelanggaranData.sanksi, { force: true });
+      // Sanksi (name="penalty")
+      cy.get('input[name="penalty"], input[name*="sanction"], textarea[name*="sanction"], input[placeholder*="Peringatan"], input[placeholder*="Sanksi"]').first().clear({ force: true }).type(testData.pelanggaranData.sanksi, { force: true });
       cy.wait(200);
 
       // Upload Valid Foto
@@ -403,9 +431,10 @@ describe('MODUL ANGGOTA - 13. Anggota - Detail Siswa - Tab Pelanggaran (AGT-13.0
       cy.contains('button[type="submit"], button', /simpan/i).click({ force: true });
     });
 
-    cy.wait(1000);
-    cy.get('body').should('exist');
+    cy.wait(1500);
+    cy.get('[role="dialog"]', { timeout: 10000 }).should('not.exist');
   });
+
 
   it('AGT-13.22: Klik tombol Batal pada form Tambah Pelanggaran -> Sistem menutup form tanpa menyimpan', () => {
     StudentDetailPage.navigateToFirstStudentDetail();

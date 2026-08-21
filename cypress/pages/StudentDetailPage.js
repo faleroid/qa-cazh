@@ -219,7 +219,74 @@ class StudentDetailPage {
       expect(hasColumns, 'Tabel Pelanggaran harus memuat kolom: Tanggal Kejadian, Kategori, Tipe, Deskripsi, Sanksi, Poin, Foto, Dibuat Oleh, Aksi').to.be.true;
     });
   }
+
+  ensurePelanggaranDataExists() {
+    cy.get('body').then(($body) => {
+      const hasRows = $body.find('tbody tr').length > 0 && !$body.text().includes('tidak ditemukan') && !$body.text().includes('Belum ada data');
+      if (!hasRows) {
+        cy.log('Tabel pelanggaran belum berisi data. Menambahkan 1 data pelanggaran baru...');
+        cy.contains('button, a', /tambah pelanggaran/i, { timeout: 15000 }).click({ force: true });
+        cy.wait(600);
+
+        // 1. Tanggal Kejadian
+        cy.get('[role="dialog"]', { timeout: 10000 }).within(() => {
+          cy.get('button[name="date"]').first().click({ force: true });
+          cy.wait(300);
+        });
+
+        cy.get('body').then(($b) => {
+          const dayBtn = $b.find('table.rdp-month_grid tbody button, [role="gridcell"] button').filter(':contains("15"), :contains("10"), :contains("1")').first();
+          if (dayBtn.length) {
+            cy.wrap(dayBtn).click({ force: true });
+            cy.wait(300);
+          }
+        });
+
+        // 2. Tipe Pelanggaran Dropdown
+        cy.get('[role="dialog"]', { timeout: 10000 }).within(() => {
+          cy.get('button[role="combobox"], [data-slot="select-trigger"]').first().click({ force: true });
+          cy.wait(300);
+        });
+
+        cy.get('body').then(($b) => {
+          const opt = $b.find('[role="option"], [data-slot="select-item"]').first();
+          if (opt.length) {
+            cy.wrap(opt).click({ force: true });
+            cy.wait(300);
+          }
+        });
+
+        // 3. Form input fields (Kategori, Poin, Deskripsi, Sanksi/Penalty)
+        cy.get('[role="dialog"]').within(() => {
+          // Kategori
+          cy.get('input[name="category"], input[placeholder*="tata tertib"], input[placeholder*="Kategori"]').first().clear({ force: true }).type(testData.pelanggaranData.kategori, { force: true });
+          cy.wait(200);
+
+          // Poin
+          cy.get('input[name="point"], input[name="poin"], input[placeholder*="10"], input[type="number"]').first().clear({ force: true }).type(testData.pelanggaranData.poin, { force: true });
+          cy.wait(200);
+
+          // Deskripsi
+          cy.get('input[name="description"], textarea[name="description"], input[placeholder*="seragam"]').first().clear({ force: true }).type(testData.pelanggaranData.deskripsi, { force: true });
+          cy.wait(200);
+
+          // Sanksi (name="penalty")
+          cy.get('input[name="penalty"], input[name*="sanction"], textarea[name*="sanction"], input[placeholder*="Peringatan"], input[placeholder*="Sanksi"]').first().clear({ force: true }).type(testData.pelanggaranData.sanksi, { force: true });
+          cy.wait(200);
+
+          // Simpan
+          cy.contains('button[type="submit"], button', /simpan/i).click({ force: true });
+        });
+
+        cy.wait(1500);
+        cy.get('[role="dialog"]', { timeout: 10000 }).should('not.exist');
+        cy.wait(1000);
+      }
+    });
+  }
 }
 
 export default new StudentDetailPage();
+
+
 

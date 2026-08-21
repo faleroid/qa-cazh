@@ -8,6 +8,13 @@ describe("AGT-13.07 - Cari pelanggaran dengan keyword Sanksi", () => {
 
   it("AGT-13.07: Cari pelanggaran dengan keyword Sanksi -> Sistem menampilkan hasil sesuai pencarian", () => {
     StudentDetailPage.navigateToFirstStudentDetail();
-    StudentDetailPage.clickPelanggaranTab(); StudentDetailPage.searchKeyword("Peringatan"); cy.wait(800); cy.get("body").should("exist");
+    StudentDetailPage.clickPelanggaranTab();
+
+    StudentDetailPage.ensurePelanggaranDataExists();
+    StudentDetailPage.searchKeyword("Peringatan");
+    cy.wait(800);
+    cy.get("tbody tr", { timeout: 15000 }).should("have.length.at.least", 1);
+    cy.get("body").should("contain.text", "Peringatan");
   });
 });
+

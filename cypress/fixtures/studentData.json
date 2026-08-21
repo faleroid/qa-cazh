@@ -52,11 +52,12 @@
   },
   "pelanggaranData": {
     "kategori": "Keterlambatan",
-    "poin": "30",
-    "poinBerat": "80",
+    "poin": "5",
+    "poinBerat": "8",
     "deskripsi": "Terlambat masuk sekolah 30 menit",
     "sanksi": "Peringatan Tertulis & Clean Up Area Sekolah",
     "fotoValid": "signature.png"
   }
 }
+
 
