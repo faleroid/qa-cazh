@@ -16,7 +16,6 @@ module.exports = defineConfig({
   screenshotsFolder: "cypress/screenshots",
   downloadsFolder: "cypress/downloads",
   screenshotOnRunFailure: true,
-  experimentalStudio: true,
 
   e2e: {
     baseUrl: "https://v3.cazh.id",

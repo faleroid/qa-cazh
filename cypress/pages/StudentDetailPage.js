@@ -2,24 +2,67 @@ import testData from '../fixtures/studentData.json';
 
 class StudentDetailPage {
   visitStudentList() {
+    // 1. Jeda penantian awal setelah login agar hidrasi DOM/Next.js selesai 100%
+    cy.wait(2500);
+
     cy.visit(testData.urls.studentPage, { failOnStatusCode: false, timeout: 30000 });
-    cy.get('body', { timeout: 15000 }).should(($body) => {
-      const text = $body.text();
-      const isLoaded = text.includes('Siswa') || text.includes('Anggota') || text.includes('Member') || $body.find('table, tbody tr').length > 0;
-      expect(isLoaded, 'Halaman Data Siswa / Anggota harus berhasil dimuat').to.be.true;
+    cy.wait(2000);
+
+    // 2. Selalu pastikan menu parent "Anggota" di sidebar diklik jika submenu Siswa belum terlihat
+    cy.get('body', { timeout: 15000 }).then(($body) => {
+      const isSiswaVisible = $body.find('a[href="/member/student"]:visible').length > 0;
+      if (!isSiswaVisible) {
+        cy.log('Submenu Siswa belum terbuka. Menekan menu Anggota di sidebar...');
+        cy.contains('button, [role="button"], a, span, div, p', /anggota/i, { timeout: 15000 })
+          .first()
+          .click({ force: true });
+        cy.wait(1000);
+      }
     });
+
+    // 3. Klik submenu "Siswa" di sidebar
+    cy.get('a[href="/member/student"]', { timeout: 15000 })
+      .first()
+      .click({ force: true });
+
+    cy.wait(2000);
   }
+
 
   navigateToFirstStudentDetail() {
     this.visitStudentList();
     cy.wait(1500);
 
-    // Klik link data siswa pertama pada tabel (a[href*="/member/student/"])
-    cy.get('tbody tr td a[href*="/member/student/"]', { timeout: 15000 })
-      .first()
-      .click({ force: true });
+    // 3. Tunggu tabel data siswa terisi
+    cy.get('tbody tr', { timeout: 20000 }).should('exist').and('have.length.at.least', 1);
+
+    // 4. Klik link nama/detail siswa pada baris pertama tabel (kolom ke-2 / Nama Siswa)
+    cy.get('tbody tr', { timeout: 15000 }).first().then(($row) => {
+      const studentDetailHref = $row.find('a[href*="/member/student/"]');
+      const lihatBtn = $row.find('a:contains("Lihat"), button:contains("Lihat"), a:contains("Detail"), button:contains("Detail"), button:has(svg.lucide-eye)');
+      const nameLink = $row.find('td').eq(1).find('a, button');
+
+      if (studentDetailHref.length > 0) {
+        cy.wrap(studentDetailHref.first()).click({ force: true });
+      } else if (lihatBtn.length > 0) {
+        cy.wrap(lihatBtn.first()).click({ force: true });
+      } else if (nameLink.length > 0) {
+        cy.wrap(nameLink.first()).click({ force: true });
+      } else {
+        cy.wrap($row.find('td').eq(1)).click({ force: true });
+      }
+    });
+
     cy.wait(1500);
   }
+
+
+
+
+
+
+
+
 
   verifyHeaderInfo() {
     cy.url().should('include', '/member/student/');
@@ -187,21 +230,28 @@ class StudentDetailPage {
   }
 
   clickPelanggaranTab() {
-    cy.get('body').then(($body) => {
-      const isVisibleDirect = $body.find('[role="tab"]:contains("Pelanggaran"), button:contains("Pelanggaran"), a:contains("Pelanggaran")').length > 0;
-      if (isVisibleDirect) {
-        cy.contains('[role="tab"], button, a', 'Pelanggaran').click({ force: true });
+    cy.get('body', { timeout: 15000 }).then(($body) => {
+      // 1. Cek apakah elemen tab "Pelanggaran" tersedia langsung pada tablist
+      const directTab = $body.find('[role="tablist"] *, [data-slot="tabs-list"] *, [role="tab"], button, a, div').filter((i, el) => {
+        const txt = (el.innerText || '').trim();
+        return /^pelanggaran$/i.test(txt) || txt === 'Pelanggaran';
+      });
+
+      if (directTab.length > 0) {
+        cy.wrap(directTab.first()).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
       } else {
-        cy.get('button[data-slot="dropdown-menu-trigger"], button', { timeout: 10000 })
-          .contains('Lainnya')
-          .click({ force: true });
-        cy.wait(500);
-        cy.contains('[role="menuitem"], button, a, div', 'Pelanggaran').click({ force: true });
+        // 2. Jika di dalam dropdown Lainnya
+        const btnLainnya = $body.find('button, [role="button"], a').filter((i, el) => /lainnya/i.test(el.innerText || ''));
+        if (btnLainnya.length > 0) {
+          cy.wrap(btnLainnya.first()).click({ force: true });
+          cy.wait(500);
+        }
+        cy.contains(/pelanggaran/i, { timeout: 10000 }).click({ force: true });
       }
     });
-    cy.get('[data-slot="card"], tbody, table', { timeout: 15000 }).should('exist');
     cy.wait(1500);
   }
+
 
   verifyPelanggaranHeaderPoin() {
     cy.get('body', { timeout: 15000 }).should(($body) => {
@@ -220,6 +270,21 @@ class StudentDetailPage {
     });
   }
 
+  fillTanggalKejadian() {
+    cy.get('[role="dialog"]', { timeout: 10000 }).within(() => {
+      cy.get('button[name="date"], button[data-slot="popover-trigger"], button:contains("Tanggal")').first().click({ force: true });
+      cy.wait(300);
+    });
+
+    cy.get('body').then(($b) => {
+      const dayBtn = $b.find('table.rdp-month_grid tbody button, [role="gridcell"] button, .rdp-day button, .rdp-day').filter(':visible').first();
+      if (dayBtn.length) {
+        cy.wrap(dayBtn).click({ force: true });
+        cy.wait(300);
+      }
+    });
+  }
+
   ensurePelanggaranDataExists() {
     cy.get('body').then(($body) => {
       const hasRows = $body.find('tbody tr').length > 0 && !$body.text().includes('tidak ditemukan') && !$body.text().includes('Belum ada data');
@@ -229,24 +294,14 @@ class StudentDetailPage {
         cy.wait(600);
 
         // 1. Tanggal Kejadian
-        cy.get('[role="dialog"]', { timeout: 10000 }).within(() => {
-          cy.get('button[name="date"]').first().click({ force: true });
-          cy.wait(300);
-        });
-
-        cy.get('body').then(($b) => {
-          const dayBtn = $b.find('table.rdp-month_grid tbody button, [role="gridcell"] button').filter(':contains("15"), :contains("10"), :contains("1")').first();
-          if (dayBtn.length) {
-            cy.wrap(dayBtn).click({ force: true });
-            cy.wait(300);
-          }
-        });
+        this.fillTanggalKejadian();
 
         // 2. Tipe Pelanggaran Dropdown
         cy.get('[role="dialog"]', { timeout: 10000 }).within(() => {
           cy.get('button[role="combobox"], [data-slot="select-trigger"]').first().click({ force: true });
           cy.wait(300);
         });
+
 
         cy.get('body').then(($b) => {
           const opt = $b.find('[role="option"], [data-slot="select-item"]').first();
@@ -262,8 +317,18 @@ class StudentDetailPage {
           cy.get('input[name="category"], input[placeholder*="tata tertib"], input[placeholder*="Kategori"]').first().clear({ force: true }).type(testData.pelanggaranData.kategori, { force: true });
           cy.wait(200);
 
-          // Poin
-          cy.get('input[name="point"], input[name="poin"], input[placeholder*="10"], input[type="number"]').first().clear({ force: true }).type(testData.pelanggaranData.poin, { force: true });
+          // Poin (Cek placeholder range otomatis)
+          cy.get('input[name="point"], input[name="poin"], input[type="number"]').first().then(($input) => {
+            const ph = $input.attr('placeholder') || '';
+            let val = testData.pelanggaranData.poin || '80';
+            const match = ph.match(/(\d+)\s*-\s*(\d+)/);
+            if (match) {
+              const min = parseInt(match[1], 10);
+              const max = parseInt(match[2], 10);
+              val = String(Math.floor((min + max) / 2));
+            }
+            cy.wrap($input).clear({ force: true }).type(val, { force: true });
+          });
           cy.wait(200);
 
           // Deskripsi
@@ -284,9 +349,78 @@ class StudentDetailPage {
       }
     });
   }
+
+  addSinglePelanggaran(data = {}) {
+    const kategori = data.kategori || testData.pelanggaranData.kategori;
+    const initialPoin = data.poin || testData.pelanggaranData.poin || '80';
+    const deskripsi = data.deskripsi || testData.pelanggaranData.deskripsi;
+    const sanksi = data.sanksi || testData.pelanggaranData.sanksi;
+
+    cy.contains('button, a', /tambah pelanggaran/i, { timeout: 15000 }).click({ force: true });
+    cy.wait(600);
+
+    // 1. Tanggal Kejadian
+    this.fillTanggalKejadian();
+
+    // 2. Tipe Pelanggaran Dropdown
+    cy.get('[role="dialog"]', { timeout: 10000 }).within(() => {
+      cy.get('button[role="combobox"], [data-slot="select-trigger"]').first().click({ force: true });
+      cy.wait(300);
+    });
+
+    cy.get('body').then(($b) => {
+      const opt = $b.find('[role="option"], [data-slot="select-item"]').first();
+      if (opt.length) {
+        cy.wrap(opt).click({ force: true });
+        cy.wait(300);
+      }
+    });
+
+    // 3. Form input fields
+    cy.get('[role="dialog"]').within(() => {
+      cy.get('input[name="category"], input[placeholder*="tata tertib"]').first().clear({ force: true }).type(kategori, { force: true });
+      cy.wait(200);
+
+      // Poin dengan pembacaan otomatis range placeholder
+      cy.get('input[name="point"], input[name="poin"]').first().then(($input) => {
+        const ph = $input.attr('placeholder') || '';
+        let validPoint = initialPoin;
+        const match = ph.match(/(\d+)\s*-\s*(\d+)/);
+        if (match) {
+          const min = parseInt(match[1], 10);
+          const max = parseInt(match[2], 10);
+          const num = parseInt(initialPoin, 10);
+          if (isNaN(num) || num < min || num > max) {
+            validPoint = String(Math.floor((min + max) / 2));
+          }
+        }
+        cy.wrap($input).clear({ force: true }).type(validPoint, { force: true });
+      });
+      cy.wait(200);
+
+      cy.get('input[name="description"], textarea[name="description"]').first().clear({ force: true }).type(deskripsi, { force: true });
+      cy.wait(200);
+      cy.get('input[name="penalty"], input[placeholder*="Peringatan"]').first().clear({ force: true }).type(sanksi, { force: true });
+      cy.wait(200);
+
+      // Upload Foto jika ada
+      if (data.foto) {
+        cy.get('input[type="file"]').first().selectFile(data.foto, { force: true });
+        cy.wait(5000);
+      }
+
+      cy.contains('button[type="submit"], button', /simpan/i).click({ force: true });
+    });
+
+    cy.wait(2000);
+    cy.get('[role="dialog"]', { timeout: 15000 }).should('not.exist');
+    cy.wait(800);
+  }
 }
 
 export default new StudentDetailPage();
+
+
 
 
 

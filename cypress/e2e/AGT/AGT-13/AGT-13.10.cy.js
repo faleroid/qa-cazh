@@ -6,7 +6,7 @@ describe("AGT-13.10 - Klik tombol Tambah Pelanggaran", () => {
     cy.login();
   });
 
-  it("AGT-13.10: Klik tombol Tambah Pelanggaran -> Sistem menampilkan form Tambah Pelanggaran", () => {
+  it("AGT-13.10: Klik tombol Tambah Pelanggaran", () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickPelanggaranTab(); cy.contains("button, a", /tambah pelanggaran/i, { timeout: 15000 }).click({ force: true }); cy.wait(600); cy.get('[role="dialog"]').should("be.visible");
   });

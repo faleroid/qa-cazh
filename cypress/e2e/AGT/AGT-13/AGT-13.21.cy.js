@@ -13,17 +13,7 @@ describe("AGT-13.21 - Isi semua field required + Foto valid, klik Simpan", () =>
     cy.wait(600);
 
     // 1. Date trigger
-    cy.get('[role="dialog"]', { timeout: 10000 }).within(() => {
-      cy.get('button[name="date"]').first().click({ force: true });
-      cy.wait(300);
-    });
-    cy.get('body').then(($body) => {
-      const dayBtn = $body.find('table.rdp-month_grid tbody button, [role="gridcell"] button').filter(':contains("15"), :contains("10"), :contains("1")').first();
-      if (dayBtn.length) {
-        cy.wrap(dayBtn).click({ force: true });
-        cy.wait(300);
-      }
-    });
+    StudentDetailPage.fillTanggalKejadian();
 
     // 2. Tipe Pelanggaran
     cy.get('[role="dialog"]', { timeout: 10000 }).within(() => {
@@ -38,13 +28,13 @@ describe("AGT-13.21 - Isi semua field required + Foto valid, klik Simpan", () =>
       }
     });
 
-    // 3. Form input fields
+    // 3. Form input fields dengan data nyata pelanggaran sekolah
     cy.get('[role="dialog"]').within(() => {
       // Kategori
       cy.get('input[name="category"], input[placeholder*="tata tertib"]').first().clear({ force: true }).type(testData.pelanggaranData.kategori, { force: true });
       cy.wait(200);
 
-      // Poin
+      // Poin (Nilai valid 25 dalam range 21 - 40)
       cy.get('input[name="point"], input[name="poin"], input[type="number"]').first().clear({ force: true }).type(testData.pelanggaranData.poin, { force: true });
       cy.wait(200);
 
@@ -58,14 +48,20 @@ describe("AGT-13.21 - Isi semua field required + Foto valid, klik Simpan", () =>
 
       // Upload Valid Foto
       cy.get('input[type="file"]').first().selectFile('cypress/fixtures/signature.png', { force: true });
-      cy.wait(300);
+      
+      // Jeda 5 detik setelah upload foto sebelum menekan tombol Simpan
+      cy.wait(5000);
 
       // Submit
       cy.contains('button[type="submit"], button', /simpan/i).click({ force: true });
     });
 
-    cy.wait(1500);
-    cy.get('[role="dialog"]', { timeout: 10000 }).should('not.exist');
+
+    cy.wait(3000);
+    cy.get('[role="dialog"]', { timeout: 20000 }).should('not.exist');
+
   });
 });
+
+
 

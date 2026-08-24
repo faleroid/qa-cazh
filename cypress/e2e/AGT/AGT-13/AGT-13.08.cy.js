@@ -1,12 +1,12 @@
 import StudentDetailPage from "../../../pages/StudentDetailPage";
 import testData from "../../../fixtures/studentData.json";
 
-describe("AGT-13.08 - Cari pelanggaran dengan keyword Poin", () => {
+describe("AGT-13.8 - Cari pelanggaran dengan keyword Poin", () => {
   beforeEach(() => {
     cy.login();
   });
 
-  it("AGT-13.08: Cari pelanggaran dengan keyword Poin -> Sistem menampilkan hasil sesuai pencarian", () => {
+  it("AGT-13.8: Cari pelanggaran dengan keyword Poin", () => {
     StudentDetailPage.navigateToFirstStudentDetail();
     StudentDetailPage.clickPelanggaranTab();
 

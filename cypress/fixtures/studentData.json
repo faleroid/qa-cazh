@@ -51,13 +51,18 @@
     "keterangan": "Disarankan istirahat di rumah"
   },
   "pelanggaranData": {
-    "kategori": "Keterlambatan",
-    "poin": "5",
-    "poinBerat": "8",
-    "deskripsi": "Terlambat masuk sekolah 30 menit",
-    "sanksi": "Peringatan Tertulis & Clean Up Area Sekolah",
+    "kategori": "Kedisiplinan Sekolah",
+    "poin": "80",
+    "poinSedang": "50",
+    "poinRingan": "15",
+    "poinBerat": "85",
+    "deskripsi": "Tidak memakai seragam atribut lengkap saat upacara bendera",
+    "sanksi": "Teguran Tertulis dan Membaca Tata Tertib Sekolah",
     "fotoValid": "signature.png"
   }
 }
+
+
+
 
 
