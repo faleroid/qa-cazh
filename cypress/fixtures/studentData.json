@@ -59,9 +59,15 @@
     "deskripsi": "Tidak memakai seragam atribut lengkap saat upacara bendera",
     "sanksi": "Teguran Tertulis dan Membaca Tata Tertib Sekolah",
     "fotoValid": "signature.png"
+  },
+  "prestasiData": {
+    "kategori": "Pentas Seni",
+    "poin": "25",
+    "deskripsi": "Meraih juara pada pentas seni sekolah",
+    "apresiasi": "Piagam penghargaan dari sekolah",
+    "fotoValid": "signature.png"
   }
 }
-
 
 
 

@@ -252,6 +252,99 @@ class StudentDetailPage {
     cy.wait(1500);
   }
 
+  clickPrestasiTab() {
+    cy.get('body', { timeout: 15000 }).then(($body) => {
+      const directTab = $body.find('[role="tablist"] *, [data-slot="tabs-list"] *, [role="tab"], button, a').filter((i, el) => {
+        return /^prestasi$/i.test((el.innerText || '').trim());
+      });
+
+      if (directTab.length > 0) {
+        cy.wrap(directTab.first()).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
+      } else {
+        const more = $body.find('button, [role="button"], a').filter((i, el) => /lainnya/i.test(el.innerText || ''));
+        if (more.length > 0) {
+          cy.wrap(more.first()).click({ force: true });
+          cy.wait(500);
+        }
+        cy.contains('[role="menuitem"], [role="tab"], button, a', /^prestasi$/i, { timeout: 10000 }).click({ force: true });
+      }
+    });
+    cy.wait(1500);
+  }
+
+  ensurePrestasiDataExists() {
+    cy.get('body').then(($body) => {
+      const hasRows = $body.find('tbody tr').length > 0 && !$body.text().includes('tidak ditemukan') && !$body.text().includes('Belum ada data') && !$body.text().includes('tidak ada data');
+      if (!hasRows) {
+        cy.log('Tabel prestasi belum berisi data. Menambahkan 1 data prestasi baru...');
+        this.addSinglePrestasi();
+      }
+    });
+  }
+
+  addSinglePrestasi(data = {}) {
+    const kategori = data.kategori || testData.prestasiData.kategori;
+    const poin = data.poin || testData.prestasiData.poin || '25';
+    const deskripsi = data.deskripsi || testData.prestasiData.deskripsi;
+    const apresiasi = data.apresiasi || testData.prestasiData.apresiasi;
+
+    cy.contains('button, a', /tambah prestasi/i, { timeout: 15000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
+    cy.wait(600);
+    cy.get('[role="dialog"], [data-slot="dialog-content"]', { timeout: 10000 }).should('be.visible');
+
+    // 1. Tanggal Kejadian
+    cy.get('[role="dialog"]').within(() => {
+      cy.get('button[name="date"], button[data-slot="form-control"], button[data-slot="popover-trigger"], button:contains("Tanggal")').first().click({ force: true });
+      cy.wait(300);
+    });
+    cy.get('body').then(($b) => {
+      const dayBtn = $b.find('table.rdp-month_grid tbody button, [role="gridcell"] button, .rdp-day button, .rdp-day').filter(':visible').first();
+      if (dayBtn.length) {
+        cy.wrap(dayBtn).click({ force: true });
+        cy.wait(300);
+      }
+    });
+
+    // 2. Form input fields (Kategori, Point, Deskripsi, Apresiasi)
+    cy.get('[role="dialog"]').within(() => {
+      cy.get('input[name="category"], input[placeholder*="Kategori"]').first().clear({ force: true }).type(kategori, { force: true });
+      cy.wait(200);
+      cy.get('input[name="point"], input[name="poin"], input[type="number"]').first().clear({ force: true }).type(poin, { force: true });
+      cy.wait(200);
+      cy.get('input[name="description"], textarea[name="description"]').first().clear({ force: true }).type(deskripsi, { force: true });
+      cy.wait(200);
+      cy.get('input[name="appreciation"], input[name="apresiasi"], textarea[name="appreciation"], textarea').last().clear({ force: true }).type(apresiasi, { force: true });
+      cy.wait(200);
+
+      if (data.foto) {
+        cy.get('input[type="file"]').first().selectFile(data.foto, { force: true });
+        cy.wait(3000);
+      }
+
+      cy.contains('button[type="submit"], button', /simpan/i).click({ force: true });
+    });
+
+    cy.wait(1500);
+    cy.get('[role="dialog"]', { timeout: 15000 }).should('not.exist');
+    cy.wait(800);
+  }
+
+  verifyPrestasiHeaderPoin() {
+    cy.get('body', { timeout: 15000 }).should(($body) => {
+      const text = $body.text();
+      const hasHeaderPoin = text.includes('Poin Prestasi Terkumpul') || text.includes('Poin Prestasi') || text.includes('Prestasi Terkumpul') || text.includes('Total Poin');
+      expect(hasHeaderPoin, 'Header Poin Prestasi Terkumpul harus muncul di tab Prestasi').to.be.true;
+    });
+  }
+
+  verifyPrestasiTableColumns() {
+    cy.get('thead th, thead tr', { timeout: 15000 }).should('exist');
+    cy.get('body').then(($body) => {
+      const text = $body.text();
+      const hasColumns = text.includes('Tanggal') || text.includes('Kategori') || text.includes('Deskripsi') || text.includes('Apresiasi') || text.includes('Poin') || text.includes('Aksi');
+      expect(hasColumns, 'Tabel Prestasi harus memuat kolom: Tanggal Kejadian, Kategori Prestasi, Deskripsi, Apresiasi, Poin, Foto, Dibuat Oleh, Aksi').to.be.true;
+    });
+  }
 
   verifyPelanggaranHeaderPoin() {
     cy.get('body', { timeout: 15000 }).should(($body) => {
@@ -419,7 +512,6 @@ class StudentDetailPage {
 }
 
 export default new StudentDetailPage();
-
 
 
 
