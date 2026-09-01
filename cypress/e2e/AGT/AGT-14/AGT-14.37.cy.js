@@ -1,41 +1,33 @@
-﻿import StudentDetailPage from '../../../pages/StudentDetailPage';
-import testData from '../../../fixtures/studentData.json';
+import StudentDetailPage from '../../../pages/StudentDetailPage';
 
-const data = testData.prestasiData;
-const card = () => cy.get('[data-slot="card"]', { timeout: 15000 }).filter((i, el) => /prestasi/i.test(el.innerText || '')).first();
-const openPrestasi = () => {
-  StudentDetailPage.navigateToFirstStudentDetail();
-  StudentDetailPage.clickPrestasiTab();
-  card().scrollIntoView({ offset: { top: -120, left: 0 } }).should('be.visible');
-};
-const realRows = () => card().find('tbody tr').then(($rows) => Array.from($rows).filter((row) => {
-  const text = (row.textContent || '').replace(/\s+/g, ' ').trim();
-  return text && !/tidak ditemukan|belum ada|kosong|empty/i.test(text) &&
-    Array.from(row.querySelectorAll('td')).some((td) => (td.textContent || '').trim() && !/^(---|-|â€”)$/.test((td.textContent || '').trim()));
-}));
-const openForm = () => {
-  cy.contains('button, a', /tambah prestasi/i, { timeout: 15000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
-  cy.get('[role="dialog"], [data-slot="dialog-content"]', { timeout: 10000 }).should('be.visible');
-};
-const fillPrestasi = (overrides = {}) => {
-  const value = { ...data, ...overrides };
-  cy.get('[role="dialog"]').within(() => {
-    cy.get('button[name="date"], button[data-slot="form-control"], button[data-slot="popover-trigger"], button:contains("Tanggal")').first().click({ force: true });
+describe('AGT-14.37 - Ubah filter/search saat ada data terpilih', () => {
+  beforeEach(() => {
+    cy.login();
+    cy.wait(1000);
   });
-  cy.get('table.rdp-month_grid tbody button, [role="gridcell"] button, .rdp-day button, .rdp-day').filter(':visible').first().click({ force: true });
-  cy.get('[role="dialog"]').within(() => {
-    cy.get('input[name="category"], input[placeholder*="Kategori"]').first().clear({ force: true }).type(value.kategori, { force: true });
-    cy.get('input[name="point"], input[name="poin"], input[type="number"]').first().clear({ force: true }).type(value.poin, { force: true });
-    cy.get('input[name="description"], textarea[name="description"], textarea').first().clear({ force: true }).type(value.deskripsi, { force: true });
-    cy.get('input[name="appreciation"], input[name="apresiasi"], textarea[name="appreciation"], textarea').last().clear({ force: true }).type(value.apresiasi, { force: true });
-    cy.contains('button[type="submit"], button', /simpan/i).click({ force: true });
+
+  it('AGT-14.37: Ubah filter/search saat ada data terpilih -> Notifikasi "Pilihan direset karena filter berubah" muncul', () => {
+    StudentDetailPage.navigateToFirstStudentDetail();
+    StudentDetailPage.clickPrestasiTab();
+
+    // 1. Pastikan data prestasi tersedia
+    StudentDetailPage.ensurePrestasiDataExists();
+
+    // 2. Pastikan input search bersih sebelum memilih data
+    cy.get('input[placeholder*="Cari"], input[type="search"]').first().clear({ force: true });
+    cy.wait(500);
+
+    // 3. Centang baris data pertama
+    cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
+    cy.get('tbody tr').first().find('button[role="checkbox"], input[type="checkbox"], [data-slot="checkbox"]').first().click({ force: true });
+    cy.wait(800);
+
+    // 4. Ubah filter / search keyword untuk memicu reset seleksi
+    cy.get('input[placeholder*="Cari"], input[type="search"]').first().type('Prestasi{enter}', { force: true });
+
+    // 5. Verifikasi notifikasi toast Sonner muncul dengan judul "Pilihan direset karena filter berubah"
+    cy.get('[data-sonner-toast], [role="status"], [data-slot="toast"]', { timeout: 15000 })
+      .should('be.visible')
+      .and('contain.text', 'Pilihan direset karena filter berubah');
   });
-};
-
-
-describe('AGT-14.37: Filter mereset selection', () => {
-  beforeEach(() => { cy.login(); cy.wait(1000); });
-
-  it('AGT-14.37: Filter mereset selection', () => { openPrestasi(); cy.get('body').should('exist'); });
 });
-

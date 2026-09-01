@@ -1,41 +1,51 @@
-﻿import StudentDetailPage from '../../../pages/StudentDetailPage';
-import testData from '../../../fixtures/studentData.json';
+import StudentDetailPage from '../../../pages/StudentDetailPage';
 
-const data = testData.prestasiData;
-const card = () => cy.get('[data-slot="card"]', { timeout: 15000 }).filter((i, el) => /prestasi/i.test(el.innerText || '')).first();
-const openPrestasi = () => {
-  StudentDetailPage.navigateToFirstStudentDetail();
-  StudentDetailPage.clickPrestasiTab();
-  card().scrollIntoView({ offset: { top: -120, left: 0 } }).should('be.visible');
-};
-const realRows = () => card().find('tbody tr').then(($rows) => Array.from($rows).filter((row) => {
-  const text = (row.textContent || '').replace(/\s+/g, ' ').trim();
-  return text && !/tidak ditemukan|belum ada|kosong|empty/i.test(text) &&
-    Array.from(row.querySelectorAll('td')).some((td) => (td.textContent || '').trim() && !/^(---|-|â€”)$/.test((td.textContent || '').trim()));
-}));
-const openForm = () => {
-  cy.contains('button, a', /tambah prestasi/i, { timeout: 15000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
-  cy.get('[role="dialog"], [data-slot="dialog-content"]', { timeout: 10000 }).should('be.visible');
-};
-const fillPrestasi = (overrides = {}) => {
-  const value = { ...data, ...overrides };
-  cy.get('[role="dialog"]').within(() => {
-    cy.get('button[name="date"], button[data-slot="form-control"], button[data-slot="popover-trigger"], button:contains("Tanggal")').first().click({ force: true });
+describe('AGT-14.38 - Pindah halaman saat selection dari mode Pilih Semua Hasil Filter', () => {
+  beforeEach(() => {
+    cy.login();
+    cy.wait(1000);
   });
-  cy.get('table.rdp-month_grid tbody button, [role="gridcell"] button, .rdp-day button, .rdp-day').filter(':visible').first().click({ force: true });
-  cy.get('[role="dialog"]').within(() => {
-    cy.get('input[name="category"], input[placeholder*="Kategori"]').first().clear({ force: true }).type(value.kategori, { force: true });
-    cy.get('input[name="point"], input[name="poin"], input[type="number"]').first().clear({ force: true }).type(value.poin, { force: true });
-    cy.get('input[name="description"], textarea[name="description"], textarea').first().clear({ force: true }).type(value.deskripsi, { force: true });
-    cy.get('input[name="appreciation"], input[name="apresiasi"], textarea[name="appreciation"], textarea').last().clear({ force: true }).type(value.apresiasi, { force: true });
-    cy.contains('button[type="submit"], button', /simpan/i).click({ force: true });
+
+  it('AGT-14.38: Centang header -> Klik Pilih semua -> Pindah ke Halaman 2 -> Selection dipertahankan lintas halaman', () => {
+    StudentDetailPage.navigateToFirstStudentDetail();
+    StudentDetailPage.clickPrestasiTab();
+
+    // 1. Pastikan data prestasi tersedia
+    StudentDetailPage.ensurePrestasiDataExists();
+
+    // 2. Centang header checkbox (Select All)
+    cy.scrollTo('top');
+    cy.wait(400);
+    cy.get('thead th button[role="checkbox"], thead [role="checkbox"], thead input[type="checkbox"], thead [data-slot="checkbox"], button[aria-label="Select all"]', { timeout: 15000 })
+      .first()
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .click({ force: true });
+    cy.wait(800);
+
+    // 3. Klik "Pilih semua" di banner/toolbar jika ada
+    cy.get('body').then(($body) => {
+      const btnPilihSemua = $body.find('button:contains("Pilih semua"), a:contains("Pilih semua"), span:contains("Pilih semua")');
+      if (btnPilihSemua.length > 0) {
+        cy.wrap(btnPilihSemua.first()).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
+        cy.wait(800);
+      }
+    });
+
+    // 4. Pindah ke Halaman 2 via pagination
+    cy.get('body').then(($body) => {
+      const btnPage2 = $body.find('[data-slot="data-grid-pagination"] button:contains("2"), nav button:contains("2"), [aria-label="Go to next page"]');
+      if (btnPage2.length > 0) {
+        cy.wrap(btnPage2.first()).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
+        cy.wait(1200);
+
+        // 5. Verifikasi bahwa selection dipertahankan di Halaman 2
+        cy.get('body', { timeout: 10000 }).then(($b2) => {
+          const hasSelection = /terpilih|dipilih|pilih semua/i.test($b2.text()) || $b2.find('[data-slot="card-toolbar"]').length > 0;
+          expect(hasSelection, 'Selection harus tetap aktif di Halaman 2 saat mode Pilih Semua Hasil Filter').to.be.true;
+        });
+      } else {
+        cy.contains(/terpilih|dipilih|pilih semua/i, { timeout: 10000 }).should('be.visible');
+      }
+    });
   });
-};
-
-
-describe('AGT-14.38: Selection lintas halaman', () => {
-  beforeEach(() => { cy.login(); cy.wait(1000); });
-
-  it('AGT-14.38: Selection lintas halaman', () => { openPrestasi(); cy.get('body').should('exist'); });
 });
-

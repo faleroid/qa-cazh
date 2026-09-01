@@ -1,41 +1,41 @@
-﻿import StudentDetailPage from '../../../pages/StudentDetailPage';
-import testData from '../../../fixtures/studentData.json';
+import StudentDetailPage from '../../../pages/StudentDetailPage';
 
-const data = testData.prestasiData;
-const card = () => cy.get('[data-slot="card"]', { timeout: 15000 }).filter((i, el) => /prestasi/i.test(el.innerText || '')).first();
-const openPrestasi = () => {
-  StudentDetailPage.navigateToFirstStudentDetail();
-  StudentDetailPage.clickPrestasiTab();
-  card().scrollIntoView({ offset: { top: -120, left: 0 } }).should('be.visible');
-};
-const realRows = () => card().find('tbody tr').then(($rows) => Array.from($rows).filter((row) => {
-  const text = (row.textContent || '').replace(/\s+/g, ' ').trim();
-  return text && !/tidak ditemukan|belum ada|kosong|empty/i.test(text) &&
-    Array.from(row.querySelectorAll('td')).some((td) => (td.textContent || '').trim() && !/^(---|-|â€”)$/.test((td.textContent || '').trim()));
-}));
-const openForm = () => {
-  cy.contains('button, a', /tambah prestasi/i, { timeout: 15000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
-  cy.get('[role="dialog"], [data-slot="dialog-content"]', { timeout: 10000 }).should('be.visible');
-};
-const fillPrestasi = (overrides = {}) => {
-  const value = { ...data, ...overrides };
-  cy.get('[role="dialog"]').within(() => {
-    cy.get('button[name="date"], button[data-slot="form-control"], button[data-slot="popover-trigger"], button:contains("Tanggal")').first().click({ force: true });
+describe('AGT-14.39 - Pindah halaman saat selection dari centang manual per halaman', () => {
+  beforeEach(() => {
+    cy.login();
+    cy.wait(1000);
   });
-  cy.get('table.rdp-month_grid tbody button, [role="gridcell"] button, .rdp-day button, .rdp-day').filter(':visible').first().click({ force: true });
-  cy.get('[role="dialog"]').within(() => {
-    cy.get('input[name="category"], input[placeholder*="Kategori"]').first().clear({ force: true }).type(value.kategori, { force: true });
-    cy.get('input[name="point"], input[name="poin"], input[type="number"]').first().clear({ force: true }).type(value.poin, { force: true });
-    cy.get('input[name="description"], textarea[name="description"], textarea').first().clear({ force: true }).type(value.deskripsi, { force: true });
-    cy.get('input[name="appreciation"], input[name="apresiasi"], textarea[name="appreciation"], textarea').last().clear({ force: true }).type(value.apresiasi, { force: true });
-    cy.contains('button[type="submit"], button', /simpan/i).click({ force: true });
+
+  it('AGT-14.39: Centang manual data di Halaman 1 -> Pindah ke Halaman 2 -> Selection ter-reset', () => {
+    StudentDetailPage.navigateToFirstStudentDetail();
+    StudentDetailPage.clickPrestasiTab();
+
+    // 1. Pastikan data prestasi tersedia
+    StudentDetailPage.ensurePrestasiDataExists();
+
+    // 2. Centang manual 1 baris data di Halaman 1
+    cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
+    cy.get('tbody tr').first().find('button[role="checkbox"], input[type="checkbox"], [data-slot="checkbox"]').first().click({ force: true });
+    cy.wait(800);
+
+    // Verifikasi status Terpilih aktif di Halaman 1
+    cy.contains(/terpilih|dipilih/i, { timeout: 10000 }).should('be.visible');
+
+    // 3. Pindah ke Halaman 2 via pagination
+    cy.get('body').then(($body) => {
+      const btnPage2 = $body.find('[data-slot="data-grid-pagination"] button:contains("2"), nav button:contains("2"), [aria-label="Go to next page"]');
+      if (btnPage2.length > 0) {
+        cy.wrap(btnPage2.first()).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
+        cy.wait(1200);
+
+        // 4. Verifikasi status seleksi manual di Halaman 2 ter-reset (baris di Halaman 2 tidak tercentang)
+        cy.get('body').then(($b2) => {
+          const isRowCheckedOnPage2 = $b2.find('tbody button[aria-checked="true"], tbody [data-state="checked"]').length > 0;
+          expect(isRowCheckedOnPage2, 'Baris data di Halaman 2 tidak boleh tercentang secara otomatis dari seleksi manual Halaman 1').to.be.false;
+        });
+      } else {
+        cy.log('Hanya ada 1 halaman data pada tabel.');
+      }
+    });
   });
-};
-
-
-describe('AGT-14.39: Selection manual reset saat pindah halaman', () => {
-  beforeEach(() => { cy.login(); cy.wait(1000); });
-
-  it('AGT-14.39: Selection manual reset saat pindah halaman', () => { openPrestasi(); cy.get('body').should('exist'); });
 });
-

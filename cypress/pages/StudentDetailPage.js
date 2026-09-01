@@ -282,51 +282,77 @@ class StudentDetailPage {
     });
   }
 
+  ensurePrestasiDataCount(targetCount = 50) {
+    cy.get('body').then(($body) => {
+      const text = $body.text();
+      // Check current count from pagination text (e.g., "1-10 dari 25" or "dari 50")
+      const match = text.match(/dari\s+(\d+)/i);
+      let currentCount = match ? parseInt(match[1], 10) : 0;
+
+      if (currentCount < targetCount) {
+        const needed = targetCount - currentCount;
+        cy.log(`Data prestasi saat ini: ${currentCount}. Menambahkan ${needed} data prestasi...`);
+        Cypress._.times(needed, (i) => {
+          cy.get('body').then(($b) => {
+            if ($b.find('[role="dialog"]').length > 0) {
+              cy.get('[role="dialog"]', { timeout: 10000 }).should('not.exist');
+            }
+          });
+          this.addSinglePrestasi({
+            kategori: `Prestasi Auto ${currentCount + i + 1}`,
+            poin: '10',
+            deskripsi: `Deskripsi Prestasi Auto ${currentCount + i + 1}`,
+            apresiasi: `Piagam Penghargaan ${currentCount + i + 1}`
+          });
+        });
+      }
+    });
+  }
+
   addSinglePrestasi(data = {}) {
-    const kategori = data.kategori || testData.prestasiData.kategori;
+    const kategori = data.kategori || testData.prestasiData.kategori || 'Juara 1 Lomba';
     const poin = data.poin || testData.prestasiData.poin || '25';
-    const deskripsi = data.deskripsi || testData.prestasiData.deskripsi;
-    const apresiasi = data.apresiasi || testData.prestasiData.apresiasi;
+    const deskripsi = data.deskripsi || testData.prestasiData.deskripsi || 'Prestasi Akademik';
+    const apresiasi = data.apresiasi || testData.prestasiData.apresiasi || 'Piagam';
 
     cy.contains('button, a', /tambah prestasi/i, { timeout: 15000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
-    cy.wait(600);
+    cy.wait(500);
     cy.get('[role="dialog"], [data-slot="dialog-content"]', { timeout: 10000 }).should('be.visible');
 
     // 1. Tanggal Kejadian
     cy.get('[role="dialog"]').within(() => {
       cy.get('button[name="date"], button[data-slot="form-control"], button[data-slot="popover-trigger"], button:contains("Tanggal")').first().click({ force: true });
-      cy.wait(300);
     });
-    cy.get('body').then(($b) => {
-      const dayBtn = $b.find('table.rdp-month_grid tbody button, [role="gridcell"] button, .rdp-day button, .rdp-day').filter(':visible').first();
-      if (dayBtn.length) {
-        cy.wrap(dayBtn).click({ force: true });
-        cy.wait(300);
-      }
-    });
+    cy.get('table.rdp-month_grid tbody button, [role="gridcell"] button, .rdp-day button, .rdp-day, [data-slot="calendar"] button', { timeout: 8000 })
+      .filter(':visible')
+      .first()
+      .click({ force: true });
+    cy.wait(200);
 
     // 2. Form input fields (Kategori, Point, Deskripsi, Apresiasi)
     cy.get('[role="dialog"]').within(() => {
-      cy.get('input[name="category"], input[placeholder*="Kategori"]').first().clear({ force: true }).type(kategori, { force: true });
-      cy.wait(200);
-      cy.get('input[name="point"], input[name="poin"], input[type="number"]').first().clear({ force: true }).type(poin, { force: true });
-      cy.wait(200);
-      cy.get('input[name="description"], textarea[name="description"]').first().clear({ force: true }).type(deskripsi, { force: true });
-      cy.wait(200);
-      cy.get('input[name="appreciation"], input[name="apresiasi"], textarea[name="appreciation"], textarea').last().clear({ force: true }).type(apresiasi, { force: true });
-      cy.wait(200);
+      cy.get('input[name="category"], input[placeholder*="Kategori"]').first().click({ force: true }).clear({ force: true }).type(kategori, { force: true, delay: 0 });
+      cy.get('input[name="point"], input[name="poin"], input[type="number"]').first().click({ force: true }).clear({ force: true }).type(poin, { force: true, delay: 0 });
+      cy.get('input[name="description"], textarea[name="description"], textarea').first().click({ force: true }).clear({ force: true }).type(deskripsi, { force: true, delay: 0 });
+      cy.get('input[name="appreciation"], input[name="apresiasi"], textarea[name="appreciation"]').last().click({ force: true }).clear({ force: true }).type(apresiasi, { force: true, delay: 0 });
 
       if (data.foto) {
         cy.get('input[type="file"]').first().selectFile(data.foto, { force: true });
-        cy.wait(3000);
+        cy.wait(1500);
       }
 
       cy.contains('button[type="submit"], button', /simpan/i).click({ force: true });
     });
 
     cy.wait(1500);
+    cy.get('body').then(($b) => {
+      if ($b.find('[role="dialog"]').length > 0) {
+        cy.contains('button[type="submit"], button', /simpan/i).click({ force: true });
+        cy.wait(1000);
+      }
+    });
     cy.get('[role="dialog"]', { timeout: 15000 }).should('not.exist');
-    cy.wait(800);
+    cy.wait(500);
   }
 
   verifyPrestasiHeaderPoin() {

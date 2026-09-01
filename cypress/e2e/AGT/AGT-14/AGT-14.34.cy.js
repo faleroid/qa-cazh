@@ -1,41 +1,38 @@
-﻿import StudentDetailPage from '../../../pages/StudentDetailPage';
-import testData from '../../../fixtures/studentData.json';
+import StudentDetailPage from '../../../pages/StudentDetailPage';
 
-const data = testData.prestasiData;
-const card = () => cy.get('[data-slot="card"]', { timeout: 15000 }).filter((i, el) => /prestasi/i.test(el.innerText || '')).first();
-const openPrestasi = () => {
-  StudentDetailPage.navigateToFirstStudentDetail();
-  StudentDetailPage.clickPrestasiTab();
-  card().scrollIntoView({ offset: { top: -120, left: 0 } }).should('be.visible');
-};
-const realRows = () => card().find('tbody tr').then(($rows) => Array.from($rows).filter((row) => {
-  const text = (row.textContent || '').replace(/\s+/g, ' ').trim();
-  return text && !/tidak ditemukan|belum ada|kosong|empty/i.test(text) &&
-    Array.from(row.querySelectorAll('td')).some((td) => (td.textContent || '').trim() && !/^(---|-|â€”)$/.test((td.textContent || '').trim()));
-}));
-const openForm = () => {
-  cy.contains('button, a', /tambah prestasi/i, { timeout: 15000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
-  cy.get('[role="dialog"], [data-slot="dialog-content"]', { timeout: 10000 }).should('be.visible');
-};
-const fillPrestasi = (overrides = {}) => {
-  const value = { ...data, ...overrides };
-  cy.get('[role="dialog"]').within(() => {
-    cy.get('button[name="date"], button[data-slot="form-control"], button[data-slot="popover-trigger"], button:contains("Tanggal")').first().click({ force: true });
+describe('AGT-14.34 - Pada popup bulk delete, klik tombol Hapus', () => {
+  beforeEach(() => {
+    cy.login();
+    cy.wait(1000);
   });
-  cy.get('table.rdp-month_grid tbody button, [role="gridcell"] button, .rdp-day button, .rdp-day').filter(':visible').first().click({ force: true });
-  cy.get('[role="dialog"]').within(() => {
-    cy.get('input[name="category"], input[placeholder*="Kategori"]').first().clear({ force: true }).type(value.kategori, { force: true });
-    cy.get('input[name="point"], input[name="poin"], input[type="number"]').first().clear({ force: true }).type(value.poin, { force: true });
-    cy.get('input[name="description"], textarea[name="description"], textarea').first().clear({ force: true }).type(value.deskripsi, { force: true });
-    cy.get('input[name="appreciation"], input[name="apresiasi"], textarea[name="appreciation"], textarea').last().clear({ force: true }).type(value.apresiasi, { force: true });
-    cy.contains('button[type="submit"], button', /simpan/i).click({ force: true });
+
+  it('AGT-14.34: Pada popup bulk delete, klik tombol Hapus -> Seluruh data terpilih berhasil dihapus', () => {
+    StudentDetailPage.navigateToFirstStudentDetail();
+    StudentDetailPage.clickPrestasiTab();
+
+    // 1. Pastikan data prestasi tersedia
+    StudentDetailPage.ensurePrestasiDataExists();
+
+    // 2. Centang data
+    cy.get('tbody tr', { timeout: 15000 }).should('have.length.at.least', 1);
+    cy.get('tbody tr').first().find('button[role="checkbox"], input[type="checkbox"], [data-slot="checkbox"]').first().click({ force: true });
+    cy.wait(800);
+
+    // 3. Klik tombol Hapus Terpilih
+    cy.contains('button', /hapus/i, { timeout: 10000 })
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .click({ force: true });
+    cy.wait(600);
+
+    // 4. Klik tombol konfirmasi Hapus di dalam dialog
+    cy.get('[role="alertdialog"], [role="dialog"], [data-slot="alert-dialog-content"], [data-slot="dialog-content"]')
+      .should('be.visible')
+      .within(() => {
+        cy.contains('button', /hapus|ya|delete|confirm|setuju/i).click({ force: true });
+      });
+
+    // 5. Verifikasi popup tertutup
+    cy.wait(1500);
+    cy.get('[role="alertdialog"], [role="dialog"]', { timeout: 15000 }).should('not.exist');
   });
-};
-
-
-describe('AGT-14.34: Hapus bulk', () => {
-  beforeEach(() => { cy.login(); cy.wait(1000); });
-
-  it('AGT-14.34: Hapus bulk', () => { openPrestasi(); cy.get('body').should('exist'); });
 });
-

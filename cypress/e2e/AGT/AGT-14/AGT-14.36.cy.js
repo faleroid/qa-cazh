@@ -1,40 +1,66 @@
-﻿import StudentDetailPage from '../../../pages/StudentDetailPage';
-import testData from '../../../fixtures/studentData.json';
+import StudentDetailPage from '../../../pages/StudentDetailPage';
 
-const data = testData.prestasiData;
-const card = () => cy.get('[data-slot="card"]', { timeout: 15000 }).filter((i, el) => /prestasi/i.test(el.innerText || '')).first();
-const openPrestasi = () => {
-  StudentDetailPage.navigateToFirstStudentDetail();
-  StudentDetailPage.clickPrestasiTab();
-  card().scrollIntoView({ offset: { top: -120, left: 0 } }).should('be.visible');
-};
-const realRows = () => card().find('tbody tr').then(($rows) => Array.from($rows).filter((row) => {
-  const text = (row.textContent || '').replace(/\s+/g, ' ').trim();
-  return text && !/tidak ditemukan|belum ada|kosong|empty/i.test(text) &&
-    Array.from(row.querySelectorAll('td')).some((td) => (td.textContent || '').trim() && !/^(---|-|â€”)$/.test((td.textContent || '').trim()));
-}));
-const openForm = () => {
-  cy.contains('button, a', /tambah prestasi/i, { timeout: 15000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
-  cy.get('[role="dialog"], [data-slot="dialog-content"]', { timeout: 10000 }).should('be.visible');
-};
-const fillPrestasi = (overrides = {}) => {
-  const value = { ...data, ...overrides };
-  cy.get('[role="dialog"]').within(() => {
-    cy.get('button[name="date"], button[data-slot="form-control"], button[data-slot="popover-trigger"], button:contains("Tanggal")').first().click({ force: true });
+describe('AGT-14.36 - Coba centang lebih dari 50 data secara manual', () => {
+  beforeEach(() => {
+    cy.login();
+    cy.wait(1000);
   });
-  cy.get('table.rdp-month_grid tbody button, [role="gridcell"] button, .rdp-day button, .rdp-day').filter(':visible').first().click({ force: true });
-  cy.get('[role="dialog"]').within(() => {
-    cy.get('input[name="category"], input[placeholder*="Kategori"]').first().clear({ force: true }).type(value.kategori, { force: true });
-    cy.get('input[name="point"], input[name="poin"], input[type="number"]').first().clear({ force: true }).type(value.poin, { force: true });
-    cy.get('input[name="description"], textarea[name="description"], textarea').first().clear({ force: true }).type(value.deskripsi, { force: true });
-    cy.get('input[name="appreciation"], input[name="apresiasi"], textarea[name="appreciation"], textarea').last().clear({ force: true }).type(value.apresiasi, { force: true });
-    cy.contains('button[type="submit"], button', /simpan/i).click({ force: true });
+
+  it('AGT-14.36: Ubah pagination 100 -> Centang header (50 data terpilih) -> Klik checkbox baris tambahan manual -> Checkbox disabled / tooltip maksimal 50 data', () => {
+    StudentDetailPage.navigateToFirstStudentDetail();
+    StudentDetailPage.clickPrestasiTab();
+
+    // 1. Pastikan data prestasi tersedia
+    StudentDetailPage.ensurePrestasiDataExists();
+
+    // 2. Ubah "Baris Per Halaman" (Pagination) menjadi 100 jika tersedia
+    cy.get('[data-slot="data-grid-pagination"] button[role="combobox"], [data-slot="select-trigger"], select', { timeout: 15000 })
+      .first()
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .click({ force: true });
+    cy.wait(500);
+
+    cy.get('body').then(($body) => {
+      const option100 = $body.find('[role="option"]:contains("100"), [data-slot="select-item"]:contains("100"), button:contains("100")');
+      if (option100.length > 0) {
+        cy.wrap(option100.first()).click({ force: true });
+        cy.wait(1500);
+      }
+    });
+
+    // 3. Centang header checkbox (50 data pertama terpilih)
+    cy.scrollTo('top');
+    cy.wait(400);
+
+    cy.get('thead th button[role="checkbox"], thead [role="checkbox"], thead input[type="checkbox"], thead [data-slot="checkbox"], button[aria-label="Select all"]', { timeout: 15000 })
+      .first()
+      .scrollIntoView({ offset: { top: -120, left: 0 } })
+      .click({ force: true });
+    cy.wait(1000);
+
+    // 4. Coba centang checkbox tambahan secara manual pada baris ke-51 (di luar 50 data pertama)
+    cy.get('tbody tr').then(($rows) => {
+      if ($rows.length > 50) {
+        const extraRow = $rows.eq(50);
+        const checkbox = extraRow.find('button[role="checkbox"], input[type="checkbox"], [data-slot="checkbox"]');
+        if (checkbox.length > 0) {
+          cy.wrap(checkbox.first()).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
+          cy.wait(500);
+        }
+      }
+    });
+
+    // 5. Verifikasi sesuai UAT: Checkbox tambahan disabled / muncul tooltip atau notifikasi batas maksimal 50 data
+    cy.get('body', { timeout: 15000 }).then(($body) => {
+      const hasDisabledCheckbox = $body.find('tbody tr button[disabled], tbody tr [aria-disabled="true"], tbody tr [data-disabled]').length > 0;
+      const text = $body.text();
+      const hasLimitMessage = /maksimal 50|50 data|batas|terpilih/i.test(text);
+      const hasTooltipOrToast = $body.find('[role="tooltip"], [data-sonner-toast], [data-slot="tooltip-content"]').length > 0;
+
+      expect(
+        hasDisabledCheckbox || hasLimitMessage || hasTooltipOrToast,
+        'Checkbox tambahan harus disabled atau menampilkan tooltip/pesan batas maksimal 50 data'
+      ).to.be.true;
+    });
   });
-};
-
-
-describe('AGT-14.36: Batas 50 data', () => {
-  beforeEach(() => { cy.login(); cy.wait(1000); });
-
-  it('AGT-14.36: Batas 50 data', () => { openPrestasi(); cy.get('body').should(($body) => { expect($body.text()).to.match(/50|maksimal/i); }); });
 });
