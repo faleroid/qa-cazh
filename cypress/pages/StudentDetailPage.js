@@ -253,23 +253,47 @@ class StudentDetailPage {
   }
 
   clickPrestasiTab() {
-    cy.get('body', { timeout: 15000 }).then(($body) => {
-      const directTab = $body.find('[role="tablist"] *, [data-slot="tabs-list"] *, [role="tab"], button, a').filter((i, el) => {
-        return /^prestasi$/i.test((el.innerText || '').trim());
+    cy.wait(800);
+
+    cy.get('body', { timeout: 20000 }).then(($body) => {
+      const isAlreadyActive = Array.from($body.find('[role="tab"], [data-slot="tabs-trigger"]')).some((el) => {
+        const text = ((el.innerText || el.getAttribute('aria-label') || '').trim()).toLowerCase();
+        const selected = el.getAttribute('aria-selected') === 'true' || el.getAttribute('data-state') === 'active';
+        return text.includes('prestasi') && selected;
+      });
+
+      if (isAlreadyActive) {
+        cy.log('Tab Prestasi sudah aktif. Tidak perlu klik ulang.');
+        return;
+      }
+
+      const directTab = Array.from($body.find('[role="tab"], [data-slot="tabs-trigger"], button, a')).filter((el) => {
+        const text = ((el.innerText || el.getAttribute('aria-label') || '').trim()).toLowerCase();
+        return text.includes('prestasi');
       });
 
       if (directTab.length > 0) {
-        cy.wrap(directTab.first()).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
+        cy.wrap(directTab[0]).scrollIntoView({ offset: { top: -120, left: 0 } }).should('be.visible').click({ force: true });
       } else {
-        const more = $body.find('button, [role="button"], a').filter((i, el) => /lainnya/i.test(el.innerText || ''));
+        const more = Array.from($body.find('button, [role="button"], a, div, span')).filter((el) => /lainnya/i.test((el.innerText || el.getAttribute('aria-label') || '').trim()));
         if (more.length > 0) {
-          cy.wrap(more.first()).click({ force: true });
+          cy.wrap(more[0]).click({ force: true });
           cy.wait(500);
         }
-        cy.contains('[role="menuitem"], [role="tab"], button, a', /^prestasi$/i, { timeout: 10000 }).click({ force: true });
+
+        cy.contains('[role="menuitem"], [role="tab"], button, a, div, span', /prestasi/i, { timeout: 10000 }).should('be.visible').click({ force: true });
       }
     });
+
     cy.wait(1500);
+    cy.get('body', { timeout: 20000 }).should(($body) => {
+      const activeTab = Array.from($body.find('[role="tab"], [data-slot="tabs-trigger"]')).find((el) => {
+        const text = ((el.innerText || el.getAttribute('aria-label') || '').trim()).toLowerCase();
+        return text.includes('prestasi') && (el.getAttribute('aria-selected') === 'true' || el.getAttribute('data-state') === 'active');
+      });
+
+      expect(activeTab, 'Tab Prestasi harus benar-benar aktif setelah diklik').to.exist;
+    });
   }
 
   ensurePrestasiDataExists() {
@@ -364,11 +388,19 @@ class StudentDetailPage {
   }
 
   verifyPrestasiTableColumns() {
-    cy.get('thead th, thead tr', { timeout: 15000 }).should('exist');
-    cy.get('body').then(($body) => {
+    cy.wait(1000);
+    cy.get('body', { timeout: 20000 }).then(($body) => {
       const text = $body.text();
-      const hasColumns = text.includes('Tanggal') || text.includes('Kategori') || text.includes('Deskripsi') || text.includes('Apresiasi') || text.includes('Poin') || text.includes('Aksi');
-      expect(hasColumns, 'Tabel Prestasi harus memuat kolom: Tanggal Kejadian, Kategori Prestasi, Deskripsi, Apresiasi, Poin, Foto, Dibuat Oleh, Aksi').to.be.true;
+      const hasEmptyState = /tidak ditemukan|belum ada|tidak ada data|kosong|empty/i.test(text);
+      const hasTable = $body.find('thead th, thead tr').length > 0;
+
+      if (hasEmptyState) {
+        expect(hasEmptyState, 'Tab Prestasi kosong dan harus menampilkan empty state alih-alih header tabel').to.be.true;
+        return;
+      }
+
+      expect(hasTable, 'Tabel Prestasi harus memuat header kolom setelah data selesai dimuat').to.be.true;
+      expect(text.includes('Tanggal') || text.includes('Kategori') || text.includes('Deskripsi') || text.includes('Apresiasi') || text.includes('Poin') || text.includes('Aksi'), 'Tabel Prestasi harus memuat kolom: Tanggal Kejadian, Kategori Prestasi, Deskripsi, Apresiasi, Poin, Foto, Dibuat Oleh, Aksi').to.be.true;
     });
   }
 

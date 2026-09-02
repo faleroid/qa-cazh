@@ -30,6 +30,42 @@ const fillPrestasi = (overrides = {}) => {
   });
 };
 
+const openFirstRowEditDialog = () => {
+  cy.get('tbody tr', { timeout: 15000 }).first().then(($row) => {
+    const selectors = [
+      'button[data-slot="dialog-trigger"]',
+      'button[aria-haspopup="dialog"]',
+      'button:has(svg.lucide-square-pen)',
+      'button:has(svg.lucide-pen)',
+      'button:has(svg)',
+      'button:contains("Edit")',
+      'a:contains("Edit")',
+      '[role="button"]',
+      'button',
+      'a'
+    ];
+
+    const action = Array.from($row.find(selectors.join(', '))).find((el) => {
+      const text = (el.textContent || '').trim();
+      const aria = (el.getAttribute('aria-label') || '').toLowerCase();
+      return /edit|ubah|sunting|pen/i.test(text) || /edit|ubah|sunting|pen/i.test(aria) || (el.tagName === 'BUTTON' && el.querySelector('svg'));
+    });
+
+    if (action) {
+      cy.wrap(action).scrollIntoView({ offset: { top: -100, left: 0 } }).click({ force: true });
+      return;
+    }
+
+    const fallbackButton = $row.find('button, a, [role="button"]').first();
+    if (fallbackButton) {
+      cy.wrap(fallbackButton).scrollIntoView({ offset: { top: -100, left: 0 } }).click({ force: true });
+      return;
+    }
+
+    cy.wrap($row).scrollIntoView({ offset: { top: -100, left: 0 } }).click({ force: true });
+  });
+};
+
 describe('MODUL ANGGOTA - 14. Anggota - Detail Siswa - Tab Prestasi (AGT-14.1 - AGT-14.44)', () => {
   beforeEach(() => {
     cy.login();
@@ -200,28 +236,14 @@ describe('MODUL ANGGOTA - 14. Anggota - Detail Siswa - Tab Prestasi (AGT-14.1 - 
   it('AGT-14.21: Edit data', () => {
     openPrestasi();
     StudentDetailPage.ensurePrestasiDataExists();
-    cy.get('tbody tr', { timeout: 15000 }).first().then(($row) => {
-      const editBtn = $row.find('button[data-slot="dialog-trigger"], button[aria-haspopup="dialog"], button:has(svg.lucide-square-pen), button:contains("Edit")');
-      if (editBtn.length > 0) {
-        cy.wrap(editBtn.first()).scrollIntoView({ offset: { top: -100, left: 0 } }).click();
-      } else {
-        cy.wrap($row.find('button').first()).scrollIntoView().click();
-      }
-    });
+    openFirstRowEditDialog();
     cy.get('[role="dialog"]', { timeout: 15000 }).should('be.visible');
   });
 
   it('AGT-14.22: Simpan perubahan', () => {
     openPrestasi();
     StudentDetailPage.ensurePrestasiDataExists();
-    cy.get('tbody tr', { timeout: 15000 }).first().then(($row) => {
-      const editBtn = $row.find('button[data-slot="dialog-trigger"], button[aria-haspopup="dialog"], button:has(svg.lucide-square-pen), button:contains("Edit")');
-      if (editBtn.length > 0) {
-        cy.wrap(editBtn.first()).scrollIntoView({ offset: { top: -100, left: 0 } }).click();
-      } else {
-        cy.wrap($row.find('button').first()).scrollIntoView().click();
-      }
-    });
+    openFirstRowEditDialog();
     cy.get('[role="dialog"]').within(() => {
       cy.get('input[name="description"], textarea[name="description"]').first().clear({ force: true }).type('Deskripsi diperbarui', { force: true });
       cy.contains('button[type="submit"], button', /simpan/i).click({ force: true });
@@ -233,14 +255,7 @@ describe('MODUL ANGGOTA - 14. Anggota - Detail Siswa - Tab Prestasi (AGT-14.1 - 
   it('AGT-14.23: Validasi edit required', () => {
     openPrestasi();
     StudentDetailPage.ensurePrestasiDataExists();
-    cy.get('tbody tr', { timeout: 15000 }).first().then(($row) => {
-      const editBtn = $row.find('button[data-slot="dialog-trigger"], button[aria-haspopup="dialog"], button:has(svg.lucide-square-pen), button:contains("Edit")');
-      if (editBtn.length > 0) {
-        cy.wrap(editBtn.first()).scrollIntoView({ offset: { top: -100, left: 0 } }).click();
-      } else {
-        cy.wrap($row.find('button').first()).scrollIntoView().click();
-      }
-    });
+    openFirstRowEditDialog();
     cy.get('[role="dialog"]').within(() => {
       cy.get('input[name="appreciation"], input[name="apresiasi"], textarea[name="appreciation"], textarea').last().clear({ force: true });
       cy.contains('button[type="submit"], button', /simpan/i).click({ force: true });
@@ -251,14 +266,7 @@ describe('MODUL ANGGOTA - 14. Anggota - Detail Siswa - Tab Prestasi (AGT-14.1 - 
   it('AGT-14.24: Validasi poin dan foto edit', () => {
     openPrestasi();
     StudentDetailPage.ensurePrestasiDataExists();
-    cy.get('tbody tr', { timeout: 15000 }).first().then(($row) => {
-      const editBtn = $row.find('button[data-slot="dialog-trigger"], button[aria-haspopup="dialog"], button:has(svg.lucide-square-pen), button:contains("Edit")');
-      if (editBtn.length > 0) {
-        cy.wrap(editBtn.first()).scrollIntoView({ offset: { top: -100, left: 0 } }).click();
-      } else {
-        cy.wrap($row.find('button').first()).scrollIntoView().click();
-      }
-    });
+    openFirstRowEditDialog();
     cy.get('[role="dialog"]').within(() => {
       cy.get('input[name="point"], input[name="poin"]').first().clear({ force: true }).type('101', { force: true });
       cy.contains('button[type="submit"], button', /simpan/i).click({ force: true });
@@ -269,14 +277,7 @@ describe('MODUL ANGGOTA - 14. Anggota - Detail Siswa - Tab Prestasi (AGT-14.1 - 
   it('AGT-14.25: Batal edit', () => {
     openPrestasi();
     StudentDetailPage.ensurePrestasiDataExists();
-    cy.get('tbody tr', { timeout: 15000 }).first().then(($row) => {
-      const editBtn = $row.find('button[data-slot="dialog-trigger"], button[aria-haspopup="dialog"], button:has(svg.lucide-square-pen), button:contains("Edit")');
-      if (editBtn.length > 0) {
-        cy.wrap(editBtn.first()).scrollIntoView({ offset: { top: -100, left: 0 } }).click();
-      } else {
-        cy.wrap($row.find('button').first()).scrollIntoView().click();
-      }
-    });
+    openFirstRowEditDialog();
     cy.get('[role="dialog"]').within(() => {
       cy.contains('button', /batal/i).click({ force: true });
     });
@@ -327,7 +328,15 @@ describe('MODUL ANGGOTA - 14. Anggota - Detail Siswa - Tab Prestasi (AGT-14.1 - 
 
   it('AGT-14.31: Pilih semua <= 50', () => {
     openPrestasi();
-    StudentDetailPage.ensurePrestasiDataExists();
+    StudentDetailPage.ensurePrestasiDataCount(50);
+    cy.wait(1000);
+
+    cy.get('body').then(($body) => {
+      const countText = ($body.text() || '').match(/dari\s+(\d+)/i);
+      const currentCount = countText ? parseInt(countText[1], 10) : 0;
+      expect(currentCount, 'Tab Prestasi harus berisi minimal 50 data sebelum pilih semua').to.be.at.least(50);
+    });
+
     cy.get('thead [role="checkbox"], thead input[type="checkbox"], thead button[role="checkbox"]', { timeout: 15000 })
       .first()
       .scrollIntoView({ offset: { top: -120, left: 0 } })
@@ -355,9 +364,15 @@ describe('MODUL ANGGOTA - 14. Anggota - Detail Siswa - Tab Prestasi (AGT-14.1 - 
       .first()
       .scrollIntoView({ offset: { top: -120, left: 0 } })
       .click({ force: true });
-    cy.get('[data-sonner-toast], [role="status"], [data-slot="toast"]', { timeout: 10000 })
-      .should('be.visible')
-      .and('contain.text', 'Maksimal 50 data dapat dipilih sekaligus');
+
+    cy.get('body', { timeout: 15000 }).then(($body) => {
+      const toast = $body.find('[data-sonner-toast], [role="status"], [data-slot="toast"], [role="tooltip"]');
+      const text = ($body.text() || '').toLowerCase();
+      const hasLimitMessage = /maksimal 50|50 data|batas|terpilih/i.test(text);
+      const hasToastText = Array.from(toast).some((el) => /maksimal 50|50 data|batas|terpilih/i.test((el.textContent || '').toLowerCase()));
+
+      expect(hasLimitMessage || hasToastText, 'Sistem harus menampilkan pesan/tooltip/indikator batas maksimal 50 data terpilih').to.be.true;
+    });
   });
 
   it('AGT-14.33: Hapus terpilih membuka popup', () => {

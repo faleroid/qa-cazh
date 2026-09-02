@@ -2,17 +2,25 @@
 import testData from '../../../fixtures/studentData.json';
 
 const data = testData.prestasiData;
-const card = () => cy.get('[data-slot="card"]', { timeout: 15000 }).filter((i, el) => /prestasi/i.test(el.innerText || '')).first();
 const openPrestasi = () => {
   StudentDetailPage.navigateToFirstStudentDetail();
+  cy.wait(1500);
   StudentDetailPage.clickPrestasiTab();
-  card().scrollIntoView({ offset: { top: -120, left: 0 } }).should('be.visible');
+  cy.wait(1500);
+
+  cy.get('body', { timeout: 20000 }).should(($body) => {
+    const root = $body[0];
+    const text = ($body.text && $body.text()) || '';
+    const activePrestasiTab = root ? Array.from(root.querySelectorAll('[role="tab"], [data-slot="tabs-trigger"], button, a')).some((el) => {
+      const label = ((el.innerText || el.getAttribute('aria-label') || '').trim()).toLowerCase();
+      const selected = el.getAttribute('aria-selected') === 'true' || el.getAttribute('data-state') === 'active';
+      return label.includes('prestasi') && selected;
+    }) : false;
+    const hasPrestasiCard = root ? Array.from(root.querySelectorAll('[data-slot="card"]')).some((el) => /prestasi/i.test(el.innerText || '')) : false;
+
+    expect(activePrestasiTab || (hasPrestasiCard && /prestasi/i.test(text)), 'Tab Prestasi harus benar-benar aktif setelah diklik, bukan hanya teks "Prestasi" yang muncul di halaman').to.be.true;
+  });
 };
-const realRows = () => card().find('tbody tr').then(($rows) => Array.from($rows).filter((row) => {
-  const text = (row.textContent || '').replace(/\s+/g, ' ').trim();
-  return text && !/tidak ditemukan|belum ada|kosong|empty/i.test(text) &&
-    Array.from(row.querySelectorAll('td')).some((td) => (td.textContent || '').trim() && !/^(---|-|â€”)$/.test((td.textContent || '').trim()));
-}));
 const openForm = () => {
   cy.contains('button, a', /tambah prestasi/i, { timeout: 15000 }).scrollIntoView({ offset: { top: -120, left: 0 } }).click({ force: true });
   cy.get('[role="dialog"], [data-slot="dialog-content"]', { timeout: 10000 }).should('be.visible');
