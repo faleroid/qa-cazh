@@ -28,7 +28,9 @@ qa-cazh/
 │   │   │   ├── AGT-11/                      # Modular test cases AGT-11.1 s/d AGT-11.39
 │   │   │   ├── AGT-11_detail_siswa_progres.cy.js # Full Combined Suite AGT-11 (Detail Siswa - Tab Progres)
 │   │   │   ├── AGT-13/                      # Modular test cases AGT-13.1 s/d AGT-13.34
-│   │   │   └── AGT-13_detail_siswa_pelanggaran.cy.js # Full Combined Suite AGT-13 (Detail Siswa - Tab Pelanggaran)
+│   │   │   ├── AGT-13_detail_siswa_pelanggaran.cy.js # Full Combined Suite AGT-13 (Detail Siswa - Tab Pelanggaran)
+│   │   │   ├── AGT-15/                      # Modular test cases AGT-15.1 s/d AGT-15.20
+│   │   │   └── AGT-15_detail_ppdb_landingpage.cy.js # Full Combined Suite AGT-15 (Landingpage SPMB Public)
 │   │   ├── DSH/                             # Modul Dashboard
 │   │   │   ├── DSH-1/                       # Modular test cases DSH-1.01 s/d DSH-1.49
 │   │   │   └── DSH-1_dashboard.cy.js        # Full Combined Suite DSH-1
@@ -140,4 +142,3 @@ npx cypress run --spec "cypress/e2e/AGT/AGT-13/AGT-13.34.cy.js"
 # Menjalankan seluruh test suite Kesiswaan Progres Kegiatan
 npx cypress run --spec "cypress/e2e/KSW/KSW-1_progres_kegiatan.cy.js"
 ```
-

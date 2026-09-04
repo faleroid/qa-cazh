@@ -1,0 +1,16 @@
+{
+  "partnerUrl": "https://v3.cazh.id/spmb",
+  "institutionCode": "yayasan-new-school",
+  "instancePath": "/spmb/yayasan-new-school",
+  "registrationPath": "/spmb/yayasan-new-school/registration",
+  "availableQuota": "1",
+  "labels": {
+    "apply": "Daftar Sekarang|Apply Now",
+    "home": "Beranda|Home",
+    "schedule": "Jadwal|Schedule",
+    "fees": "Biaya|Fees",
+    "requirements": "Persyaratan|Requirements",
+    "information": "Informasi|Information",
+    "admissionProcess": "Alur Pendaftaran|Admission Process"
+  }
+}
