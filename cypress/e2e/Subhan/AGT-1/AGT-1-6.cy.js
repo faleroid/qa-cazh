@@ -29,7 +29,7 @@ describe('Anggota - Siswa ', () => {
 
 
     cy.get('[role="listbox"]')
-      .contains('100')
+      .contains('50')
       .click()
 
 

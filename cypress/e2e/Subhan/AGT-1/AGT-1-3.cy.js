@@ -27,7 +27,7 @@ describe('Anggota - Siswa ', () => {
       .should('eq', 200)
     cy.get('[role="combobox"]').eq(0).click()
     cy.get('[role="listbox"]')
-      .contains('100')
+      .contains('50')
       .click()
     //tidak urut
     cy.wait(1000)

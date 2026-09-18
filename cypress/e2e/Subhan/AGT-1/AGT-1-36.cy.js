@@ -46,7 +46,7 @@ describe('Anggota - Siswa - Edit Profil Siswa', () => {
     cy.wait(1000)
     cy.get('[role="combobox"]').eq(0).click()
     cy.get('[role="listbox"]')
-      .contains('100')
+      .contains('50')
       .click()
     cy.wait(3000)
     cy.get('[href="/member/student/add"]').click();

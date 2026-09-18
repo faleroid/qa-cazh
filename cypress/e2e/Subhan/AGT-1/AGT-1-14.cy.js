@@ -39,7 +39,7 @@ describe('Anggota - Siswa ', () => {
     cy.wait(2500)
     cy.get('[role="combobox"]').eq(0).click()
     cy.get('[role="listbox"]')
-      .contains('100')
+      .contains('50')
       .click()
 
     cy.wait(2500)
