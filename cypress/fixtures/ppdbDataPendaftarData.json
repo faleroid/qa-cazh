@@ -1,0 +1,21 @@
+{
+  "url": "member/admission/registrant",
+  "pageTitle": "Data Pendaftar",
+  "pageSubtitle": "Kelola Data Pendaftar PPDB",
+  "instansiName": "Academy Cazh",
+  "columns": [
+    "No Pendaftar",
+    "Status",
+    "Pembayaran",
+    "Menyelesaikan Pendaftaran",
+    "Metode Bayar",
+    "Nama",
+    "Alamat",
+    "Instansi",
+    "Tahun Ajaran",
+    "Jurusan",
+    "Jalur Penerimaan",
+    "Kelas",
+    "Aksi"
+  ]
+}
